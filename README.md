@@ -19,8 +19,7 @@ $ git clone git@github.com:hhool/anxi.git --recursive
 
 ```bash
 $ cd anxi
-$ mkdir build && cd build
-$ cmake ..
+$ cmake . -B out -G "Visual Studio 14 2015" -A Win32
 $ cmake --build .
 ```
 
