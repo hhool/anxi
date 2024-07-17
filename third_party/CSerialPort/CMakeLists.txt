@@ -7,7 +7,7 @@
 
 cmake_minimum_required(VERSION 3.0)
 
-option(USE_UNICODE "Use unicode" ON)
-option(USE_SHARED "Use shared library" ON)
+set(USE_UNICODE "Use unicode" ON)
+set(USE_SHARED "Use shared library" ON)
 
 add_subdirectory(source)

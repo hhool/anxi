@@ -22,7 +22,13 @@ if (NOT CMAKE_BUILD_TYPE)
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
+# set product name
+set(PRODUCT_NAME anxi CACHE STRING "anxi")
+set(PRODUCT_VERSION 1.0.0 CACHE STRING "anxi version")
+
+# options
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
+option(USE_UNICODE "Use unicode" ON)
 option(ANXI_BUILD_EXAMPLES "Build anxi examples" ON)
 option(ANXI_BUILD_DOC "Build anxi Doc" OFF)
 option(ANXI_BUILD_TEST "Build anxi Test" OFF)
@@ -34,6 +40,12 @@ if (NOT CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     set(ANXI_BUILD_TEST OFF)
 endif()
 
+# anxi UNICODE define for windows platform
+if(WIN32)
+    if(USE_UNICODE)
+        add_definitions(-DUNICODE -D_UNICODE)
+    endif()
+endif()
 message(STATUS "anxi CMake Info")
 message(STATUS "=======================================================")
 message(STATUS "    Operation System :  ${CMAKE_SYSTEM}")
