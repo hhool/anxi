@@ -9,14 +9,15 @@
  *
  */
 
-#ifndef ANXI_APP_UI_MAIN_WINDOW_H_
-#define ANXI_APP_UI_MAIN_WINDOW_H_
+#ifndef APP_UI_MAIN_WINDOW_H_
+#define APP_UI_MAIN_WINDOW_H_
 
 #include <memory>
 #include <string>
 
 #include "third_party\duilib\source\DuiLib\UIlib.h"
 
+// for DUI_DECLARE_MESSAGE_MAP
 using namespace DuiLib;
 
 namespace anx {
@@ -26,14 +27,6 @@ class MainWindow : public DuiLib::WindowImplBase {
  public:
   MainWindow();
   ~MainWindow() override;
-
-  void Show();
-  void Hide();
-  void Close();
-
-  void SetTitle(const std::string& title);
-  void SetSize(int width, int height);
-  void SetPosition(int x, int y);
 
  public:
   // impliment the pure virtual function of DuiLib::WindowImplBase
@@ -49,25 +42,25 @@ class MainWindow : public DuiLib::WindowImplBase {
   DuiLib::CDuiString GetSkinFile() override;
   DuiLib::UILIB_RESOURCETYPE GetResourceType() const override;
   LPCTSTR GetWindowClassName(void) const override;
-
   LRESULT OnSysCommand(UINT uMsg,
                        WPARAM wParam,
                        LPARAM lParam,
                        BOOL& bHandled) override;
 
  protected:
-  void OnPrepare(DuiLib::TNotifyUI& msg);
-  void OnExit(DuiLib::TNotifyUI& msg);
-  void OnTimer(DuiLib::TNotifyUI& msg);
+  void OnPrepare(const DuiLib::TNotifyUI& msg);
+  void OnExit(const DuiLib::TNotifyUI& msg);
+  void OnTimer(const DuiLib::TNotifyUI& msg);
+
+ protected:
+  void Switch_Axially_Symmetrical();
+  void Switch_Stresses_Adjustable();
+  void Switch_3point_Bending();
+  void Switch_Vibration_Bending();
 
  private:
-  std::string title_;
-  int width_;
-  int height_;
-  int x_;
-  int y_;
 };
 }  // namespace ui
 }  // namespace anx
 
-#endif  // ANXI_APP_UI_MAIN_WINDOW_H_
+#endif  // APP_UI_MAIN_WINDOW_H_

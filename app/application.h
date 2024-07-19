@@ -9,8 +9,8 @@
  *
  */
 
-#ifndef ANXI_APP_APPLICATION_H_
-#define ANXI_APP_APPLICATION_H_
+#ifndef APP_APPLICATION_H_
+#define APP_APPLICATION_H_
 
 #include <memory>
 #include <string>
@@ -26,16 +26,16 @@ namespace app {
 class AppInterface;
 class Application : public AppInterface {
  public:
-  Application();
+  explicit Application(void* hinst);
   ~Application();
 
   int32_t Run() override;
   void Exit() override;
 
  private:
-	 std::unique_ptr<anx::ui::MainWindow> main_window_;
+  std::unique_ptr<anx::ui::MainWindow> main_window_;
 };
 }  // namespace app
 }  // namespace anx
 
-#endif  // ANXI_APP_APPLICATION_H_
+#endif  // APP_APPLICATION_H_

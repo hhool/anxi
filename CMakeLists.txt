@@ -31,7 +31,7 @@ option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 option(USE_UNICODE "Use unicode" ON)
 option(ANXI_BUILD_EXAMPLES "Build anxi examples" ON)
 option(ANXI_BUILD_DOC "Build anxi Doc" OFF)
-option(ANXI_BUILD_TEST "Build anxi Test" OFF)
+option(ANXI_BUILD_TEST "Build anxi Test" ON)
 
 # only build library if add anxi as subdirectory
 if (NOT CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
@@ -76,6 +76,7 @@ if (ANXI_BUILD_DOC)
 endif ()
 
 # third_party
+add_subdirectory(third_party/jsoncpp)
 add_subdirectory(third_party/CSerialPort)
 if (WIN32)
     add_subdirectory(third_party/duilib)

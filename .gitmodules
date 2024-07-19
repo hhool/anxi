@@ -4,3 +4,6 @@
 [submodule "third_party/duilib/source"]
 	path = third_party/duilib/source
 	url = git@github.com:hhool/duilib.git
+[submodule "third_party/jsoncpp/source"]
+	path = third_party/jsoncpp/source
+	url = git@github.com:hhool/jsoncpp.git

@@ -9,8 +9,8 @@
  *
  */
 
-#ifndef ANXI_APP_APPINTERFACE_H_
-#define ANXI_APP_APPINTERFACE_H_
+#ifndef APP_APPINTERFACE_H_
+#define APP_APPINTERFACE_H_
 
 #include <memory>
 
@@ -28,11 +28,11 @@ class AppInterface {
  private:
 };
 
-void* CreateApp();
+void* CreateApp(void* hinst);
 int32_t Run(void*);
 void Exit(void*);
 void DestroyApp(void*);
 }  // namespace app
 }  // namespace anx
 
-#endif  // ANXI_APP_APPINTERFACE_H_
+#endif  // APP_APPINTERFACE_H_

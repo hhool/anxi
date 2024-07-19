@@ -19,24 +19,57 @@ set(PROJECT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/..")
 message(STATUS "PROJECT_PATH: ${PROJECT_PATH}")
 include_directories(${PROJECT_PATH})
 
-list(APPEND APP_SOURCES
-    appinterface.h
+set(COMMON_FILES
+    common/defines.h)
+source_group("common" FILES ${COMMON_FILES})
+list(APPEND APP_SOURCES ${COMMON_FILES})
+
+set(DOCUMENT_FILES
+    document/document_interface.h)
+source_group("document" FILES ${DOCUMENT_FILES})
+list(APPEND APP_SOURCES ${DOCUMENT_FILES})
+
+set(ESOLUTION_FILES
+    esolution/solution_design.cc
+    esolution/solution_design.h)
+source_group("esolution" FILES ${ESOLUTION_FILES})
+list(APPEND APP_SOURCES ${ESOLUTION_FILES})
+
+set(APP_FILES
     application.cc
-    application.h)
+    application.h
+    appinterface.h)
+source_group("application" FILES ${APP_FILES})
+list(APPEND APP_SOURCES ${APP_FILES})
 
 # add platform specific sources
 if(WIN32)
-    list(APPEND APP_SOURCES
+    set(UI_FILES
+        ui/dialog_about.cc
+        ui/dialog_about.h
         ui/dialog_com_port_settings.cc
         ui/dialog_com_port_settings.h
         ui/main_window.cc
         ui/main_window.h
+        ui/ui_constants.cc
+        ui/ui_constants.h
+        ui/work_window_menu_design.cc
+        ui/work_window_menu_design.h
+        ui/work_window_menu_shadow.cc
+        ui/work_window_menu_shadow.h
+        ui/work_window_menu_store.cc
+        ui/work_window_menu_store.h
         ui/work_window.cc
         ui/work_window.h)
+    source_group("ui" FILES ${UI_FILES})
+    list(APPEND APP_SOURCES ${UI_FILES})
 endif()
 
 # resource files
 if(WIN32)
+    set(RES_FILES
+        resource.rc)
+    source_group("resource" FILES ${RES_FILES})
     list(APPEND APP_SOURCES resource.rc)
 endif()
 

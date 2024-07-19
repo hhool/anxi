@@ -34,7 +34,7 @@ int main() {
   _CrtSetDbgFlag(Flag);
   // _CrtSetBreakAlloc(133400);
 #endif
-  void* handle_app = anx::app::CreateApp();
+  void* handle_app = anx::app::CreateApp(hInstance);
   if (handle_app == nullptr) {
 	  return -1;
   }
