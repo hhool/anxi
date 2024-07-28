@@ -32,7 +32,7 @@ int main() {
   int Flag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
   Flag |= _CRTDBG_LEAK_CHECK_DF;
   _CrtSetDbgFlag(Flag);
-  // _CrtSetBreakAlloc(133400);
+   // _CrtSetBreakAlloc(2840);
 #endif
   void* handle_app = anx::app::CreateApp(hInstance);
   if (handle_app == nullptr) {

@@ -19,6 +19,12 @@ set(PROJECT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/..")
 message(STATUS "PROJECT_PATH: ${PROJECT_PATH}")
 include_directories(${PROJECT_PATH})
 
+# add micro define
+if(WIN32)
+    add_definitions(-DUNICODE -D_UNICODE)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+endif()
+
 set(COMMON_FILES
     common/defines.h)
 source_group("common" FILES ${COMMON_FILES})
@@ -85,6 +91,13 @@ add_dependencies(app_ui duilib)
 ## add library duilib library dependencie
 target_link_libraries(app_ui duilib)
 
+# add library tinyxml2 source path
+target_include_directories(app_ui PRIVATE ${PROJECT_PATH}/third_party/tinyxml2/source)
+target_link_libraries(app_ui tinyxml2::tinyxml2)
+add_dependencies(app_ui tinyxml2::tinyxml2)
+
+# add library duilib library dependencie
+target_link_libraries(app_ui tinyxml2::tinyxml2)
 ###############################################################################
 # add executable
 add_executable(app_exe main.cc)

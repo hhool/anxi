@@ -22,11 +22,6 @@ const std::string kAppDate = "2024-07-24";
 const std::string kAppCopyRight = "2024";
 
 const std::string kAppTitle = "Anxi";
-
-const int32_t kSolutionName_Axially_Symmetrical = 0;
-const int32_t kSolutionName_Stresses_Adjustable = 1;
-const int32_t kSolutionName_3point_Bending = 2;
-const int32_t kSolutionName_Vibration_Bending = 3;
 }  // namespace common
 }  // namespace anx
 

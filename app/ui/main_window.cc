@@ -12,6 +12,7 @@
 #include "app/ui/main_window.h"
 
 #include "app/common/defines.h"
+#include "app/esolution/solution_design.h"
 #include "app/ui/ui_constants.h"
 #include "app/ui/work_window.h"
 
@@ -60,7 +61,7 @@ void MainWindow::Notify(DuiLib::TNotifyUI& msg) {
       return;
     } else if (msg.pSender->GetName() == _T("work_3point_bending")) {
       this->ShowWindow(false, false);
-      Switch_3point_Bending();
+      Switch_th3point_Bending();
       return;
     } else if (msg.pSender->GetName() == _T("work_vibration_bending")) {
       this->ShowWindow(false, false);
@@ -143,7 +144,7 @@ LRESULT MainWindow::OnSysCommand(UINT uMsg,
 
 void anx::ui::MainWindow::Switch_Axially_Symmetrical() {
   ui::WorkWindow* work_window =
-      new ui::WorkWindow(this, anx::common::kSolutionName_Axially_Symmetrical);
+      new ui::WorkWindow(this, anx::esolution::kSolutionName_Axially_Symmetrical);
   work_window->Create(m_hWnd, _T("work_window"), UI_WNDSTYLE_FRAME,
                       WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
   work_window->CenterWindow();
@@ -153,7 +154,7 @@ void anx::ui::MainWindow::Switch_Axially_Symmetrical() {
 
 void anx::ui::MainWindow::Switch_Stresses_Adjustable() {
   ui::WorkWindow* work_window =
-      new ui::WorkWindow(this, anx::common::kSolutionName_Stresses_Adjustable);
+      new ui::WorkWindow(this, anx::esolution::kSolutionName_Stresses_Adjustable);
   work_window->Create(m_hWnd, _T("work_window"), UI_WNDSTYLE_FRAME,
                       WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
   work_window->CenterWindow();
@@ -161,9 +162,9 @@ void anx::ui::MainWindow::Switch_Stresses_Adjustable() {
   ::ShowWindow(*work_window, SW_SHOWMAXIMIZED);
 }
 
-void anx::ui::MainWindow::Switch_3point_Bending() {
+void anx::ui::MainWindow::Switch_th3point_Bending() {
   ui::WorkWindow* work_window =
-      new ui::WorkWindow(this, anx::common::kSolutionName_3point_Bending);
+      new ui::WorkWindow(this, anx::esolution::kSolutionName_Th3point_Bending);
   work_window->Create(m_hWnd, _T("work_window"), UI_WNDSTYLE_FRAME,
                       WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
   work_window->CenterWindow();
@@ -173,7 +174,7 @@ void anx::ui::MainWindow::Switch_3point_Bending() {
 
 void anx::ui::MainWindow::Switch_Vibration_Bending() {
   ui::WorkWindow* work_window =
-      new ui::WorkWindow(this, anx::common::kSolutionName_Vibration_Bending);
+      new ui::WorkWindow(this, anx::esolution::kSolutionName_Vibration_Bending);
   work_window->Create(m_hWnd, _T("work_window"), UI_WNDSTYLE_FRAME,
                       WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
   work_window->CenterWindow();

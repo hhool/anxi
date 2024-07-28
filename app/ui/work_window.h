@@ -21,6 +21,12 @@
 using namespace DuiLib;
 
 namespace anx {
+namespace esolution {
+class SolutionDesign;
+}  // namespace esolution
+}  // namespace anx
+
+namespace anx {
 namespace ui {
 class WorkWindow : public DuiLib::WindowImplBase {
  public:
@@ -56,9 +62,12 @@ class WorkWindow : public DuiLib::WindowImplBase {
   /// @brief Update the work window tile with the solution type
   /// @param solution_type
   void UpdateWorkWindowTileWithSolution(int32_t solution_type);
-  /// @brief Update the main tab page of work window with the file path
-  /// @param file_path
-  void UpadateTabMainFirstPageWithFilePath(const std::string& file_path);
+  /// @brief Update the main tab page of work window with
+  /// solution_design_.header_ and solution_design_.base_param_
+  int32_t UpadateTabMainFirstPageElementViewHeaderAndBaseParam();
+  /// @brief Update the main tab page of work window with
+  /// solution_design_.result_
+  void UpadateTabMainFirstPageElementViewResult();
 
  protected:
   LRESULT OnCreate(UINT uMsg,
@@ -68,17 +77,47 @@ class WorkWindow : public DuiLib::WindowImplBase {
   LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) override;
 
   /// @brief Load the solution design file with dialog box
-  void LoadFileWithDialog();
+  /// @return 0 if success, -1 if failed
+  /// @note the file path will be saved in solution_file_path_
+  /// update solution_design_ with the file content.
+  int32_t LoadFileWithDialog();
+
   /// @brief Save the solution design file with dialog box
   void SaveFileWithDialog();
 
+  /// @brief Update the solution design control with the solution design
+  int32_t UpdateSolutionDesignControl();
+
+  /// @brief Calculate the solution design with control and update the result
+  int32_t SolutionDesignCalculateWithControl();
+
   /// @brief Read the solution design from control
-  void ReadSolutionDesignFromControl();
+  std::string SolutionDesignXmlFromControl();
 
  private:
   DuiLib::WindowImplBase* pOwner_;
+  CButtonUI* btn_close_;
+  CButtonUI* btn_max_;
+  CButtonUI* btn_restore_;
+  CButtonUI* btn_min_;
+
+  CButtonUI* btn_menu_design_manager_;
+  CButtonUI* btn_menu_design_store_;
+  CButtonUI* btn_menu_back_;
+  CButtonUI* btn_menu_about_;
+
+  CButtonUI* btn_solution_refresh_;
+
+  CButtonUI* btn_args_area_value_freq_;
+  CButtonUI* btn_args_area_value_freq_num_;
+  CButtonUI* btn_args_area_value_amplitude_;
+  CButtonUI* btn_args_area_value_max_stress_;
+  CButtonUI* btn_args_area_value_static_load_;
+  CButtonUI* btn_args_area_value_stress_ratio_;
+
   int32_t solution_type_;
   std::string solution_file_path_;
+  std::unique_ptr<anx::esolution::SolutionDesign> solution_design_;
 };
 }  // namespace ui
 }  // namespace anx

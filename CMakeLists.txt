@@ -76,8 +76,9 @@ if (ANXI_BUILD_DOC)
 endif ()
 
 # third_party
-add_subdirectory(third_party/jsoncpp)
 add_subdirectory(third_party/CSerialPort)
 if (WIN32)
     add_subdirectory(third_party/duilib)
 endif()
+add_subdirectory(third_party/jsoncpp)
+add_subdirectory(third_party/tinyxml2)

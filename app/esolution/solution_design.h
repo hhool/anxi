@@ -23,22 +23,33 @@ extern const int32_t kSolutionName_Stresses_Adjustable;
 extern const int32_t kSolutionName_Th3point_Bending;
 extern const int32_t kSolutionName_Vibration_Bending;
 
+extern std::string ToSolutionName(int32_t solution_type);
+extern std::string ToTailPrefixName(int32_t solution_type);
+
 // @brief 试验设计头部
 // @brief The ExpDesignHeader struct
 // 试验设计头部 exp design header
 struct ExpDesignHeader {
-  // @brief 试验设计ID @see kSolutionName_Axially_Symmetrical ...etc
-  // @brief The exp design ID @see kSolutionName_Axially_Symmetrical ...etc
-  int32_t solution_id_;
+ public:
+  ExpDesignHeader();
+
+ public:
+  virtual std::string ToXml(bool close_tag = true) const;
+  // @brief 试验设计类型 @see kSolutionName_Axially_Symmetrical ...etc
+  // @brief The exp design type @see kSolutionName_Axially_Symmetrical ...etc
+  int32_t solution_type_;
   // @brief 试验设计版本
   // @brief The exp design version
-  int32_t version;
+  int32_t version_;
+  // @brief 试验设计名称
+  // @brief The exp design name
+  uint8_t name_[256];
   // @brief 试验设计日期 NTP时间戳
   // @brief The exp design date NTP timestamp
-  int64_t date;
+  int64_t date_;
   // @brief 试验设计版权
   // @brief The exp design copy right
-  uint8_t copy_right[256];
+  uint8_t copy_right_[256];
 };
 
 // @brief 试验设计基础参数
@@ -51,6 +62,16 @@ struct ExpDesignHeader {
 // as the input parameter of the experiment, the design
 // parameter result is obtained after calculation
 struct ExpDesignBaseParam {
+ public:
+  ExpDesignBaseParam();
+
+ public:
+  virtual std::string ToXml(bool close_tag = true) const;
+
+ public:
+  // @brief 材料名称
+  // @brief The material name
+  uint8_t material_name_[256];
   // @breif 弹性模量 GPa 1GPa=1000MPa
   // @brief The elastic modulus GPa 1GPa=1000MPa
   float f_elastic_modulus_GPa_;
@@ -107,14 +128,25 @@ struct ExpDesignParamVibrationBending : public ExpDesignBaseParam {
 // parameter of the experiment design. The basic structure
 // is used for extension.
 
-struct ExpDesignResult {};
+struct ExpDesignResult {
+ public:
+  explicit ExpDesignResult(int32_t solution_type);
 
-// @brief 试验设计参数
-// 试验设计参数
-// @brief The ExpDesignParam struct
-// exp design param
-struct ExpDesignResultAxially : public ExpDesignResult {
-  explicit ExpDesignResultAxially(const ExpDesignBaseParam& base_param);
+ public:
+  virtual std::string ToXml(bool close_tag = true) const;
+
+  // @brief 试验设计类型 @see kSolutionName_Axially_Symmetrical ...etc
+  // @brief The exp design type @see kSolutionName_Axially_Symmetrical ...etc
+  int32_t solution_type_;
+};
+
+struct ExpDesignResult1 : public ExpDesignResult {
+ public:
+  explicit ExpDesignResult1(int32_t solution_type);
+
+ public:
+  virtual std::string ToXml(bool close_tag = true) const;
+
   // @brief Amplitude A um
   // @brief 振幅A  um
   float f_eamplitude_;
@@ -122,7 +154,7 @@ struct ExpDesignResultAxially : public ExpDesignResult {
   // 应力位移系数 MPa/um
   // @brief The stress displacement coefficient
   // stress displacement coefficient MPa/um
-  float f_stress_displacement_coefficient_;
+  float f_dc_stress_MPa_;
   // @brief 试验段半径 R2 mm
   // @brief The radius of the exp section R2 mm
   float f_exp_section_radius_R2_;
@@ -143,16 +175,41 @@ struct ExpDesignResultAxially : public ExpDesignResult {
   float f_exp_section_length_L2_;
 };
 
-struct ExpDesignResultStressesAdjustable : public ExpDesignResultAxially {
+// @brief 试验设计参数
+// 试验设计参数
+// @brief The ExpDesignParam struct
+// exp design param
+struct ExpDesignResultAxially : public ExpDesignResult1 {
+ public:
+  ExpDesignResultAxially();
+
+  explicit ExpDesignResultAxially(const ExpDesignResultAxially& result) =
+      default;
+
+ public:
+  virtual std::string ToXml(bool close_tag = true) const;
+};
+
+struct ExpDesignResultStressesAdjustable : public ExpDesignResult1 {
+ public:
+  ExpDesignResultStressesAdjustable();
+
   explicit ExpDesignResultStressesAdjustable(
-      const ExpDesignBaseParam& base_param);
+      const ExpDesignResultStressesAdjustable& result) = default;
+
+ public:
+  virtual std::string ToXml(bool close_tag = true) const;
   // @brief 静载 MPa
   // @brief Static load MPa
   float f_static_load_MPa_;
 };
 
 struct ExpDesignResult2 : public ExpDesignResult {
-  explicit ExpDesignResult2(const ExpDesignBaseParam& base_param);
+ public:
+  explicit ExpDesignResult2(int32_t solution_type);
+
+ public:
+  virtual std::string ToXml(bool close_tag = true) const;
   // @brief Amplitude A um
   // @brief 振幅A  um
   float f_eamplitude_um_;
@@ -160,17 +217,18 @@ struct ExpDesignResult2 : public ExpDesignResult {
   // 应力位移系数 MPa/um
   // @brief The stress displacement coefficient
   // stress displacement coefficient MPa/um
-  float f_stress_displacement_coefficient_;
-  // @brief 试验段宽度 W mm
-  // @brief The width of the exp section W mm
-  float f_exp_section_width_W_mm_;
-  // @brief 试验段厚度 H mm
-  // @brief The thickness of the exp section H mm
-  float f_exp_section_thickness_H_mm_;
+  float f_dc_stress_MPa_;
 };
 
 struct ExpDesignResultTh3pointBending : public ExpDesignResult2 {
-  explicit ExpDesignResultTh3pointBending(const ExpDesignBaseParam& base_param);
+ public:
+  ExpDesignResultTh3pointBending();
+
+  explicit ExpDesignResultTh3pointBending(
+      const ExpDesignResultTh3pointBending& result) = default;
+
+ public:
+  virtual std::string ToXml(bool close_tag = true) const;
   // @brief 静载 MPa
   // @brief Static load MPa
   float f_static_load_MPa_;
@@ -189,75 +247,41 @@ struct ExpDesignResultTh3pointBending : public ExpDesignResult2 {
 };
 
 struct ExpDesignResultVibrationBending : public ExpDesignResult2 {
+  ExpDesignResultVibrationBending();
+
   explicit ExpDesignResultVibrationBending(
-      const ExpDesignBaseParam& base_param);
-  // @brief 静载 MPa
-  // @brief Static load MPa
-  float f_static_load_MPa_;
+      const ExpDesignResultVibrationBending& result) = default;
+
+ public:
+  virtual std::string ToXml(bool close_tag = true) const;
   // @brief 试验平行段长度 L1 mm
   // @brief The length of the parallel section L1 mm
-  float f_specimen_parallel_length_L1_;
+  float f_specimen_length_parallel_section_L1_;
   // @brief 试验圆弧段半径 R1 mm
   // @brief The radius of the arc section R1 mm
-  float f_specimen_arc_radius_R1_;
+  float f_specimen_radius_arc_R1_;
   // @brief 试验过渡段半径 R2 mm
   // @brief The radius of the transition section R2 mm
-  float f_specimen_transition_radius_R2_;
+  float f_specimen_radius_transition_R2_;
   // @brief 夹持段厚度 d1 mm
   // @brief The thickness of the clamping section d1 mm
-  float f_clamping_thickness_d1_;
+  float f_thickness_clamping_d1_;
   // @brief 试验段厚度 L0 d2 mm
   // @brief The thickness of the test section L0 d2 mm
-  float f_test_thickness_L0_d2_;
+  float f_thickness_exp_section_L0_d2_;
 };
 
-// @brief 试验设计接口
-class ExpDesign {
+class SolutionDesign {
  public:
-  ExpDesign() = default;
-  virtual ~ExpDesign() = default;
+  SolutionDesign();
+  explicit SolutionDesign(const SolutionDesign& design);
 
  public:
-  virtual const ExpDesignHeader& GetExpDesignHeader() = 0;
-  virtual void SetExpDesignHeader(const ExpDesignHeader& header) = 0;
-  virtual const ExpDesignBaseParam& GetExpDesignBaseParam() = 0;
-  virtual void SetExpDesignBaseParam(const ExpDesignBaseParam& base_param) = 0;
-};
-
-struct SolutionExpDesign {
-  int32_t solution_id_;
-  std::string version;
-  std::string date;
-  std::string copy_right;
-};
-
-extern const SolutionExpDesign kSolutionExpDesign[];
-
-struct SolutionExpDesignFactory {
-  SolutionExpDesignFactory() = default;
-  virtual ~SolutionExpDesignFactory() = default;
-
-  // @brief 创建试验设计 @see kSolutionName_Axially_Symmetrical ...etc
-  // 返回试验设计指针。对象含有默认值
-  // @brief Create the exp design @see kSolutionName_Axially_Symmetrical ...etc
-  // Return the exp design pointer. The object has default values.
-  static std::unique_ptr<SolutionExpDesign> CreateSolutionExpDesign(
-      int32_t solution_type);
-
-  // @brief 获取ExpDesignBaseParam @see kSolutionName_Axially_Symmetrical ...etc
-  // 返回ExpDesignBaseParam指针。对象含有默认值
-  // @brief Get ExpDesignBaseParam @see kSolutionName_Axially_Symmetrical ...etc
-  // Return the ExpDesignBaseParam pointer. The object has default values.
-  static std::unique_ptr<ExpDesignBaseParam> GetDefaultExpDesignBaseParam(
-      int32_t solution_type);
-
-  // @brief 获取ExpDesignParam @see kSolutionName_Axially_Symmetrical ...etc
-  // 返回ExpDesignParam指针。对象含有默认值
-  // @brief Get ExpDesignParam @see kSolutionName_Axially_Symmetrical ...etc
-  // Return the ExpDesignParam pointer. The object has default values.
-  static std::unique_ptr<ExpDesignResult> GetExpDesignParam(
-      int32_t solution_type,
-      const ExpDesignBaseParam& base_param);
+  std::unique_ptr<ExpDesignHeader> header_;
+  std::unique_ptr<ExpDesignBaseParam> base_param_;
+  std::unique_ptr<ExpDesignResult> result_;
+  std::string ToXml();
+  static int32_t FromXml(const std::string& xml, SolutionDesign* design);
 };
 
 }  // namespace esolution

@@ -7,3 +7,6 @@
 [submodule "third_party/jsoncpp/source"]
 	path = third_party/jsoncpp/source
 	url = git@github.com:hhool/jsoncpp.git
+[submodule "third_party/tinyxml2/source"]
+	path = third_party/tinyxml2/source
+	url = git@github.com:hhool/tinyxml2.git

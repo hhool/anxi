@@ -51,3 +51,11 @@ target_include_directories(json_unittest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../
 
 # Link gtest
 target_link_libraries(json_unittest gtest_main gtest jsoncpp_static)
+
+# ###############
+# Define a test
+add_executable(tinyxml2_unittest tinyxml2_unittest.cc)
+target_include_directories(tinyxml2_unittest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../third_party/tinyxml2/source)
+
+# Link gtest
+target_link_libraries(tinyxml2_unittest gtest_main gtest tinyxml2)

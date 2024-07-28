@@ -55,7 +55,7 @@ class MainWindow : public DuiLib::WindowImplBase {
  protected:
   void Switch_Axially_Symmetrical();
   void Switch_Stresses_Adjustable();
-  void Switch_3point_Bending();
+  void Switch_th3point_Bending();
   void Switch_Vibration_Bending();
 
  private:
