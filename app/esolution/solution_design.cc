@@ -66,15 +66,15 @@ ExpDesignHeader::ExpDesignHeader() : solution_type_(0), version_(1) {
 std::string ExpDesignHeader::ToXml(bool close_tag) const {
   std::string xml;
   if (close_tag) {
-    xml += "<header>";
+    xml += "<header>\r\n";
   }
-  xml +=
-      "<solution_type>" + std::to_string(solution_type_) + "</solution_type>";
-  xml += "<version>" + std::to_string(version_) + "</version>";
-  xml +=
-      "<name>" + std::string(reinterpret_cast<const char*>(name_)) + "</name>";
+  xml += "<solution_type>" + std::to_string(solution_type_) +
+         "</solution_type>\r\n";
+  xml += "<version>" + std::to_string(version_) + "</version>\r\n";
+  xml += "<name>" + std::string(reinterpret_cast<const char*>(name_)) +
+         "</name>\r\n";
   if (close_tag) {
-    xml += "</header>";
+    xml += "</header>\r\n";
   }
   return xml;
 }
@@ -94,18 +94,20 @@ ExpDesignBaseParam::ExpDesignBaseParam()
 std::string ExpDesignBaseParam::ToXml(bool close_tag) const {
   std::string xml;
   if (close_tag) {
-    xml += "<base_param>";
+    xml += "<base_param>\r\n";
   }
   xml += "<material_name>" +
          std::string(reinterpret_cast<const char*>(material_name_)) +
-         "</material_name>";
+         "</material_name>\r\n";
   xml += "<elastic_modulus>" + std::to_string(f_elastic_modulus_GPa_) +
-         "</elastic_modulus>";
-  xml += "<density>" + std::to_string(f_density_kg_m3_) + "</density>";
-  xml += "<max_stress>" + std::to_string(f_max_stress_MPa_) + "</max_stress>";
-  xml += "<stress_ratio>" + std::to_string(f_stress_ratio_) + "</stress_ratio>";
+         "</elastic_modulus>\r\n";
+  xml += "<density>" + std::to_string(f_density_kg_m3_) + "</density>\r\n";
+  xml +=
+      "<max_stress>" + std::to_string(f_max_stress_MPa_) + "</max_stress>\r\n";
+  xml += "<stress_ratio>" + std::to_string(f_stress_ratio_) +
+         "</stress_ratio>\r\n";
   if (close_tag) {
-    xml += "</base_param>";
+    xml += "</base_param>\r\n";
   }
   return xml;
 }
@@ -159,32 +161,33 @@ ExpDesignResult1::ExpDesignResult1(int32_t solution_type)
 std::string ExpDesignResult1::ToXml(bool close_tag) const {
   std::string xml;
   if (close_tag) {
-    xml += "<result type=\"axially\">";
+    xml += "<result type=\"axially\">\r\n";
   }
   xml += ExpDesignResult::ToXml(false);
-  xml += "<f_eamplitude>" + std::to_string(f_eamplitude_) + "</f_eamplitude>";
+  xml +=
+      "<f_eamplitude>" + std::to_string(f_eamplitude_) + "</f_eamplitude>\r\n";
   xml += "<f_dc_stress_MPa>" + std::to_string(f_dc_stress_MPa_) +
-         "</f_dc_stress_MPa>";
+         "</f_dc_stress_MPa>\r\n";
   xml += "<f_exp_section_radius_R2>" +
          std::to_string(f_exp_section_radius_R2_) +
-         "</f_exp_section_radius_R2>";
+         "</f_exp_section_radius_R2>\r\n";
   xml += "<f_parallel_section_radius_R1>" +
          std::to_string(f_parallel_section_radius_R1_) +
-         "</f_parallel_section_radius_R1>";
+         "</f_parallel_section_radius_R1>\r\n";
   xml += "<f_transition_section_radius_R0>" +
          std::to_string(f_transition_section_radius_R0_) +
-         "</f_transition_section_radius_R0>";
+         "</f_transition_section_radius_R0>\r\n";
   xml += "<f_transition_section_length_L1>" +
          std::to_string(f_transition_section_length_L1_) +
-         "</f_transition_section_length_L1>";
+         "</f_transition_section_length_L1>\r\n";
   xml += "<f_parallel_section_length_L0>" +
          std::to_string(f_parallel_section_length_L0_) +
-         "</f_parallel_section_length_L0>";
+         "</f_parallel_section_length_L0>\r\n";
   xml += "<f_exp_section_length_L2>" +
          std::to_string(f_exp_section_length_L2_) +
-         "</f_exp_section_length_L2>";
+         "</f_exp_section_length_L2>\r\n";
   if (close_tag) {
-    xml += "</result>";
+    xml += "</result>\r\n";
   }
 
   return xml;
@@ -199,11 +202,11 @@ ExpDesignResultAxially::ExpDesignResultAxially() : ExpDesignResult1(0) {
 std::string ExpDesignResultAxially::ToXml(bool close_tag) const {
   std::string xml;
   if (close_tag) {
-    xml += "<result type=\"axially\">";
+    xml += "<result type=\"axially\">\r\n";
   }
   xml += ExpDesignResult1::ToXml(false);
   if (close_tag) {
-    xml += "</result>";
+    xml += "</result>\r\n";
   }
 
   return xml;
@@ -219,13 +222,13 @@ ExpDesignResultStressesAdjustable::ExpDesignResultStressesAdjustable()
 std::string ExpDesignResultStressesAdjustable::ToXml(bool close_tag) const {
   std::string xml;
   if (close_tag) {
-    xml += "<result type=\"stresses\">";
+    xml += "<result type=\"stresses\">\r\n";
   }
   xml += ExpDesignResult1::ToXml(false);
   xml += "<f_static_load_MPa>" + std::to_string(f_static_load_MPa_) +
-         "</f_static_load_MPa>";
+         "</f_static_load_MPa>\r\n";
   if (close_tag) {
-    xml += "</result>";
+    xml += "</result>\r\n";
   }
   return xml;
 }
@@ -240,9 +243,9 @@ ExpDesignResult2::ExpDesignResult2(int32_t solution_type)
 std::string ExpDesignResult2::ToXml(bool close_tag) const {
   std::string xml;
   xml += "<f_eamplitude_um>" + std::to_string(f_eamplitude_um_) +
-         "</f_eamplitude_um>";
+         "</f_eamplitude_um>\r\n";
   xml += "<f_dc_stress_MPa>" + std::to_string(f_dc_stress_MPa_) +
-         "</f_dc_stress_MPa>";
+         "</f_dc_stress_MPa>\r\n";
   return xml;
 }
 
@@ -256,21 +259,21 @@ ExpDesignResultTh3pointBending::ExpDesignResultTh3pointBending()
 std::string ExpDesignResultTh3pointBending::ToXml(bool close_tag) const {
   std::string xml;
   if (close_tag) {
-    xml += "<result type=\"th3point\">";
+    xml += "<result type=\"th3point\">\r\n";
   }
   xml += ExpDesignResult2::ToXml(false);
   xml += "<f_static_load_MPa>" + std::to_string(f_static_load_MPa_) +
-         "</f_static_load_MPa>";
+         "</f_static_load_MPa>\r\n";
   xml += "<f_specimen_width_B>" + std::to_string(f_specimen_width_B_) +
-         "</f_specimen_width_B>";
+         "</f_specimen_width_B>\r\n";
   xml += "<f_specimen_thickness_h>" + std::to_string(f_specimen_thickness_h_) +
-         "</f_specimen_thickness_h>";
+         "</f_specimen_thickness_h>\r\n";
   xml += "<f_specimen_length_L>" + std::to_string(f_specimen_length_L_) +
-         "</f_specimen_length_L>";
+         "</f_specimen_length_L>\r\n";
   xml += "<f_support_distance_L0>" + std::to_string(f_support_distance_L0_) +
-         "</f_support_distance_L0>";
+         "</f_support_distance_L0>\r\n";
   if (close_tag) {
-    xml += "</result>";
+    xml += "</result>\r\n";
   }
   return xml;
 }
@@ -284,26 +287,26 @@ ExpDesignResultVibrationBending::ExpDesignResultVibrationBending()
 std::string ExpDesignResultVibrationBending::ToXml(bool close_tag) const {
   std::string xml;
   if (close_tag) {
-    xml += "<result type=\"vibration\">";
+    xml += "<result type=\"vibration\">\r\n";
   }
   xml += ExpDesignResult2::ToXml(false);
   xml += "<f_specimen_length_parallel_section_L1>" +
          std::to_string(f_specimen_length_parallel_section_L1_) +
-         "</f_specimen_length_parallel_section_L1>";
+         "</f_specimen_length_parallel_section_L1>\r\n";
   xml += "<f_specimen_radius_arc_R1>" +
          std::to_string(f_specimen_radius_arc_R1_) +
-         "</f_specimen_radius_arc_R1>";
+         "</f_specimen_radius_arc_R1>\r\n";
   xml += "<f_specimen_radius_transition_R2>" +
          std::to_string(f_specimen_radius_transition_R2_) +
-         "</f_specimen_radius_transition_R2>";
+         "</f_specimen_radius_transition_R2>\r\n";
   xml += "<f_thickness_clamping_d1>" +
          std::to_string(f_thickness_clamping_d1_) +
-         "</f_thickness_clamping_d1>";
+         "</f_thickness_clamping_d1>\r\n";
   xml += "<f_thickness_exp_section_L0_d2>" +
          std::to_string(f_thickness_exp_section_L0_d2_) +
-         "</f_thickness_exp_section_L0_d2>";
+         "</f_thickness_exp_section_L0_d2>\r\n";
   if (close_tag) {
-    xml += "</result>";
+    xml += "</result>\r\n";
   }
   return xml;
 }
@@ -336,7 +339,7 @@ SolutionDesign::SolutionDesign(const SolutionDesign& design)
 
 std::string SolutionDesign::ToXml() {
   std::string xml;
-  xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>";
+  xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n";
   xml += header_->ToXml();
   xml += base_param_->ToXml();
   xml += result_->ToXml();
@@ -598,11 +601,12 @@ int32_t SolutionDesign::FromXml(const std::string& xml,
     } else if (header.solution_type_ == kSolutionName_Vibration_Bending) {
       ExpDesignResultVibrationBending result_vibration;
 
-	  tinyxml2::XMLElement* f_eamplitude_um_element =
-		  result_element->FirstChildElement("f_eamplitude_um");
-	  if (f_eamplitude_um_element) {
-		  result_vibration.f_eamplitude_um_ = f_eamplitude_um_element->FloatText();
-	  }
+      tinyxml2::XMLElement* f_eamplitude_um_element =
+          result_element->FirstChildElement("f_eamplitude_um");
+      if (f_eamplitude_um_element) {
+        result_vibration.f_eamplitude_um_ =
+            f_eamplitude_um_element->FloatText();
+      }
 
       tinyxml2::XMLElement* f_dc_stress_MPa_element =
           result_element->FirstChildElement("f_dc_stress_MPa");

@@ -76,6 +76,21 @@ class WorkWindow : public DuiLib::WindowImplBase {
                    BOOL& bHandled) override;
   LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) override;
 
+ protected:
+  /// @brief Default solution design xml filepath with solution type
+  /// for solution design created with default value
+  /// @param solution_type
+  std::string DefaultSolutionDesignXml(int32_t solution_type);
+  /// @brief Load the solution design file
+  /// @param file_path the file path of the solution design file
+  /// @return 0 if success, -1 if failed
+  int32_t LoadSolutionDesignFile(const std::string& file_path);
+
+  /// @brief Save the solution design file
+  /// @param file_path the file path of the solution design file
+  /// @return 0 if success, -1 if failed
+  int32_t SaveSolutionDesignFile(const std::string& file_path);
+
   /// @brief Load the solution design file with dialog box
   /// @return 0 if success, -1 if failed
   /// @note the file path will be saved in solution_file_path_
@@ -83,7 +98,7 @@ class WorkWindow : public DuiLib::WindowImplBase {
   int32_t LoadFileWithDialog();
 
   /// @brief Save the solution design file with dialog box
-  void SaveFileWithDialog();
+  int32_t SaveFileWithDialog();
 
   /// @brief Update the solution design control with the solution design
   int32_t UpdateSolutionDesignControl();

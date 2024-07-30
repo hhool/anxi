@@ -32,3 +32,18 @@ TEST(TinyXml2Test, TestTinyXml2) {
   doc.Print(&printer);
   std::cout << printer.CStr() << std::endl;
 }
+
+TEST(TinyXml2Test, TestTinyXml2Load) {
+  tinyxml2::XMLDocument doc;
+  doc.LoadFile("d:\\0_0.xml");
+  tinyxml2::XMLElement* header_element = doc.FirstChildElement("header");
+  tinyxml2::XMLElement* base_param_element = doc.FirstChildElement("base_param");
+  tinyxml2::XMLElement* result_element = doc.FirstChildElement("result");
+  const char* text = result_element->Attribute("type");
+  std::cout << text << std::endl;
+}
+
+int main(int argc, char** argv) {
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}

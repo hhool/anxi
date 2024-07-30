@@ -174,7 +174,13 @@ void WorkWindow::Notify(DuiLib::TNotifyUI& msg) {
       // TODO(hhool): do nothing;
     }
   } else if (msg.sType == kMenu_Design_Save_Solution) {
-    SaveFileWithDialog();
+    int32_t ret = SaveFileWithDialog();
+    if (ret < 0) {
+      MessageBox(*this, _T("保存失败"), _T("保存失败"), MB_OK);
+      return;
+    } else if (ret == 0) {
+      MessageBox(*this, _T("保存成功"), _T("保存成功"), MB_OK);
+    }
   } else if (msg.sType == kMenu_Design_Exit) {
     // TODO(hhool):kMenu_Store_ExpRecord}
   } else if (msg.sType == kMenu_Store_ExpRecord) {
@@ -394,6 +400,18 @@ void anx::ui::WorkWindow::UpdateWorkWindowTileWithSolution(
   } else {
     assert(false && "Invalid solution type");
   }
+  // load default solution design
+  std::string default_xml = DefaultSolutionDesignXml(solution_type);
+  // get module path
+  char module_path[MAX_PATH] = {0};
+  GetModuleFileNameA(NULL, module_path, MAX_PATH);
+  std::string module_dir = module_path;
+  size_t pos = module_dir.find_last_of("\\/");
+  module_dir = module_dir.substr(0, pos);
+  default_xml = module_dir + "\\" + default_xml;
+  if (0 == LoadSolutionDesignFile(default_xml)) {
+    UpdateSolutionDesignControl();
+  }
 }
 
 int32_t WorkWindow::UpadateTabMainFirstPageElementViewHeaderAndBaseParam() {
@@ -496,6 +514,12 @@ int32_t WorkWindow::UpadateTabMainFirstPageElementViewHeaderAndBaseParam() {
   }
 
   {
+    DuiLib::CDuiString value;
+    value.Format(_T("%.2f"), base_param->f_max_stress_MPa_);
+    btn_args_area_value_max_stress_->SetText(value);
+  }
+
+  {
     DuiLib::CDuiString name_stress_ratio =
         _T("tm_page_first_left_ratio_stress");
     name_stress_ratio.Append(tail_prefix);
@@ -504,6 +528,12 @@ int32_t WorkWindow::UpadateTabMainFirstPageElementViewHeaderAndBaseParam() {
     DuiLib::CDuiString value;
     value.Format(_T("%.2f"), base_param->f_stress_ratio_);
     edit->SetText(value);
+  }
+
+  {
+    DuiLib::CDuiString value;
+    value.Format(_T("%.2f"), base_param->f_stress_ratio_);
+    btn_args_area_value_stress_ratio_->SetText(value);
   }
 
   return 0;
@@ -538,6 +568,11 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CDuiString value;
       value.Format(_T("%.2f"), result_axially->f_eamplitude_);
       edit->SetText(value);
+    }
+    {
+      DuiLib::CDuiString value;
+      value.Format(_T("%.2f"), result_axially->f_eamplitude_);
+      btn_args_area_value_amplitude_->SetText(value);
     }
     {
       DuiLib::CDuiString name_dc_stress = _T("tm_page_first_left_dc_stress");
@@ -613,6 +648,13 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       value.Format(_T("%.2f"), result_stresses->f_eamplitude_);
       edit->SetText(value);
     }
+
+    {
+      DuiLib::CDuiString value;
+      value.Format(_T("%.2f"), result_stresses->f_eamplitude_);
+      btn_args_area_value_amplitude_->SetText(value);
+    }
+
     {
       DuiLib::CDuiString name_dc_stress = _T("tm_page_first_left_dc_stress");
       name_dc_stress.Append(tail_prefix);
@@ -690,6 +732,12 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       value.Format(_T("%.2f"), result_stresses->f_eamplitude_);
       edit->SetText(value);
     }
+
+    {
+      DuiLib::CDuiString value;
+      value.Format(_T("%.2f"), result_stresses->f_eamplitude_);
+      btn_args_area_value_amplitude_->SetText(value);
+    }
     {
       DuiLib::CDuiString name_dc_stress = _T("tm_page_first_left_dc_stress");
       name_dc_stress.Append(tail_prefix);
@@ -743,6 +791,12 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CDuiString value;
       value.Format(_T("%.2f"), result_th3point->f_eamplitude_um_);
       edit->SetText(value);
+    }
+
+    {
+      DuiLib::CDuiString value;
+      value.Format(_T("%.2f"), result_th3point->f_eamplitude_um_);
+      btn_args_area_value_amplitude_->SetText(value);
     }
     {
       DuiLib::CDuiString name_dc_stress = _T("tm_page_first_left_dc_stress");
@@ -818,6 +872,11 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CDuiString value;
       value.Format(_T("%.2f"), result_vibration->f_eamplitude_um_);
       edit->SetText(value);
+    }
+    {
+      DuiLib::CDuiString value;
+      value.Format(_T("%.2f"), result_vibration->f_eamplitude_um_);
+      btn_args_area_value_amplitude_->SetText(value);
     }
     {
       DuiLib::CDuiString name_dc_stress = _T("tm_page_first_left_dc_stress");
@@ -912,24 +971,25 @@ LRESULT WorkWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
   return DuiLib::WindowImplBase::HandleMessage(uMsg, wParam, lParam);
 }
 
-int32_t WorkWindow::LoadFileWithDialog() {
-  OPENFILENAME ofn;
-  TCHAR FileName[MAX_PATH];
-  memset(&ofn, 0, sizeof(OPENFILENAME));
-  memset(FileName, 0, sizeof(char) * MAX_PATH);
-  ofn.lStructSize = sizeof(OPENFILENAME);
-  ofn.hwndOwner = m_hWnd;
-  ofn.lpstrFilter = _T("*.xml\0\0");
-  ofn.lpstrFile = FileName;
-  ofn.nMaxFile = MAX_PATH;
-  ofn.Flags = OFN_FILEMUSTEXIST;
-  if (!GetOpenFileName(&ofn)) {
-    return 1;
+std::string WorkWindow::DefaultSolutionDesignXml(int32_t solution_type) {
+  if (solution_type == anx::esolution::kSolutionName_Axially_Symmetrical) {
+    return "default/default_axially_symmetrical.xml";
+  } else if (solution_type ==
+             anx::esolution::kSolutionName_Stresses_Adjustable) {
+    return "default/default_stresses_adjustable.xml";
+  } else if (solution_type == anx::esolution::kSolutionName_Th3point_Bending) {
+    return "default/default_th3point_bending.xml";
+  } else if (solution_type == anx::esolution::kSolutionName_Vibration_Bending) {
+    return "default/default_vibration_bending.xml";
+  } else {
+    assert(false && "Invalid solution type");
+    return "";
   }
-  // TODO(hhool): load file
-  // open file with ofn.lpstrFile
-  std::string filepath = WCharToMByte(ofn.lpstrFile);
-  FILE* file = fopen(filepath.c_str(), "r");
+}
+
+int32_t WorkWindow::LoadSolutionDesignFile(const std::string& file_path) {
+  // open file with file_path
+  FILE* file = fopen(file_path.c_str(), "rb");
   if (file == NULL) {
     return -1;
   }
@@ -953,7 +1013,21 @@ int32_t WorkWindow::LoadFileWithDialog() {
   return 0;
 }
 
-void WorkWindow::SaveFileWithDialog() {
+int32_t WorkWindow::SaveSolutionDesignFile(const std::string& file_path) {
+  std::string xml = SolutionDesignXmlFromControl();
+  if (xml.length() == 0) {
+    return -1;
+  }
+  FILE* file = fopen(file_path.c_str(), "wb");
+  if (file == NULL) {
+    return -2;
+  }
+  fwrite(xml.c_str(), xml.size(), 1, file);
+  fclose(file);
+  return 0;
+}
+
+int32_t WorkWindow::LoadFileWithDialog() {
   OPENFILENAME ofn;
   TCHAR FileName[MAX_PATH];
   memset(&ofn, 0, sizeof(OPENFILENAME));
@@ -964,27 +1038,40 @@ void WorkWindow::SaveFileWithDialog() {
   ofn.lpstrFile = FileName;
   ofn.nMaxFile = MAX_PATH;
   ofn.Flags = OFN_FILEMUSTEXIST;
-  if (GetSaveFileName(&ofn)) {
-    // TODO(hhool): save file
-    std::string xml = SolutionDesignXmlFromControl();
-    // create file with ofn.lpstrFile
-    std::string filepath = WCharToMByte(ofn.lpstrFile);
-    // get file extension
-    std::string extension = filepath.substr(filepath.find_last_of(".") + 1);
-    if (extension != "xml") {
-      // append .xml to filepath
-      filepath += ".xml";
-    }
-    FILE* file = fopen(filepath.c_str(), "w");
-    if (file == NULL) {
-      MessageBox(NULL, _T("保存失败"), _T("保存失败"), NULL);
-      return;
-    }
-    fwrite(xml.c_str(), xml.size(), 1, file);
-    fclose(file);
-
-    MessageBox(NULL, ofn.lpstrFile, _T("保存成功"), NULL);
+  if (!GetOpenFileName(&ofn)) {
+    return 1;
   }
+  std::string filepath = WCharToMByte(ofn.lpstrFile);
+  return LoadSolutionDesignFile(filepath);
+}
+
+int32_t WorkWindow::SaveFileWithDialog() {
+  OPENFILENAME ofn;
+  TCHAR FileName[MAX_PATH];
+  memset(&ofn, 0, sizeof(OPENFILENAME));
+  memset(FileName, 0, sizeof(char) * MAX_PATH);
+  ofn.lStructSize = sizeof(OPENFILENAME);
+  ofn.hwndOwner = m_hWnd;
+  ofn.lpstrFilter = _T("*.xml\0\0");
+  ofn.lpstrFile = FileName;
+  ofn.nMaxFile = MAX_PATH;
+  ofn.Flags = OFN_FILEMUSTEXIST;
+  if (!GetSaveFileName(&ofn)) {
+    return 1;
+  }
+
+  // create file with ofn.lpstrFile
+  std::string filepath = WCharToMByte(ofn.lpstrFile);
+  // get file extension
+  std::string extension = filepath.substr(filepath.find_last_of(".") + 1);
+  if (extension != "xml") {
+    // append .xml to filepath
+    filepath += ".xml";
+  }
+  if (SaveSolutionDesignFile(filepath) != 0) {
+    return -1;
+  }
+  return 0;
 }
 
 int32_t WorkWindow::UpdateSolutionDesignControl() {
