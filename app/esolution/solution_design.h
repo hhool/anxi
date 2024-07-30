@@ -74,16 +74,16 @@ struct ExpDesignBaseParam {
   uint8_t material_name_[256];
   // @breif 弹性模量 GPa 1GPa=1000MPa
   // @brief The elastic modulus GPa 1GPa=1000MPa
-  float f_elastic_modulus_GPa_;
+  double f_elastic_modulus_GPa_;
   // @brief 密度 kg/m^3
   // @brief The density kg/m^3
-  float f_density_kg_m3_;
+  double f_density_kg_m3_;
   // @brief 应力最大值 MPa
   // @brief The max stress MPa
-  float f_max_stress_MPa_;
+  double f_max_stress_MPa_;
   // @brief 应力比
   // @brief The stress ratio
-  float f_stress_ratio_;
+  double f_stress_ratio_;
 };
 
 // @brief 试验设计参数 作为试验设计的输入参数
@@ -149,30 +149,30 @@ struct ExpDesignResult1 : public ExpDesignResult {
 
   // @brief Amplitude A um
   // @brief 振幅A  um
-  float f_eamplitude_;
+  double f_eamplitude_;
   // @brief 试验中应力与位移的关系
   // 应力位移系数 MPa/um
   // @brief The stress displacement coefficient
   // stress displacement coefficient MPa/um
-  float f_dc_stress_MPa_;
+  double f_dc_stress_MPa_;
   // @brief 试验段半径 R2 mm
   // @brief The radius of the exp section R2 mm
-  float f_exp_section_radius_R2_;
+  double f_exp_section_radius_R2_;
   // @brief 平行段半径 R1 mm
   // @brief The radius of the parallel section R1 mm
-  float f_parallel_section_radius_R1_;
+  double f_parallel_section_radius_R1_;
   // @brief 过渡段半径 R0 mm
   // @brief The radius of the transition section R0 mm
-  float f_transition_section_radius_R0_;
+  double f_transition_section_radius_R0_;
   // @brief 过渡段长度 L1 mm
   // @brief The length of the transition section L1 mm
-  float f_transition_section_length_L1_;
+  double f_transition_section_length_L1_;
   // @brief 平行段长度 L0 mm
   // @brief The length of the parallel section L0 mm
-  float f_parallel_section_length_L0_;
+  double f_parallel_section_length_L0_;
   // @brief 试验段长度 L2 mm
   // @brief The length of the exp section L2 mm
-  float f_exp_section_length_L2_;
+  double f_exp_section_length_L2_;
 };
 
 // @brief 试验设计参数
@@ -201,7 +201,7 @@ struct ExpDesignResultStressesAdjustable : public ExpDesignResult1 {
   virtual std::string ToXml(bool close_tag = true) const;
   // @brief 静载 MPa
   // @brief Static load MPa
-  float f_static_load_MPa_;
+  double f_static_load_MPa_;
 };
 
 struct ExpDesignResult2 : public ExpDesignResult {
@@ -212,12 +212,12 @@ struct ExpDesignResult2 : public ExpDesignResult {
   virtual std::string ToXml(bool close_tag = true) const;
   // @brief Amplitude A um
   // @brief 振幅A  um
-  float f_eamplitude_um_;
+  double f_eamplitude_um_;
   // @brief 试验中应力与位移的关系
   // 应力位移系数 MPa/um
   // @brief The stress displacement coefficient
   // stress displacement coefficient MPa/um
-  float f_dc_stress_MPa_;
+  double f_dc_stress_MPa_;
 };
 
 struct ExpDesignResultTh3pointBending : public ExpDesignResult2 {
@@ -231,19 +231,19 @@ struct ExpDesignResultTh3pointBending : public ExpDesignResult2 {
   virtual std::string ToXml(bool close_tag = true) const;
   // @brief 静载 MPa
   // @brief Static load MPa
-  float f_static_load_MPa_;
+  double f_static_load_MPa_;
   // @brief 试件宽度 B mm
   // @brief The width of the specimen B mm
-  float f_specimen_width_B_;
+  double f_specimen_width_B_;
   // @brief 试件厚度 h mm
   // @brief The thickness of the specimen h mm
-  float f_specimen_thickness_h_;
+  double f_specimen_thickness_h_;
   // @brief 试件长度 L mm
   // @brief The length of the specimen L mm
-  float f_specimen_length_L_;
+  double f_specimen_length_L_;
   // @brief 支撑距离 L0 mm
   // @brief The support distance L0 mm
-  float f_support_distance_L0_;
+  double f_support_distance_L0_;
 };
 
 struct ExpDesignResultVibrationBending : public ExpDesignResult2 {
@@ -256,19 +256,19 @@ struct ExpDesignResultVibrationBending : public ExpDesignResult2 {
   virtual std::string ToXml(bool close_tag = true) const;
   // @brief 试验平行段长度 L1 mm
   // @brief The length of the parallel section L1 mm
-  float f_specimen_length_parallel_section_L1_;
+  double f_specimen_length_parallel_section_L1_;
   // @brief 试验圆弧段半径 R1 mm
   // @brief The radius of the arc section R1 mm
-  float f_specimen_radius_arc_R1_;
+  double f_specimen_radius_arc_R1_;
   // @brief 试验过渡段半径 R2 mm
   // @brief The radius of the transition section R2 mm
-  float f_specimen_radius_transition_R2_;
+  double f_specimen_radius_transition_R2_;
   // @brief 夹持段厚度 d1 mm
   // @brief The thickness of the clamping section d1 mm
-  float f_thickness_clamping_d1_;
+  double f_thickness_clamping_d1_;
   // @brief 试验段厚度 L0 d2 mm
   // @brief The thickness of the test section L0 d2 mm
-  float f_thickness_exp_section_L0_d2_;
+  double f_thickness_exp_section_L0_d2_;
 };
 
 class SolutionDesign {

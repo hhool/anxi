@@ -472,7 +472,7 @@ int32_t WorkWindow::UpadateTabMainFirstPageElementViewHeaderAndBaseParam() {
     DuiLib::CEditUI* edit =
         static_cast<DuiLib::CEditUI*>(m_PaintManager.FindControl(name_elastic));
     DuiLib::CDuiString value;
-    value.Format(_T("%f"), base_param->f_elastic_modulus_GPa_);
+    value.Format(_T("%.2f"), base_param->f_elastic_modulus_GPa_);
     edit->SetText(value);
   }
   {
@@ -481,7 +481,7 @@ int32_t WorkWindow::UpadateTabMainFirstPageElementViewHeaderAndBaseParam() {
     DuiLib::CEditUI* edit =
         static_cast<DuiLib::CEditUI*>(m_PaintManager.FindControl(name_density));
     DuiLib::CDuiString value;
-    value.Format(_T("%f"), base_param->f_density_kg_m3_);
+    value.Format(_T("%.2f"), base_param->f_density_kg_m3_);
     edit->SetText(value);
   }
 
@@ -491,7 +491,7 @@ int32_t WorkWindow::UpadateTabMainFirstPageElementViewHeaderAndBaseParam() {
     DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
         m_PaintManager.FindControl(name_max_stress));
     DuiLib::CDuiString value;
-    value.Format(_T("%f"), base_param->f_max_stress_MPa_);
+    value.Format(_T("%.2f"), base_param->f_max_stress_MPa_);
     edit->SetText(value);
   }
 
@@ -502,7 +502,7 @@ int32_t WorkWindow::UpadateTabMainFirstPageElementViewHeaderAndBaseParam() {
     DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
         m_PaintManager.FindControl(name_stress_ratio));
     DuiLib::CDuiString value;
-    value.Format(_T("%f"), base_param->f_stress_ratio_);
+    value.Format(_T("%.2f"), base_param->f_stress_ratio_);
     edit->SetText(value);
   }
 
@@ -536,7 +536,7 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
           m_PaintManager.FindControl(name_amplitude));
       DuiLib::CDuiString value;
-      value.Format(_T("%f"), result_axially->f_eamplitude_);
+      value.Format(_T("%.2f"), result_axially->f_eamplitude_);
       edit->SetText(value);
     }
     {
@@ -545,7 +545,7 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
           m_PaintManager.FindControl(name_dc_stress));
       DuiLib::CDuiString value;
-      value.Format(_T("%f"), result_axially->f_dc_stress_MPa_);
+      value.Format(_T("%.2f"), result_axially->f_dc_stress_MPa_);
       edit->SetText(value);
     }
     {
@@ -554,7 +554,7 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
           m_PaintManager.FindControl(name_radius_exp));
       DuiLib::CDuiString value;
-      value.Format(_T("%f"), result_axially->f_exp_section_radius_R2_);
+      value.Format(_T("%.2f"), result_axially->f_exp_section_radius_R2_);
       edit->SetText(value);
     }
     {
@@ -564,7 +564,7 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
           m_PaintManager.FindControl(name_radius_parallel));
       DuiLib::CDuiString value;
-      value.Format(_T("%f"), result_axially->f_parallel_section_radius_R1_);
+      value.Format(_T("%.2f"), result_axially->f_parallel_section_radius_R1_);
       edit->SetText(value);
     }
     {
@@ -574,7 +574,7 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
           m_PaintManager.FindControl(name_radus_trans));
       DuiLib::CDuiString value;
-      value.Format(_T("%f"), result_axially->f_transition_section_radius_R0_);
+      value.Format(_T("%.2f"), result_axially->f_transition_section_radius_R0_);
       edit->SetText(value);
     }
     {
@@ -584,7 +584,7 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
           m_PaintManager.FindControl(name_length_trans));
       DuiLib::CDuiString value;
-      value.Format(_T("%f"), result_axially->f_transition_section_length_L1_);
+      value.Format(_T("%.2f"), result_axially->f_transition_section_length_L1_);
       edit->SetText(value);
     }
     {
@@ -594,7 +594,7 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
           m_PaintManager.FindControl(name_length_parallel));
       DuiLib::CDuiString value;
-      value.Format(_T("%f"), result_axially->f_parallel_section_length_L0_);
+      value.Format(_T("%.2f"), result_axially->f_parallel_section_length_L0_);
       edit->SetText(value);
     }
   } else if (header->solution_type_ ==
@@ -610,7 +610,7 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
           m_PaintManager.FindControl(name_amplitude));
       DuiLib::CDuiString value;
-      value.Format(_T("%f"), result_stresses->f_eamplitude_);
+      value.Format(_T("%.2f"), result_stresses->f_eamplitude_);
       edit->SetText(value);
     }
     {
@@ -619,7 +619,7 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
           m_PaintManager.FindControl(name_dc_stress));
       DuiLib::CDuiString value;
-      value.Format(_T("%f"), result_stresses->f_dc_stress_MPa_);
+      value.Format(_T("%.2f"), result_stresses->f_dc_stress_MPa_);
       edit->SetText(value);
     }
     {
@@ -628,7 +628,7 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
           m_PaintManager.FindControl(name_radius_exp));
       DuiLib::CDuiString value;
-      value.Format(_T("%f"), result_stresses->f_exp_section_radius_R2_);
+      value.Format(_T("%.2f"), result_stresses->f_exp_section_radius_R2_);
       edit->SetText(value);
     }
     {
@@ -638,7 +638,7 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
           m_PaintManager.FindControl(name_radius_parallel));
       DuiLib::CDuiString value;
-      value.Format(_T("%f"), result_stresses->f_parallel_section_radius_R1_);
+      value.Format(_T("%.2f"), result_stresses->f_parallel_section_radius_R1_);
       edit->SetText(value);
     }
     {
@@ -648,7 +648,8 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
           m_PaintManager.FindControl(name_radus_trans));
       DuiLib::CDuiString value;
-      value.Format(_T("%f"), result_stresses->f_transition_section_radius_R0_);
+      value.Format(_T("%.2f"),
+                   result_stresses->f_transition_section_radius_R0_);
       edit->SetText(value);
     }
     {
@@ -658,7 +659,8 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
           m_PaintManager.FindControl(name_length_trans));
       DuiLib::CDuiString value;
-      value.Format(_T("%f"), result_stresses->f_transition_section_length_L1_);
+      value.Format(_T("%.2f"),
+                   result_stresses->f_transition_section_length_L1_);
       edit->SetText(value);
     }
     {
@@ -668,7 +670,7 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
           m_PaintManager.FindControl(name_length_parallel));
       DuiLib::CDuiString value;
-      value.Format(_T("%f"), result_stresses->f_parallel_section_length_L0_);
+      value.Format(_T("%.2f"), result_stresses->f_parallel_section_length_L0_);
       edit->SetText(value);
     }
   } else if (header->solution_type_ ==
@@ -685,7 +687,7 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
           m_PaintManager.FindControl(name_amplitude_load));
       DuiLib::CDuiString value;
-      value.Format(_T("%f"), result_stresses->f_eamplitude_);
+      value.Format(_T("%.2f"), result_stresses->f_eamplitude_);
       edit->SetText(value);
     }
     {
@@ -694,7 +696,7 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
           m_PaintManager.FindControl(name_dc_stress));
       DuiLib::CDuiString value;
-      value.Format(_T("%f"), result_stresses->f_dc_stress_MPa_);
+      value.Format(_T("%.2f"), result_stresses->f_dc_stress_MPa_);
       edit->SetText(value);
     }
     {
@@ -704,7 +706,7 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
           m_PaintManager.FindControl(name_static_load));
       DuiLib::CDuiString value;
-      value.Format(_T("%f"), result_stresses->f_static_load_MPa_);
+      value.Format(_T("%.2f"), result_stresses->f_static_load_MPa_);
       edit->SetText(value);
     }
     {
@@ -713,7 +715,7 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
           m_PaintManager.FindControl(name_radius_exp));
       DuiLib::CDuiString value;
-      value.Format(_T("%f"), result_stresses->f_exp_section_radius_R2_);
+      value.Format(_T("%.2f"), result_stresses->f_exp_section_radius_R2_);
       edit->SetText(value);
     }
     {
@@ -722,7 +724,7 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
           m_PaintManager.FindControl(name_radius_load));
       DuiLib::CDuiString value;
-      value.Format(_T("%f"), result_stresses->f_exp_section_length_L2_);
+      value.Format(_T("%.2f"), result_stresses->f_exp_section_length_L2_);
       edit->SetText(value);
     }
 
@@ -739,7 +741,7 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
           m_PaintManager.FindControl(name_amplitude));
       DuiLib::CDuiString value;
-      value.Format(_T("%f"), result_th3point->f_eamplitude_um_);
+      value.Format(_T("%.2f"), result_th3point->f_eamplitude_um_);
       edit->SetText(value);
     }
     {
@@ -748,7 +750,7 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
           m_PaintManager.FindControl(name_dc_stress));
       DuiLib::CDuiString value;
-      value.Format(_T("%f"), result_th3point->f_dc_stress_MPa_);
+      value.Format(_T("%.2f"), result_th3point->f_dc_stress_MPa_);
       edit->SetText(value);
     }
     {
@@ -758,7 +760,7 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
           m_PaintManager.FindControl(name_static_load));
       DuiLib::CDuiString value;
-      value.Format(_T("%f"), result_th3point->f_static_load_MPa_);
+      value.Format(_T("%.2f"), result_th3point->f_static_load_MPa_);
       edit->SetText(value);
     }
     {
@@ -768,7 +770,7 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
           m_PaintManager.FindControl(name_speciments_width));
       DuiLib::CDuiString value;
-      value.Format(_T("%f"), result_th3point->f_specimen_width_B_);
+      value.Format(_T("%.2f"), result_th3point->f_specimen_width_B_);
       edit->SetText(value);
     }
     {
@@ -778,7 +780,7 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
           m_PaintManager.FindControl(name_speciments_height));
       DuiLib::CDuiString value;
-      value.Format(_T("%f"), result_th3point->f_specimen_thickness_h_);
+      value.Format(_T("%.2f"), result_th3point->f_specimen_thickness_h_);
       edit->SetText(value);
     }
     {
@@ -788,7 +790,7 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
           m_PaintManager.FindControl(name_speciments_length));
       DuiLib::CDuiString value;
-      value.Format(_T("%f"), result_th3point->f_specimen_length_L_);
+      value.Format(_T("%.2f"), result_th3point->f_specimen_length_L_);
       edit->SetText(value);
     }
     {
@@ -798,7 +800,7 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
           m_PaintManager.FindControl(name_length_parallel));
       DuiLib::CDuiString value;
-      value.Format(_T("%f"), result_th3point->f_support_distance_L0_);
+      value.Format(_T("%.2f"), result_th3point->f_support_distance_L0_);
       edit->SetText(value);
     }
   } else if (header->solution_type_ ==
@@ -814,7 +816,7 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
           m_PaintManager.FindControl(name_amplitude));
       DuiLib::CDuiString value;
-      value.Format(_T("%f"), result_vibration->f_eamplitude_um_);
+      value.Format(_T("%.2f"), result_vibration->f_eamplitude_um_);
       edit->SetText(value);
     }
     {
@@ -823,7 +825,7 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
           m_PaintManager.FindControl(name_dc_stress));
       DuiLib::CDuiString value;
-      value.Format(_T("%f"), result_vibration->f_dc_stress_MPa_);
+      value.Format(_T("%.2f"), result_vibration->f_dc_stress_MPa_);
       edit->SetText(value);
     }
     {
@@ -833,7 +835,7 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
           m_PaintManager.FindControl(name_radius_exp));
       DuiLib::CDuiString value;
-      value.Format(_T("%f"),
+      value.Format(_T("%.2f"),
                    result_vibration->f_specimen_length_parallel_section_L1_);
       edit->SetText(value);
     }
@@ -844,7 +846,7 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
           m_PaintManager.FindControl(name_radius_load));
       DuiLib::CDuiString value;
-      value.Format(_T("%f"), result_vibration->f_specimen_radius_arc_R1_);
+      value.Format(_T("%.2f"), result_vibration->f_specimen_radius_arc_R1_);
       edit->SetText(value);
     }
     {
@@ -854,7 +856,7 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
           m_PaintManager.FindControl(name_radius_trans));
       DuiLib::CDuiString value;
-      value.Format(_T("%f"),
+      value.Format(_T("%.2f"),
                    result_vibration->f_specimen_radius_transition_R2_);
       edit->SetText(value);
     }
@@ -865,7 +867,7 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
           m_PaintManager.FindControl(name_thickness_clamp));
       DuiLib::CDuiString value;
-      value.Format(_T("%f"), result_vibration->f_thickness_clamping_d1_);
+      value.Format(_T("%.2f"), result_vibration->f_thickness_clamping_d1_);
       edit->SetText(value);
     }
     {
@@ -875,7 +877,8 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
       DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
           m_PaintManager.FindControl(name_thickness_exp));
       DuiLib::CDuiString value;
-      value.Format(_T("%f"), result_vibration->f_thickness_exp_section_L0_d2_);
+      value.Format(_T("%.2f"),
+                   result_vibration->f_thickness_exp_section_L0_d2_);
       edit->SetText(value);
     }
   } else {
