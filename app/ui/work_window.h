@@ -12,6 +12,9 @@
 #ifndef APP_UI_WORK_WINDOW_H_
 #define APP_UI_WORK_WINDOW_H_
 
+#include "app/ui/work_window_tab_main_first_page_solution_design_base.h"
+
+#include <map>
 #include <memory>
 #include <string>
 
@@ -23,6 +26,7 @@ using namespace DuiLib;
 namespace anx {
 namespace esolution {
 class SolutionDesign;
+class PageSolutionDesignBase;
 }  // namespace esolution
 }  // namespace anx
 
@@ -42,6 +46,7 @@ class WorkWindow : public DuiLib::WindowImplBase {
 
   DUI_DECLARE_MESSAGE_MAP()
   void OnClick(DuiLib::TNotifyUI& msg) override;
+  virtual void OnSelectChanged(DuiLib::TNotifyUI& msg);
 
   DuiLib::CDuiString GetSkinFolder() override;
   DuiLib::CDuiString GetSkinFile() override;
@@ -56,35 +61,16 @@ class WorkWindow : public DuiLib::WindowImplBase {
  protected:
   void OnPrepare(DuiLib::TNotifyUI& msg);
 
-  /// @brief Update the main tab page of work window with the solution type
-  /// @param solution_type
-  void UpdateTabMainFirstPageWithSolution(int32_t solution_type);
   /// @brief Update the work window tile with the solution type
   /// @param solution_type
   void UpdateWorkWindowTileWithSolution(int32_t solution_type);
-  /// @brief Update the main tab page of work window with
-  /// solution_design_.header_ and solution_design_.base_param_
-  int32_t UpadateTabMainFirstPageElementViewHeaderAndBaseParam();
-  /// @brief Update the main tab page of work window with
-  /// solution_design_.result_
-  void UpadateTabMainFirstPageElementViewResult();
+  /// @brief Update the main tab page of work window with the solution type
+  /// @param solution_type
+  void UpdateTabMainFirstPageWithSolution(int32_t solution_type);
+  /// @brief Update args area
+  void UpdateArgsAreaWithSolution();
 
  protected:
-  /// @brief Default solution design xml filepath with solution type
-  /// for solution design created with default value
-  /// @param solution_type
-  std::string DefaultSolutionDesignXml(int32_t solution_type);
-
-  /// @brief Load the solution design file
-  /// @param file_path the file path of the solution design file
-  /// @return 0 if success, -1 if failed
-  int32_t LoadSolutionDesignFile(const std::string& file_path);
-
-  /// @brief Save the solution design file
-  /// @param file_path the file path of the solution design file
-  /// @return 0 if success, -1 if failed
-  int32_t SaveSolutionDesignFile(const std::string& file_path);
-
   /// @brief Load the solution design file with dialog box
   /// @return 0 if success, -1 if failed
   /// @note the file path will be saved in solution_file_path_
@@ -94,32 +80,21 @@ class WorkWindow : public DuiLib::WindowImplBase {
   /// @brief Save the solution design file with dialog box
   int32_t SaveFileWithDialog();
 
-  /// @brief Update the solution design control with the solution design
-  int32_t UpdateSolutionDesignControl();
-
-  /// @brief Calculate the solution design with control and update the result
-  int32_t SolutionDesignCalculateWithControl();
-
-  /// @brief Read the solution design from control
-  std::string SolutionDesignXmlFromControl();
-
  private:
   DuiLib::WindowImplBase* pOwner_;
   int32_t solution_type_;
-  std::string solution_file_path_;
-  std::unique_ptr<anx::esolution::SolutionDesign> solution_design_;
+  PageSolutionDesignBase* solution_design_base_;
 
   CButtonUI* btn_close_;
   CButtonUI* btn_max_;
   CButtonUI* btn_restore_;
   CButtonUI* btn_min_;
+  CButtonUI* btn_title_;
 
   CButtonUI* btn_menu_design_manager_;
   CButtonUI* btn_menu_design_store_;
   CButtonUI* btn_menu_back_;
   CButtonUI* btn_menu_about_;
-
-  CButtonUI* btn_solution_refresh_;
 
   CButtonUI* btn_args_area_value_freq_;
   CButtonUI* btn_args_area_value_freq_num_;
@@ -127,6 +102,8 @@ class WorkWindow : public DuiLib::WindowImplBase {
   CButtonUI* btn_args_area_value_max_stress_;
   CButtonUI* btn_args_area_value_static_load_;
   CButtonUI* btn_args_area_value_stress_ratio_;
+
+  std::map<std::string, std::unique_ptr<DuiLib::CNotifyPump>> tab_main_pages_;
 };
 }  // namespace ui
 }  // namespace anx

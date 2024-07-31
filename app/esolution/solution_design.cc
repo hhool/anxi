@@ -11,6 +11,7 @@
 
 #include "app/esolution/solution_design.h"
 
+#include <cassert>
 #include <utility>
 
 #include "third_party/tinyxml2/source/tinyxml2.h"
@@ -151,10 +152,27 @@ std::string ExpDesignResult::ToXml(bool close_tag) const {
   return xml;
 }
 
+
+//////////////////////////
+// ExpDesignResult0
+ExpDesignResult0::ExpDesignResult0(int32_t solution_type)
+	: ExpDesignResult(solution_type) {
+	// do something
+}
+
+std::string ExpDesignResult0::ToXml(bool close_tag) const {
+	std::string xml;
+	xml += "<f_eamplitude>" + std::to_string(f_eamplitude_) +
+		"</f_eamplitude>\r\n";
+	xml += "<f_dc_stress_MPa>" + std::to_string(f_dc_stress_MPa_) +
+		"</f_dc_stress_MPa>\r\n";
+	return xml;
+}
+
 //////////////////////////
 // ExpDesignResult1
 ExpDesignResult1::ExpDesignResult1(int32_t solution_type)
-    : ExpDesignResult(solution_type) {
+    : ExpDesignResult0(solution_type) {
   // do something
 }
 
@@ -234,25 +252,9 @@ std::string ExpDesignResultStressesAdjustable::ToXml(bool close_tag) const {
 }
 
 //////////////////////////
-// ExpDesignResult2
-ExpDesignResult2::ExpDesignResult2(int32_t solution_type)
-    : ExpDesignResult(solution_type) {
-  // do something
-}
-
-std::string ExpDesignResult2::ToXml(bool close_tag) const {
-  std::string xml;
-  xml += "<f_eamplitude_um>" + std::to_string(f_eamplitude_um_) +
-         "</f_eamplitude_um>\r\n";
-  xml += "<f_dc_stress_MPa>" + std::to_string(f_dc_stress_MPa_) +
-         "</f_dc_stress_MPa>\r\n";
-  return xml;
-}
-
-//////////////////////////
 // ExpDesignResultTh3pointBending
 ExpDesignResultTh3pointBending::ExpDesignResultTh3pointBending()
-    : ExpDesignResult2(2) {
+    : ExpDesignResult0(2) {
   // do something
 }
 
@@ -261,7 +263,7 @@ std::string ExpDesignResultTh3pointBending::ToXml(bool close_tag) const {
   if (close_tag) {
     xml += "<result type=\"th3point\">\r\n";
   }
-  xml += ExpDesignResult2::ToXml(false);
+  xml += ExpDesignResult0::ToXml(false);
   xml += "<f_static_load_MPa>" + std::to_string(f_static_load_MPa_) +
          "</f_static_load_MPa>\r\n";
   xml += "<f_specimen_width_B>" + std::to_string(f_specimen_width_B_) +
@@ -280,7 +282,7 @@ std::string ExpDesignResultTh3pointBending::ToXml(bool close_tag) const {
 //////////////////////////
 // ExpDesignResultVibrationBending
 ExpDesignResultVibrationBending::ExpDesignResultVibrationBending()
-    : ExpDesignResult2(3) {
+    : ExpDesignResult0(3) {
   // do something
 }
 
@@ -289,7 +291,7 @@ std::string ExpDesignResultVibrationBending::ToXml(bool close_tag) const {
   if (close_tag) {
     xml += "<result type=\"vibration\">\r\n";
   }
-  xml += ExpDesignResult2::ToXml(false);
+  xml += ExpDesignResult0::ToXml(false);
   xml += "<f_specimen_length_parallel_section_L1>" +
          std::to_string(f_specimen_length_parallel_section_L1_) +
          "</f_specimen_length_parallel_section_L1>\r\n";
@@ -337,7 +339,7 @@ SolutionDesign::SolutionDesign(const SolutionDesign& design)
   }
 }
 
-std::string SolutionDesign::ToXml() {
+std::string SolutionDesign::ToXml() const {
   std::string xml;
   xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n";
   xml += header_->ToXml();
@@ -551,10 +553,10 @@ int32_t SolutionDesign::FromXml(const std::string& xml,
     } else if (header.solution_type_ == kSolutionName_Th3point_Bending) {
       ExpDesignResultTh3pointBending result_th3point;
 
-      tinyxml2::XMLElement* f_eamplitude_um_element =
-          result_element->FirstChildElement("f_eamplitude_um");
-      if (f_eamplitude_um_element) {
-        result_th3point.f_eamplitude_um_ = f_eamplitude_um_element->FloatText();
+      tinyxml2::XMLElement* f_eamplitude_element =
+          result_element->FirstChildElement("f_eamplitude");
+      if (f_eamplitude_element) {
+        result_th3point.f_eamplitude_ = f_eamplitude_element->FloatText();
       }
 
       tinyxml2::XMLElement* f_dc_stress_MPa_element =
@@ -601,11 +603,11 @@ int32_t SolutionDesign::FromXml(const std::string& xml,
     } else if (header.solution_type_ == kSolutionName_Vibration_Bending) {
       ExpDesignResultVibrationBending result_vibration;
 
-      tinyxml2::XMLElement* f_eamplitude_um_element =
-          result_element->FirstChildElement("f_eamplitude_um");
-      if (f_eamplitude_um_element) {
-        result_vibration.f_eamplitude_um_ =
-            f_eamplitude_um_element->FloatText();
+      tinyxml2::XMLElement* f_eamplitude_element =
+          result_element->FirstChildElement("f_eamplitude");
+      if (f_eamplitude_element) {
+        result_vibration.f_eamplitude_ =
+            f_eamplitude_element->FloatText();
       }
 
       tinyxml2::XMLElement* f_dc_stress_MPa_element =

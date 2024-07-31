@@ -29,8 +29,8 @@ MainWindow::~MainWindow() {}
 
 void MainWindow::InitWindow() {
   __super::InitWindow();
-  btn_close_ =
-      static_cast<CButtonUI*>(m_PaintManager.FindControl(_T("closebtn")));
+  btn_close_ = static_cast<CButtonUI*>(
+      m_PaintManager.FindControl(kCloseButtonControlName));
   btn_work_axially_symmetrical_ = static_cast<CButtonUI*>(
       m_PaintManager.FindControl(_T("work_axially_symmetrical")));
   btn_work_stresses_adjustable_ = static_cast<CButtonUI*>(
@@ -101,75 +101,48 @@ LPCTSTR MainWindow::GetWindowClassName(void) const {
   return _T("main_window");
 }
 
-LRESULT MainWindow::OnSysCommand(UINT uMsg,
-                                 WPARAM wParam,
-                                 LPARAM lParam,
-                                 BOOL& bHandled) {
-  BOOL bZoomed = ::IsZoomed(m_hWnd);
-  LRESULT lRes = CWindowWnd::HandleMessage(uMsg, wParam, lParam);
-  if (::IsZoomed(m_hWnd) != bZoomed) {
-    if (!bZoomed) {
-      DuiLib::CControlUI* pControl = static_cast<DuiLib::CControlUI*>(
-          m_PaintManager.FindControl(kMaxButtonControlName));
-      if (pControl)
-        pControl->SetVisible(false);
-      pControl = static_cast<DuiLib::CControlUI*>(
-          m_PaintManager.FindControl(kRestoreButtonControlName));
-      if (pControl)
-        pControl->SetVisible(true);
-    } else {
-      DuiLib::CControlUI* pControl = static_cast<DuiLib::CControlUI*>(
-          m_PaintManager.FindControl(kMaxButtonControlName));
-      if (pControl)
-        pControl->SetVisible(true);
-      pControl = static_cast<DuiLib::CControlUI*>(
-          m_PaintManager.FindControl(kRestoreButtonControlName));
-      if (pControl)
-        pControl->SetVisible(false);
-    }
-  }
-
-  return 0;
-}
-
 void anx::ui::MainWindow::Switch_Axially_Symmetrical() {
+  this->ShowWindow(false, false);
   ui::WorkWindow* work_window = new ui::WorkWindow(
       this, anx::esolution::kSolutionName_Axially_Symmetrical);
   work_window->Create(m_hWnd, _T("work_window"), UI_WNDSTYLE_FRAME,
                       WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
   work_window->CenterWindow();
   work_window->ShowWindow(true, true);
-  ::ShowWindow(*work_window, SW_SHOWMAXIMIZED);
+  ::PostMessage(*work_window, WM_SYSCOMMAND, SC_MAXIMIZE, 0);
 }
 
 void anx::ui::MainWindow::Switch_Stresses_Adjustable() {
+  this->ShowWindow(false, false);
   ui::WorkWindow* work_window = new ui::WorkWindow(
       this, anx::esolution::kSolutionName_Stresses_Adjustable);
   work_window->Create(m_hWnd, _T("work_window"), UI_WNDSTYLE_FRAME,
                       WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
   work_window->CenterWindow();
   work_window->ShowWindow(true, true);
-  ::ShowWindow(*work_window, SW_SHOWMAXIMIZED);
+  ::PostMessage(*work_window, WM_SYSCOMMAND, SC_MAXIMIZE, 0);
 }
 
 void anx::ui::MainWindow::Switch_Th3point_Bending() {
+  this->ShowWindow(false, false);
   ui::WorkWindow* work_window =
       new ui::WorkWindow(this, anx::esolution::kSolutionName_Th3point_Bending);
   work_window->Create(m_hWnd, _T("work_window"), UI_WNDSTYLE_FRAME,
                       WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
   work_window->CenterWindow();
   work_window->ShowWindow(true, true);
-  ::ShowWindow(*work_window, SW_SHOWMAXIMIZED);
+  ::PostMessage(*work_window, WM_SYSCOMMAND, SC_MAXIMIZE, 0);
 }
 
 void anx::ui::MainWindow::Switch_Vibration_Bending() {
+  this->ShowWindow(false, false);
   ui::WorkWindow* work_window =
       new ui::WorkWindow(this, anx::esolution::kSolutionName_Vibration_Bending);
   work_window->Create(m_hWnd, _T("work_window"), UI_WNDSTYLE_FRAME,
                       WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
   work_window->CenterWindow();
   work_window->ShowWindow(true, true);
-  ::ShowWindow(*work_window, SW_SHOWMAXIMIZED);
+  ::PostMessage(*work_window, WM_SYSCOMMAND, SC_MAXIMIZE, 0);
 }
 }  // namespace ui
 }  // namespace anx

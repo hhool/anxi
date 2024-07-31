@@ -32,12 +32,14 @@ option(USE_UNICODE "Use unicode" ON)
 option(ANXI_BUILD_EXAMPLES "Build anxi examples" ON)
 option(ANXI_BUILD_DOC "Build anxi Doc" OFF)
 option(ANXI_BUILD_TEST "Build anxi Test" ON)
+option(ANXI_BUILD_UNITTEST "Build anxi Unittest" ON)
 
 # only build library if add anxi as subdirectory
 if (NOT CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     set(ANXI_BUILD_EXAMPLES OFF)
     set(ANXI_BUILD_DOC OFF)
     set(ANXI_BUILD_TEST OFF)
+    set(ANXI_BUILD_UNITTEST OFF)
 endif()
 
 # anxi UNICODE define for windows platform

@@ -21,7 +21,7 @@ $ git submodule update --init --recursive
 
 ```bash
 $ cd anxi
-$ cmake . -B out -G "Visual Studio 14 2015" -A Win32
+$ cmake . -B out -G "Visual Studio 14 2015" -A Win32 -DCMAKE_BUILD_TYPE="Release"
 $ cmake --build out --config Release
 ```
 

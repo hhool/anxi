@@ -41,10 +41,6 @@ class MainWindow : public DuiLib::WindowImplBase {
   DuiLib::CDuiString GetSkinFile() override;
   DuiLib::UILIB_RESOURCETYPE GetResourceType() const override;
   LPCTSTR GetWindowClassName(void) const override;
-  LRESULT OnSysCommand(UINT uMsg,
-                       WPARAM wParam,
-                       LPARAM lParam,
-                       BOOL& bHandled) override;
 
  protected:
   void Switch_Axially_Symmetrical();

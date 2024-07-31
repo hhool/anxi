@@ -26,7 +26,11 @@ if(WIN32)
 endif()
 
 set(COMMON_FILES
-    common/defines.h)
+    common/defines.h
+    common/module_utils.cc
+    common/module_utils.h
+    common/string_utils.cc
+    common/string_utils.h)
 source_group("common" FILES ${COMMON_FILES})
 list(APPEND APP_SOURCES ${COMMON_FILES})
 
@@ -36,10 +40,23 @@ source_group("document" FILES ${DOCUMENT_FILES})
 list(APPEND APP_SOURCES ${DOCUMENT_FILES})
 
 set(ESOLUTION_FILES
+    esolution/solution_design_default.cc
+    esolution/solution_design_default.h
+    esolution/solution_design_helper.cc
+    esolution/solution_design_helper.h
     esolution/solution_design.cc
     esolution/solution_design.h)
 source_group("esolution" FILES ${ESOLUTION_FILES})
 list(APPEND APP_SOURCES ${ESOLUTION_FILES})
+
+if(ANXI_BUILD_UNITTEST)
+    set(APP_ESOLUTION_UNITTEST_FILES
+        esolution/solution_design_default_unittest.cc)
+    source_group("esoution_unittest" FILES ${APP_ESOLUTION_UNITTEST_FILES})
+    list(APPEND APP_ESOLUTION_UNITTEST_SOURCES ${APP_ESOLUTION_UNITTEST_FILES})
+    add_executable(app_esolution_unittest ${APP_ESOLUTION_UNITTEST_FILES})
+    target_link_libraries(app_esolution_unittest gtest_main gtest app_ui)
+endif()
 
 set(APP_FILES
     application.cc
@@ -65,6 +82,13 @@ if(WIN32)
         ui/work_window_menu_shadow.h
         ui/work_window_menu_store.cc
         ui/work_window_menu_store.h
+        ui/work_window_tab_main_first_page_solution_design_base.h
+        ui/work_window_tab_main_first_page_solution_design.cc
+        ui/work_window_tab_main_first_page_solution_design.h
+        ui/work_window_tab_main_second_page.cc
+        ui/work_window_tab_main_second_page.h
+        ui/work_window_tab_main_third_page.cc
+        ui/work_window_tab_main_third_page.h
         ui/work_window.cc
         ui/work_window.h)
     source_group("ui" FILES ${UI_FILES})

@@ -140,14 +140,14 @@ struct ExpDesignResult {
   int32_t solution_type_;
 };
 
-struct ExpDesignResult1 : public ExpDesignResult {
- public:
-  explicit ExpDesignResult1(int32_t solution_type);
+struct ExpDesignResult0 : public ExpDesignResult {
+public:
+	explicit ExpDesignResult0(int32_t solution_type);
 
- public:
-  virtual std::string ToXml(bool close_tag = true) const;
+public:
+	virtual std::string ToXml(bool close_tag = true) const;
 
-  // @brief Amplitude A um
+	 // @brief Amplitude A um
   // @brief 振幅A  um
   double f_eamplitude_;
   // @brief 试验中应力与位移的关系
@@ -155,6 +155,15 @@ struct ExpDesignResult1 : public ExpDesignResult {
   // @brief The stress displacement coefficient
   // stress displacement coefficient MPa/um
   double f_dc_stress_MPa_;
+};
+
+struct ExpDesignResult1 : public ExpDesignResult0 {
+ public:
+  explicit ExpDesignResult1(int32_t solution_type);
+
+ public:
+  virtual std::string ToXml(bool close_tag = true) const;
+
   // @brief 试验段半径 R2 mm
   // @brief The radius of the exp section R2 mm
   double f_exp_section_radius_R2_;
@@ -204,23 +213,8 @@ struct ExpDesignResultStressesAdjustable : public ExpDesignResult1 {
   double f_static_load_MPa_;
 };
 
-struct ExpDesignResult2 : public ExpDesignResult {
- public:
-  explicit ExpDesignResult2(int32_t solution_type);
 
- public:
-  virtual std::string ToXml(bool close_tag = true) const;
-  // @brief Amplitude A um
-  // @brief 振幅A  um
-  double f_eamplitude_um_;
-  // @brief 试验中应力与位移的关系
-  // 应力位移系数 MPa/um
-  // @brief The stress displacement coefficient
-  // stress displacement coefficient MPa/um
-  double f_dc_stress_MPa_;
-};
-
-struct ExpDesignResultTh3pointBending : public ExpDesignResult2 {
+struct ExpDesignResultTh3pointBending : public ExpDesignResult0 {
  public:
   ExpDesignResultTh3pointBending();
 
@@ -246,7 +240,7 @@ struct ExpDesignResultTh3pointBending : public ExpDesignResult2 {
   double f_support_distance_L0_;
 };
 
-struct ExpDesignResultVibrationBending : public ExpDesignResult2 {
+struct ExpDesignResultVibrationBending : public ExpDesignResult0 {
   ExpDesignResultVibrationBending();
 
   explicit ExpDesignResultVibrationBending(
@@ -280,7 +274,7 @@ class SolutionDesign {
   std::unique_ptr<ExpDesignHeader> header_;
   std::unique_ptr<ExpDesignBaseParam> base_param_;
   std::unique_ptr<ExpDesignResult> result_;
-  std::string ToXml();
+  std::string ToXml() const;
   static int32_t FromXml(const std::string& xml, SolutionDesign* design);
 };
 
