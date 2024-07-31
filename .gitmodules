@@ -10,3 +10,6 @@
 [submodule "third_party/tinyxml2/source"]
 	path = third_party/tinyxml2/source
 	url = git@github.com:hhool/tinyxml2.git
+[submodule "app/resource"]
+	path = app/resource
+	url = git@github.com:hhool/anxi_resource.git

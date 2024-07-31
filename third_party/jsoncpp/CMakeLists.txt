@@ -7,10 +7,12 @@
 
 cmake_minimum_required(VERSION 3.0)
 
-set(USE_UNICODE "Use unicode" ON)
-set(USE_SHARED "Use shared library" ON)
-set(JSONCPP_WITH_TESTS "Build jsoncpp tests" OFF)
-set(JSONCPP_WITH_POST_BUILD_UNITTEST "Run jsoncpp tests after build" OFF)
-set(JSONCPP_WITH_WARNING_AS_ERROR "Treat warnings as errors" ON)
-set(JSONCPP_WITH_PKGCONFIG_SUPPORT "Build jsoncpp with pkgconfig support" OFF)
+option(USE_UNICODE "Use unicode" ON)
+option(USE_SHARED "Use shared library" ON)
+option(JSONCPP_WITH_TESTS "Build jsoncpp tests" OFF)
+option(JSONCPP_WITH_POST_BUILD_UNITTEST "Run jsoncpp tests after build" OFF)
+option(JSONCPP_WITH_WARNING_AS_ERROR "Treat warnings as errors" OFF)
+option(JSONCPP_WITH_PKGCONFIG_SUPPORT "Build jsoncpp with pkgconfig support" OFF)
+option(JSONCPP_WITH_CMAKE_PACKAGE "Build jsoncpp with cmake package" OFF)
+option(JSONCPP_WITH_EXAMPLE "Build jsoncpp example" OFF)
 add_subdirectory(source)

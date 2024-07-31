@@ -33,7 +33,6 @@ class MainWindow : public DuiLib::WindowImplBase {
   void InitWindow() override;
   void OnFinalMessage(HWND hWnd) override;
   LRESULT ResponseDefaultKeyEvent(WPARAM wParam) override;
-  void Notify(DuiLib::TNotifyUI& msg) override;
 
   DUI_DECLARE_MESSAGE_MAP()
   void OnClick(DuiLib::TNotifyUI& msg) override;
@@ -48,17 +47,18 @@ class MainWindow : public DuiLib::WindowImplBase {
                        BOOL& bHandled) override;
 
  protected:
-  void OnPrepare(const DuiLib::TNotifyUI& msg);
-  void OnExit(const DuiLib::TNotifyUI& msg);
-  void OnTimer(const DuiLib::TNotifyUI& msg);
-
- protected:
   void Switch_Axially_Symmetrical();
   void Switch_Stresses_Adjustable();
-  void Switch_th3point_Bending();
+  void Switch_Th3point_Bending();
   void Switch_Vibration_Bending();
 
  private:
+  CButtonUI* btn_close_;
+  CButtonUI* btn_work_axially_symmetrical_;
+  CButtonUI* btn_work_stresses_adjustable_;
+  CButtonUI* btn_work_th3point_bending_;
+  CButtonUI* btn_work_vibration_bending_;
+  CButtonUI* btn_work_pilot_e10c_;
 };
 }  // namespace ui
 }  // namespace anx

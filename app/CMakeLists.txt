@@ -83,12 +83,12 @@ endif()
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 add_library(app_ui STATIC ${APP_SOURCES})
 
-## add library duilib source path
+# # add library duilib source path
 target_include_directories(app_ui PUBLIC ${PROJECT_PATH})
 target_include_directories(app_ui PRIVATE ${PROJECT_PATH}/third_party/duilib/source/DuiLib)
 add_dependencies(app_ui duilib)
 
-## add library duilib library dependencie
+# # add library duilib library dependencie
 target_link_libraries(app_ui duilib)
 
 # add library tinyxml2 source path
@@ -98,17 +98,26 @@ add_dependencies(app_ui tinyxml2::tinyxml2)
 
 # add library duilib library dependencie
 target_link_libraries(app_ui tinyxml2::tinyxml2)
-###############################################################################
+
+# ##############################################################################
 # add executable
 add_executable(app_exe main.cc)
 add_dependencies(app_exe app_ui)
 target_link_libraries(app_exe app_ui)
 
-if (WIN32)
+if(WIN32)
     target_link_libraries(app_exe user32 gdi32)
     set_target_properties(app_exe PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS")
 endif()
 
-#rename the output file to product name
+# rename the output file to product name
 set_target_properties(app_exe PROPERTIES OUTPUT_NAME ${PRODUCT_NAME})
 
+# ##############################################################################
+# copy folder resource/skin resource/default to the target directory
+add_custom_command(TARGET app_exe POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${PROJECT_SOURCE_DIR}/resource/skin ${PROJECT_BINARY_DIR}/../bin/${CMAKE_BUILD_TYPE}/skin)
+add_custom_command(TARGET app_exe POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${PROJECT_SOURCE_DIR}/resource/default ${PROJECT_BINARY_DIR}/../bin/${CMAKE_BUILD_TYPE}/default)

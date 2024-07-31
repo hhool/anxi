@@ -29,6 +29,18 @@ MainWindow::~MainWindow() {}
 
 void MainWindow::InitWindow() {
   __super::InitWindow();
+  btn_close_ =
+      static_cast<CButtonUI*>(m_PaintManager.FindControl(_T("closebtn")));
+  btn_work_axially_symmetrical_ = static_cast<CButtonUI*>(
+      m_PaintManager.FindControl(_T("work_axially_symmetrical")));
+  btn_work_stresses_adjustable_ = static_cast<CButtonUI*>(
+      m_PaintManager.FindControl(_T("work_stresses_adjustable")));
+  btn_work_th3point_bending_ = static_cast<CButtonUI*>(
+      m_PaintManager.FindControl(_T("work_3point_bending")));
+  btn_work_vibration_bending_ = static_cast<CButtonUI*>(
+      m_PaintManager.FindControl(_T("work_vibration_bending")));
+  btn_work_pilot_e10c_ = static_cast<CButtonUI*>(
+      m_PaintManager.FindControl(_T("work_pilot_e10c")));
 }
 
 void MainWindow::OnFinalMessage(HWND hWnd) {
@@ -45,47 +57,29 @@ LRESULT MainWindow::ResponseDefaultKeyEvent(WPARAM wParam) {
   return FALSE;
 }
 
-void MainWindow::Notify(DuiLib::TNotifyUI& msg) {
-  if (msg.sType == kWindowInit) {
-  } else if (msg.sType == kClick) {
-    if (msg.pSender->GetName() == kCloseButtonControlName) {
-      PostQuitMessage(0);
-      return;
-    } else if (msg.pSender->GetName() == _T("work_axially_symmetrical")) {
-      this->ShowWindow(false, false);
-      Switch_Axially_Symmetrical();
-      return;
-    } else if (msg.pSender->GetName() == _T("work_stresses_adjustable")) {
-      this->ShowWindow(false, false);
-      Switch_Stresses_Adjustable();
-      return;
-    } else if (msg.pSender->GetName() == _T("work_3point_bending")) {
-      this->ShowWindow(false, false);
-      Switch_th3point_Bending();
-      return;
-    } else if (msg.pSender->GetName() == _T("work_vibration_bending")) {
-      this->ShowWindow(false, false);
-      Switch_Vibration_Bending();
-      return;
-    } else {
-      // TODO(hhool):
-    }
+void MainWindow::OnClick(DuiLib::TNotifyUI& msg) {
+  if (msg.pSender == btn_close_) {
+    PostQuitMessage(0);
+  } else if (msg.pSender == btn_work_axially_symmetrical_) {
+    Switch_Axially_Symmetrical();
+  } else if (msg.pSender == btn_work_stresses_adjustable_) {
+    Switch_Stresses_Adjustable();
+  } else if (msg.pSender == btn_work_th3point_bending_) {
+    Switch_Th3point_Bending();
+  } else if (msg.pSender == btn_work_vibration_bending_) {
+    Switch_Vibration_Bending();
+  } else if (msg.pSender == btn_work_pilot_e10c_) {
+    // TODO(hhool):
+    MessageBox(m_hWnd, _T("Not implemented yet!"), _T("Warning"),
+               MB_OK | MB_ICONWARNING);
   } else {
     // TODO(hhool):
   }
 }
 
-void MainWindow::OnPrepare(const DuiLib::TNotifyUI& msg) {}
-
-void MainWindow::OnExit(const DuiLib::TNotifyUI& msg) {}
-
-void MainWindow::OnTimer(const DuiLib::TNotifyUI& msg) {}
-
-void MainWindow::OnClick(DuiLib::TNotifyUI& msg) {}
-
 DuiLib::CDuiString MainWindow::GetSkinFolder() {
 #ifdef _DEBUG
-  return _T("skin\\anxi\\used\\");
+  return _T("skin\\");
 #else
   return _T("skin\\");
 #endif
@@ -111,7 +105,6 @@ LRESULT MainWindow::OnSysCommand(UINT uMsg,
                                  WPARAM wParam,
                                  LPARAM lParam,
                                  BOOL& bHandled) {
-#if defined(WIN32) && !defined(UNDER_CE)
   BOOL bZoomed = ::IsZoomed(m_hWnd);
   LRESULT lRes = CWindowWnd::HandleMessage(uMsg, wParam, lParam);
   if (::IsZoomed(m_hWnd) != bZoomed) {
@@ -135,16 +128,13 @@ LRESULT MainWindow::OnSysCommand(UINT uMsg,
         pControl->SetVisible(false);
     }
   }
-#else
-  return __super::OnSysCommand(uMsg, wParam, lParam, bHandled);
-#endif
 
   return 0;
 }
 
 void anx::ui::MainWindow::Switch_Axially_Symmetrical() {
-  ui::WorkWindow* work_window =
-      new ui::WorkWindow(this, anx::esolution::kSolutionName_Axially_Symmetrical);
+  ui::WorkWindow* work_window = new ui::WorkWindow(
+      this, anx::esolution::kSolutionName_Axially_Symmetrical);
   work_window->Create(m_hWnd, _T("work_window"), UI_WNDSTYLE_FRAME,
                       WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
   work_window->CenterWindow();
@@ -153,8 +143,8 @@ void anx::ui::MainWindow::Switch_Axially_Symmetrical() {
 }
 
 void anx::ui::MainWindow::Switch_Stresses_Adjustable() {
-  ui::WorkWindow* work_window =
-      new ui::WorkWindow(this, anx::esolution::kSolutionName_Stresses_Adjustable);
+  ui::WorkWindow* work_window = new ui::WorkWindow(
+      this, anx::esolution::kSolutionName_Stresses_Adjustable);
   work_window->Create(m_hWnd, _T("work_window"), UI_WNDSTYLE_FRAME,
                       WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
   work_window->CenterWindow();
@@ -162,7 +152,7 @@ void anx::ui::MainWindow::Switch_Stresses_Adjustable() {
   ::ShowWindow(*work_window, SW_SHOWMAXIMIZED);
 }
 
-void anx::ui::MainWindow::Switch_th3point_Bending() {
+void anx::ui::MainWindow::Switch_Th3point_Bending() {
   ui::WorkWindow* work_window =
       new ui::WorkWindow(this, anx::esolution::kSolutionName_Th3point_Bending);
   work_window->Create(m_hWnd, _T("work_window"), UI_WNDSTYLE_FRAME,

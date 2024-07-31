@@ -70,17 +70,11 @@ class WorkWindow : public DuiLib::WindowImplBase {
   void UpadateTabMainFirstPageElementViewResult();
 
  protected:
-  LRESULT OnCreate(UINT uMsg,
-                   WPARAM wParam,
-                   LPARAM lParam,
-                   BOOL& bHandled) override;
-  LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) override;
-
- protected:
   /// @brief Default solution design xml filepath with solution type
   /// for solution design created with default value
   /// @param solution_type
   std::string DefaultSolutionDesignXml(int32_t solution_type);
+
   /// @brief Load the solution design file
   /// @param file_path the file path of the solution design file
   /// @return 0 if success, -1 if failed
@@ -111,6 +105,10 @@ class WorkWindow : public DuiLib::WindowImplBase {
 
  private:
   DuiLib::WindowImplBase* pOwner_;
+  int32_t solution_type_;
+  std::string solution_file_path_;
+  std::unique_ptr<anx::esolution::SolutionDesign> solution_design_;
+
   CButtonUI* btn_close_;
   CButtonUI* btn_max_;
   CButtonUI* btn_restore_;
@@ -129,10 +127,6 @@ class WorkWindow : public DuiLib::WindowImplBase {
   CButtonUI* btn_args_area_value_max_stress_;
   CButtonUI* btn_args_area_value_static_load_;
   CButtonUI* btn_args_area_value_stress_ratio_;
-
-  int32_t solution_type_;
-  std::string solution_file_path_;
-  std::unique_ptr<anx::esolution::SolutionDesign> solution_design_;
 };
 }  // namespace ui
 }  // namespace anx

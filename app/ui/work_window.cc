@@ -119,7 +119,6 @@ void WorkWindow::Notify(DuiLib::TNotifyUI& msg) {
   } else if (msg.sType == _T("selectchanged")) {
     DuiLib::CDuiString name = msg.pSender->GetName();
     DuiLib::CTabLayoutUI* pControl = nullptr;
-
     if (name == _T("body_tab_buton_specimen_design")) {
       pControl = static_cast<DuiLib::CTabLayoutUI*>(
           m_PaintManager.FindControl(_T("tab_main")));
@@ -257,7 +256,7 @@ void WorkWindow::OnClick(DuiLib::TNotifyUI& msg) {
 
 DuiLib::CDuiString WorkWindow::GetSkinFolder() {
 #ifdef _DEBUG
-  return _T("skin\\anxi\\used");
+  return _T("skin\\");
 #else
   return _T("skin\\");
 #endif
@@ -283,7 +282,6 @@ LRESULT WorkWindow::OnSysCommand(UINT uMsg,
                                  WPARAM wParam,
                                  LPARAM lParam,
                                  BOOL& bHandled) {
-#if defined(WIN32) && !defined(UNDER_CE)
   BOOL bZoomed = ::IsZoomed(m_hWnd);
   LRESULT lRes = CWindowWnd::HandleMessage(uMsg, wParam, lParam);
   if (::IsZoomed(m_hWnd) != bZoomed) {
@@ -307,14 +305,11 @@ LRESULT WorkWindow::OnSysCommand(UINT uMsg,
         pControl->SetVisible(false);
     }
   }
-#else
-  return __super::OnSysCommand(uMsg, wParam, lParam, bHandled);
-#endif
 
   return 0;
 }
 
-void anx::ui::WorkWindow::OnPrepare(DuiLib::TNotifyUI& msg) {
+void WorkWindow::OnPrepare(DuiLib::TNotifyUI& msg) {
   if (solution_type_ >= anx::esolution::kSolutionName_Axially_Symmetrical &&
       solution_type_ <= anx::esolution::kSolutionName_Vibration_Bending) {
     // update tab_main first page for different solution.
@@ -326,8 +321,7 @@ void anx::ui::WorkWindow::OnPrepare(DuiLib::TNotifyUI& msg) {
   }
 }
 
-void anx::ui::WorkWindow::UpdateTabMainFirstPageWithSolution(
-    int32_t solution_type) {
+void WorkWindow::UpdateTabMainFirstPageWithSolution(int32_t solution_type) {
   if (solution_type == anx::esolution::kSolutionName_Axially_Symmetrical) {
     DuiLib::CTabLayoutUI* pControl = static_cast<DuiLib::CTabLayoutUI*>(
         m_PaintManager.FindControl(_T("tab_main")));
@@ -374,8 +368,7 @@ void anx::ui::WorkWindow::UpdateTabMainFirstPageWithSolution(
   }
 }
 
-void anx::ui::WorkWindow::UpdateWorkWindowTileWithSolution(
-    int32_t solution_type) {
+void WorkWindow::UpdateWorkWindowTileWithSolution(int32_t solution_type) {
   if (solution_type == anx::esolution::kSolutionName_Axially_Symmetrical) {
     CControlUI* desciption = m_PaintManager.FindControl(kMenu_Button_ExpTitle);
     if (desciption != NULL) {
@@ -944,31 +937,6 @@ void WorkWindow::UpadateTabMainFirstPageElementViewResult() {
     assert(false && "Invalid solution type");
     return;
   }
-}
-
-LRESULT WorkWindow::OnCreate(UINT uMsg,
-                             WPARAM wParam,
-                             LPARAM lParam,
-                             BOOL& bHandled) {
-  return DuiLib::WindowImplBase::OnCreate(uMsg, wParam, lParam, bHandled);
-}
-
-LRESULT WorkWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
-  LRESULT lRes = 0;
-  BOOL bHandled = TRUE;
-  switch (uMsg) {
-    case WM_CREATE:
-      lRes = OnCreate(uMsg, wParam, lParam, bHandled);
-      break;
-    case WM_CLOSE:
-      lRes = OnClose(uMsg, wParam, lParam, bHandled);
-      break;
-    default:
-      bHandled = FALSE;
-  }
-  if (bHandled)
-    return lRes;
-  return DuiLib::WindowImplBase::HandleMessage(uMsg, wParam, lParam);
 }
 
 std::string WorkWindow::DefaultSolutionDesignXml(int32_t solution_type) {
