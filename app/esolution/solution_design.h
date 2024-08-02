@@ -141,13 +141,13 @@ struct ExpDesignResult {
 };
 
 struct ExpDesignResult0 : public ExpDesignResult {
-public:
-	explicit ExpDesignResult0(int32_t solution_type);
+ public:
+  explicit ExpDesignResult0(int32_t solution_type);
 
-public:
-	virtual std::string ToXml(bool close_tag = true) const;
+ public:
+  virtual std::string ToXml(bool close_tag = true) const;
 
-	 // @brief Amplitude A um
+  // @brief Amplitude A um
   // @brief 振幅A  um
   double f_eamplitude_;
   // @brief 试验中应力与位移的关系
@@ -213,7 +213,6 @@ struct ExpDesignResultStressesAdjustable : public ExpDesignResult1 {
   double f_static_load_MPa_;
 };
 
-
 struct ExpDesignResultTh3pointBending : public ExpDesignResult0 {
  public:
   ExpDesignResultTh3pointBending();
@@ -275,6 +274,8 @@ class SolutionDesign {
   std::unique_ptr<ExpDesignBaseParam> base_param_;
   std::unique_ptr<ExpDesignResult> result_;
   std::string ToXml() const;
+
+ public:
   static int32_t FromXml(const std::string& xml, SolutionDesign* design);
 };
 

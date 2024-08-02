@@ -77,30 +77,6 @@ void MainWindow::OnClick(DuiLib::TNotifyUI& msg) {
   }
 }
 
-DuiLib::CDuiString MainWindow::GetSkinFolder() {
-#ifdef _DEBUG
-  return _T("skin\\");
-#else
-  return _T("skin\\");
-#endif
-}
-
-DuiLib::CDuiString MainWindow::GetSkinFile() {
-  return _T("main_window.xml");
-}
-
-DuiLib::UILIB_RESOURCETYPE MainWindow::GetResourceType() const {
-#ifdef _DEBUG
-  return DuiLib::UILIB_FILE;
-#else
-  return DuiLib::UILIB_ZIP;
-#endif
-}
-
-LPCTSTR MainWindow::GetWindowClassName(void) const {
-  return _T("main_window");
-}
-
 void anx::ui::MainWindow::Switch_Axially_Symmetrical() {
   this->ShowWindow(false, false);
   ui::WorkWindow* work_window = new ui::WorkWindow(

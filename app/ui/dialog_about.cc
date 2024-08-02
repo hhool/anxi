@@ -48,29 +48,5 @@ LRESULT anx::ui::DialogAbout::ResponseDefaultKeyEvent(WPARAM wParam) {
   return FALSE;
 }
 
-DuiLib::CDuiString DialogAbout::GetSkinFolder() {
-#ifdef _DEBUG
-  return _T("skin\\anxi\\used\\");
-#else
-  return _T("skin\\");
-#endif
-}
-
-DuiLib::CDuiString DialogAbout::GetSkinFile() {
-  return _T("dialog_about.xml");
-}
-
-DuiLib::UILIB_RESOURCETYPE DialogAbout::GetResourceType() const {
-#ifdef _DEBUG
-  return DuiLib::UILIB_FILE;
-#else
-  return DuiLib::UILIB_ZIP;
-#endif
-}
-
-LPCTSTR DialogAbout::GetWindowClassName(void) const {
-  return _T("dialog_about");
-}
-
 }  // namespace ui
 }  // namespace anx

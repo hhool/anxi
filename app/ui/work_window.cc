@@ -23,6 +23,7 @@
 #include "app/ui/ui_constants.h"
 #include "app/ui/work_window_menu_design.h"
 #include "app/ui/work_window_menu_store.h"
+#include "app/ui/work_window_status_bar.h"
 #include "app/ui/work_window_tab_main_first_page_solution_design.h"
 #include "app/ui/work_window_tab_main_second_page.h"
 #include "app/ui/work_window_tab_main_third_page.h"
@@ -30,10 +31,16 @@
 DUI_BEGIN_MESSAGE_MAP(anx::ui::WorkWindow, DuiLib::WindowImplBase)
 DUI_ON_MSGTYPE(DUI_MSGTYPE_CLICK, OnClick)
 DUI_ON_MSGTYPE(DUI_MSGTYPE_SELECTCHANGED, OnSelectChanged)
+DUI_ON_MSGTYPE(DUI_MSGTYPE_TIMER, OnTimer)
 DUI_END_MESSAGE_MAP()
 
 namespace anx {
 namespace ui {
+
+namespace {
+const int32_t kTimerCurrentTimeMsgId = 1;
+const int32_t kTimerCurrentTimePeriod = 50;
+}  // namespace
 
 WorkWindow::WorkWindow(DuiLib::WindowImplBase* pOwner, int32_t solution_type)
     : pOwner_(pOwner), solution_type_(solution_type) {
@@ -75,9 +82,10 @@ WorkWindow::WorkWindow(DuiLib::WindowImplBase* pOwner, int32_t solution_type)
   } else {
     assert(false && "Invalid solution type");
   }
-
-  tab_main_pages_["WorkWindowSecondPage"].reset(
-      new anx::ui::WorkWindowSecondPage(this, &m_PaintManager));
+  anx::ui::WorkWindowSecondPage* second_page =
+      new anx::ui::WorkWindowSecondPage(this, &m_PaintManager);
+  work_window_second_page_base_ = second_page;
+  tab_main_pages_["WorkWindowSecondPage"].reset(second_page);
   this->AddVirtualWnd(_T("WorkWindowSecondPage"),
                       tab_main_pages_["WorkWindowSecondPage"].get());
 
@@ -85,6 +93,12 @@ WorkWindow::WorkWindow(DuiLib::WindowImplBase* pOwner, int32_t solution_type)
       new anx::ui::WorkWindowThirdPage(this, &m_PaintManager));
   this->AddVirtualWnd(_T("WorkWindowThirdPage"),
                       tab_main_pages_["WorkWindowThirdPage"].get());
+
+  anx::ui::WorkWindowStatusBar* work_windows_status_bar =
+      new anx::ui::WorkWindowStatusBar(this, &m_PaintManager);
+  work_window_status_bar_.reset(work_windows_status_bar);
+  this->AddVirtualWnd(_T("WorkWindowStatusBar"), work_window_status_bar_.get());
+  work_window_status_bar_virtual_wnd_ = work_windows_status_bar;
 }
 
 WorkWindow::~WorkWindow() {
@@ -96,6 +110,9 @@ WorkWindow::~WorkWindow() {
   }
   // remove tab_main_pages_
   tab_main_pages_.clear();
+
+  work_window_status_bar_virtual_wnd_->Unbind();
+  work_window_status_bar_virtual_wnd_ = nullptr;
 }
 
 void WorkWindow::InitWindow() {
@@ -154,6 +171,8 @@ void WorkWindow::Notify(DuiLib::TNotifyUI& msg) {
   } else if (msg.sType == kClick) {
     return DuiLib::WindowImplBase::Notify(msg);
   } else if (msg.sType == kSelectChanged) {
+    return DuiLib::WindowImplBase::Notify(msg);
+  } else if (msg.sType == kTimer) {
     return DuiLib::WindowImplBase::Notify(msg);
   } else if (msg.sType == kMenu_Design_Connect) {
     // TODO(hhool):
@@ -280,29 +299,7 @@ void anx::ui::WorkWindow::OnSelectChanged(DuiLib::TNotifyUI& msg) {
   }
 }
 
-DuiLib::CDuiString WorkWindow::GetSkinFolder() {
-#ifdef _DEBUG
-  return _T("skin\\");
-#else
-  return _T("skin\\");
-#endif
-}
-
-DuiLib::CDuiString WorkWindow::GetSkinFile() {
-  return _T("work_window.xml");
-}
-
-DuiLib::UILIB_RESOURCETYPE WorkWindow::GetResourceType() const {
-#ifdef _DEBUG
-  return DuiLib::UILIB_FILE;
-#else
-  return DuiLib::UILIB_ZIP;
-#endif
-}
-
-LPCTSTR WorkWindow::GetWindowClassName(void) const {
-  return _T("work_window");
-}
+void anx::ui::WorkWindow::OnTimer(DuiLib::TNotifyUI& msg) {}
 
 LRESULT WorkWindow::OnSysCommand(UINT uMsg,
                                  WPARAM wParam,
@@ -333,6 +330,10 @@ void WorkWindow::OnPrepare(DuiLib::TNotifyUI& msg) {
     // load default or last document solution design
     solution_design_base_->InitPage();
     UpdateArgsAreaWithSolution();
+    // init second page
+    work_window_second_page_base_->InitPage();
+    // init status bar
+    work_window_status_bar_virtual_wnd_->Bind();
   } else {
     assert(false && "Invalid solution type");
   }
@@ -406,10 +407,10 @@ void WorkWindow::UpdateArgsAreaWithSolution() {
   }
   {
     DuiLib::CDuiString value;
-    value.Format(
-        _T("%.2f"),
-        reinterpret_cast<anx::esolution::ExpDesignResult0*>(design->result_.get())
-            ->f_eamplitude_);
+    value.Format(_T("%.2f"),
+                 reinterpret_cast<anx::esolution::ExpDesignResult0*>(
+                     design->result_.get())
+                     ->f_eamplitude_);
     btn_args_area_value_amplitude_->SetText(value);
   }
 }

@@ -12,7 +12,9 @@
 #ifndef APP_UI_WORK_WINDOW_H_
 #define APP_UI_WORK_WINDOW_H_
 
+#include "app/ui/ui_virtual_wnd_base.h"
 #include "app/ui/work_window_tab_main_first_page_solution_design_base.h"
+#include "app/ui/work_window_tab_main_second_page_base.h"
 
 #include <map>
 #include <memory>
@@ -47,11 +49,24 @@ class WorkWindow : public DuiLib::WindowImplBase {
   DUI_DECLARE_MESSAGE_MAP()
   void OnClick(DuiLib::TNotifyUI& msg) override;
   virtual void OnSelectChanged(DuiLib::TNotifyUI& msg);
+  virtual void OnTimer(DuiLib::TNotifyUI& msg);
 
-  DuiLib::CDuiString GetSkinFolder() override;
-  DuiLib::CDuiString GetSkinFile() override;
-  DuiLib::UILIB_RESOURCETYPE GetResourceType() const override;
-  LPCTSTR GetWindowClassName(void) const override;
+  DuiLib::CDuiString GetSkinFolder() override {
+#ifdef _DEBUG
+    return _T("skin\\");
+#else
+    return _T("skin\\");
+#endif
+  }
+  DuiLib::CDuiString GetSkinFile() override { return _T("work_window.xml"); }
+  DuiLib::UILIB_RESOURCETYPE GetResourceType() const override {
+#ifdef _DEBUG
+    return DuiLib::UILIB_FILE;
+#else
+    return DuiLib::UILIB_ZIP;
+#endif
+  }
+  LPCTSTR GetWindowClassName(void) const override { return _T("work_window"); }
 
   LRESULT OnSysCommand(UINT uMsg,
                        WPARAM wParam,
@@ -83,7 +98,11 @@ class WorkWindow : public DuiLib::WindowImplBase {
  private:
   DuiLib::WindowImplBase* pOwner_;
   int32_t solution_type_;
+  std::map<std::string, std::unique_ptr<DuiLib::CNotifyPump>> tab_main_pages_;
   PageSolutionDesignBase* solution_design_base_;
+  WorkWindowSecondPageBase* work_window_second_page_base_;
+  std::unique_ptr<DuiLib::CNotifyPump> work_window_status_bar_;
+  UIVirtualWndBase* work_window_status_bar_virtual_wnd_;
 
   CButtonUI* btn_close_;
   CButtonUI* btn_max_;
@@ -102,8 +121,6 @@ class WorkWindow : public DuiLib::WindowImplBase {
   CButtonUI* btn_args_area_value_max_stress_;
   CButtonUI* btn_args_area_value_static_load_;
   CButtonUI* btn_args_area_value_stress_ratio_;
-
-  std::map<std::string, std::unique_ptr<DuiLib::CNotifyPump>> tab_main_pages_;
 };
 }  // namespace ui
 }  // namespace anx

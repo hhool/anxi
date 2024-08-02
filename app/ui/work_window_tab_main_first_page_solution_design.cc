@@ -24,7 +24,7 @@
 #include "app/ui/work_window.h"
 #include "app/ui/work_window_menu_design.h"
 #include "app/ui/work_window_menu_store.h"
-#
+
 
 ////////////////////////////////////////////////////////////////////////////////
 namespace anx {

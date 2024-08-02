@@ -37,10 +37,22 @@ class MainWindow : public DuiLib::WindowImplBase {
   DUI_DECLARE_MESSAGE_MAP()
   void OnClick(DuiLib::TNotifyUI& msg) override;
 
-  DuiLib::CDuiString GetSkinFolder() override;
-  DuiLib::CDuiString GetSkinFile() override;
-  DuiLib::UILIB_RESOURCETYPE GetResourceType() const override;
-  LPCTSTR GetWindowClassName(void) const override;
+  DuiLib::CDuiString GetSkinFolder() override {
+#ifdef _DEBUG
+    return _T("skin\\");
+#else
+    return _T("skin\\");
+#endif
+  }
+  DuiLib::CDuiString GetSkinFile() override { return _T("main_window.xml"); }
+  DuiLib::UILIB_RESOURCETYPE GetResourceType() const override {
+#ifdef _DEBUG
+    return DuiLib::UILIB_FILE;
+#else
+    return DuiLib::UILIB_ZIP;
+#endif
+  }
+  LPCTSTR GetWindowClassName(void) const override { return _T("main_window"); }
 
  protected:
   void Switch_Axially_Symmetrical();

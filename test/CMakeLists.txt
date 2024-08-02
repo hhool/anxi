@@ -59,3 +59,11 @@ target_include_directories(tinyxml2_unittest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
 
 # Link gtest
 target_link_libraries(tinyxml2_unittest gtest_main gtest tinyxml2)
+
+# ###############
+# Define a test
+add_executable(cserialport_unittest cserialport_unittest.cc)
+target_include_directories(cserialport_unittest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../third_party/CSerialPort/source/include)
+
+# Link gtest
+target_link_libraries(cserialport_unittest gtest_main gtest libcserialport)

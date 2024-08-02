@@ -30,7 +30,9 @@ set(COMMON_FILES
     common/module_utils.cc
     common/module_utils.h
     common/string_utils.cc
-    common/string_utils.h)
+    common/string_utils.h
+    common/time_utils.cc
+    common/time_utils.h)
 source_group("common" FILES ${COMMON_FILES})
 list(APPEND APP_SOURCES ${COMMON_FILES})
 
@@ -38,6 +40,14 @@ set(DOCUMENT_FILES
     document/document_interface.h)
 source_group("document" FILES ${DOCUMENT_FILES})
 list(APPEND APP_SOURCES ${DOCUMENT_FILES})
+
+set(DEVICE_FILES
+    device/device_com_settings_helper.cc
+    device/device_com_settings_helper.h
+    device/device_com_settings.cc
+    device/device_com_settings.h)
+source_group("device" FILES ${DEVICE_FILES})
+list(APPEND APP_SOURCES ${DEVICE_FILES})
 
 set(ESOLUTION_FILES
     esolution/solution_design_default.cc
@@ -70,21 +80,29 @@ if(WIN32)
     set(UI_FILES
         ui/dialog_about.cc
         ui/dialog_about.h
+        ui/dialog_amplitude_calibration_settings.cc
+        ui/dialog_amplitude_calibration_settings.h
         ui/dialog_com_port_settings.cc
         ui/dialog_com_port_settings.h
+        ui/dialog_static_load_guaranteed_settings.cc
+        ui/dialog_static_load_guaranteed_settings.h
         ui/main_window.cc
         ui/main_window.h
         ui/ui_constants.cc
         ui/ui_constants.h
+        ui/ui_virtual_wnd_base.h
         ui/work_window_menu_design.cc
         ui/work_window_menu_design.h
         ui/work_window_menu_shadow.cc
         ui/work_window_menu_shadow.h
         ui/work_window_menu_store.cc
         ui/work_window_menu_store.h
+        ui/work_window_status_bar.cc
+        ui/work_window_status_bar.h
         ui/work_window_tab_main_first_page_solution_design_base.h
         ui/work_window_tab_main_first_page_solution_design.cc
         ui/work_window_tab_main_first_page_solution_design.h
+        ui/work_window_tab_main_second_page_base.h
         ui/work_window_tab_main_second_page.cc
         ui/work_window_tab_main_second_page.h
         ui/work_window_tab_main_third_page.cc
