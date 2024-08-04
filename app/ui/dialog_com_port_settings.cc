@@ -71,20 +71,20 @@ LRESULT DialogComPortSettings::ResponseDefaultKeyEvent(WPARAM wParam) {
 
 void DialogComPortSettings::OnClick(DuiLib::TNotifyUI& msg) {
   if (msg.pSender == btn_ok_) {
-    UpdateComInfoFromControlAll();
+    SaveComInfoFromControlAll();
     this->Close();
   } else if (msg.pSender == btn_close_) {
     this->Close();
   }
 }
 
-void DialogComPortSettings::UpdateComInfoFromControlAll() {
-  UpdateComInfoFromControl("ua");
-  UpdateComInfoFromControl("sl");
-  UpdateComInfoFromControl("ac");
+void DialogComPortSettings::SaveComInfoFromControlAll() {
+  SaveComInfoFromControl("ua");
+  SaveComInfoFromControl("sl");
+  SaveComInfoFromControl("ac");
 }
 
-void DialogComPortSettings::UpdateComInfoFromControl(std::string tail_prefix) {
+void DialogComPortSettings::SaveComInfoFromControl(std::string tail_prefix) {
   std::string com_port_name = GetComPortNameFromControl(tail_prefix);
   std::string baud_rate = GetBaudRateFromControl(tail_prefix);
   std::string data_bits = GetDataBitsFromControl(tail_prefix);
@@ -95,15 +95,15 @@ void DialogComPortSettings::UpdateComInfoFromControl(std::string tail_prefix) {
   // convert string to int
   anx::device::ComPort com_port;
   com_port.baud_rate = std::stoi(baud_rate);
-  com_port.data_bits = std::stoi(data_bits);
-  com_port.stop_bits = std::stoi(stop_bits);
-  // TODO(hhool):
-  com_port.parity = 0;
-  // TODO(hhool):
-  com_port.flow_control = 1;
+  com_port.data_bits = anx::device::ComPort::ValueDataBitsFromString(data_bits);
+  com_port.stop_bits = anx::device::ComPort::ValueStopBitsFromString(stop_bits);
+  com_port.parity = anx::device::ComPort::ValueParityFromString(parity);
+  // TODO(hhool);
+  com_port.flow_control =
+      anx::device::ComPort::ValueFlowControlFromString("hardware");
   int32_t device_com_type = TailPrefixToDeviceComType(tail_prefix);
 
-  anx::device::ComSettings com_settings(com_port_name, device_com_type,
+  anx::device::ComSettings com_settings(device_com_type, com_port_name,
                                         com_port);
   anx::device::SaveDeviceComSettingsFileDefaultPath(com_settings);
 }
@@ -179,15 +179,15 @@ void DialogComPortSettings::UpdateControlFromComInfo(std::string tail_prefix) {
       anx::device::LoadDeviceComSettingsDefaultResourceWithType(
           TailPrefixToDeviceComType(tail_prefix));
   if (com_settings != nullptr) {
-    SetComPortNameToControl(tail_prefix, com_settings->name_);
+    SetComPortNameToControl(tail_prefix, com_settings->GetComName());
     SetBaudRateToControl(tail_prefix,
-                         std::to_string(com_settings->com_port_.baud_rate));
+                         com_settings->GetComPort().ValueBaudRateToString());
     SetDataBitsToControl(tail_prefix,
-                         std::to_string(com_settings->com_port_.data_bits));
+                         com_settings->GetComPort().ValueDataBitsToString());
     SetStopBitsToControl(tail_prefix,
-                         std::to_string(com_settings->com_port_.stop_bits));
+                         com_settings->GetComPort().ValueStopBitsToString());
     SetParityToControl(tail_prefix,
-                       std::to_string(com_settings->com_port_.parity));
+                       com_settings->GetComPort().ValueParityToString());
   }
 }
 

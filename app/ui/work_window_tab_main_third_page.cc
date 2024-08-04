@@ -25,14 +25,19 @@
 
 DUI_BEGIN_MESSAGE_MAP(anx::ui::WorkWindowThirdPage, DuiLib::CNotifyPump)
 DUI_ON_MSGTYPE(DUI_MSGTYPE_CLICK, OnClick)
+DUI_ON_MSGTYPE(DUI_MSGTYPE_TIMER, OnTimer)
 DUI_END_MESSAGE_MAP()
 
 namespace anx {
 namespace ui {
+namespace {
+const int32_t kTimerID = 0x1;
+const int32_t kTimerElapse = 1000;
+}  // namespace
 WorkWindowThirdPage::WorkWindowThirdPage(
-    WorkWindow* pOwner,
+    WorkWindow* pWorkWindow,
     DuiLib::CPaintManagerUI* paint_manager_ui)
-    : pOwner_(pOwner), paint_manager_ui_(paint_manager_ui) {}
+    : pWorkWindow_(pWorkWindow), paint_manager_ui_(paint_manager_ui) {}
 
 WorkWindowThirdPage::~WorkWindowThirdPage() {}
 
@@ -42,6 +47,29 @@ void WorkWindowThirdPage::OnClick(TNotifyUI& msg) {
   } else if (msg.sType == kSelectChanged) {
   }
 }
-void anx::ui::WorkWindowThirdPage::OnPrepare(DuiLib::TNotifyUI& msg) {}
+
+void WorkWindowThirdPage::OnTimer(TNotifyUI& msg) {
+  if (msg.wParam == kTimerID) {
+  } else {
+  }
+}
+
+void WorkWindowThirdPage::Bind() {
+  // bind timer
+  DuiLib::CHorizontalLayoutUI* layout =
+      static_cast<DuiLib::CHorizontalLayoutUI*>(
+          paint_manager_ui_->FindControl(_T("tab_page_three")));
+  // unbind timer
+  paint_manager_ui_->SetTimer(layout, kTimerID, kTimerElapse);
+}
+
+void WorkWindowThirdPage::Unbind() {
+  DuiLib::CHorizontalLayoutUI* layout =
+      static_cast<DuiLib::CHorizontalLayoutUI*>(
+          paint_manager_ui_->FindControl(_T("tab_page_three")));
+  // unbind timer
+  paint_manager_ui_->KillTimer(layout, kTimerID);
+}
+
 }  // namespace ui
 }  // namespace anx

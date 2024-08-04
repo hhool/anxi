@@ -20,7 +20,8 @@ namespace ui {
 
 //////////////////////////////////////////////////////////////////////////
 
-CMenuDesignWnd::CMenuDesignWnd() : m_pOwner(NULL), m_pShadowWnd(NULL) {}
+CMenuDesignWnd::CMenuDesignWnd(WorkWindow* pWorkWindow)
+    : pWorkWindow_(pWorkWindow), m_pOwner(NULL), m_pShadowWnd(NULL) {}
 
 void CMenuDesignWnd::Init(CControlUI* pOwner, POINT pt) {
   if (pOwner == NULL)
@@ -132,6 +133,25 @@ LRESULT CMenuDesignWnd::OnCreate(UINT uMsg,
   m_pm.SetRoundCorner(3, 3);
 
   AdjustPostion();
+  if (pWorkWindow_->IsDeviceComInterfaceConnected()) {
+    CControlUI* pControl = m_pm.FindControl(_T("menu_design_item_connect"));
+    if (pControl != NULL) {
+      pControl->SetEnabled(false);
+    }
+    pControl = m_pm.FindControl(_T("menu_design_item_disconnect"));
+    if (pControl != NULL) {
+      pControl->SetEnabled(true);
+    }
+  } else {
+    CControlUI* pControl = m_pm.FindControl(_T("menu_design_item_connect"));
+    if (pControl != NULL) {
+      pControl->SetEnabled(true);
+    }
+    pControl = m_pm.FindControl(_T("menu_design_item_disconnect"));
+    if (pControl != NULL) {
+      pControl->SetEnabled(false);
+    }
+  }
   return 0;
 }
 

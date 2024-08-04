@@ -15,6 +15,8 @@
 
 #include "third_party/duilib/source/DuiLib/UIlib.h"
 
+#include "app/device/device_com_factory.h"
+
 namespace anx {
 namespace app {
 
@@ -69,9 +71,11 @@ Application::Application(HANDLE hinst) : main_window_(nullptr) {
     // TODO(hhool): process error
     return;
   }
+  anx::device::DeviceComFactory::Instance();
 }
 
 Application::~Application() {
+  anx::device::DeviceComFactory::ReleaseInstance();
   ::CoUninitialize();
 }
 

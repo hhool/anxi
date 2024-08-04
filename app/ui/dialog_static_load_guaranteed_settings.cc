@@ -50,7 +50,7 @@ LRESULT DialogStaticLoadGuaranteedSettings::ResponseDefaultKeyEvent(
 
 void DialogStaticLoadGuaranteedSettings::OnClick(DuiLib::TNotifyUI& msg) {
   if (msg.pSender == btn_ok_) {
-    // UpdateComInfoFromControlAll();
+    // SaveComInfoFromControlAll();
     this->Close();
   } else if (msg.pSender == btn_close_) {
     this->Close();

@@ -15,6 +15,8 @@
 
 #include "app/common/defines.h"
 #include "app/common/string_utils.h"
+#include "app/device/device_com_factory.h"
+#include "app/device/device_com_settings.h"
 #include "app/esolution/solution_design.h"
 #include "app/esolution/solution_design_default.h"
 #include "app/esolution/solution_design_helper.h"
@@ -84,13 +86,15 @@ WorkWindow::WorkWindow(DuiLib::WindowImplBase* pOwner, int32_t solution_type)
   }
   anx::ui::WorkWindowSecondPage* second_page =
       new anx::ui::WorkWindowSecondPage(this, &m_PaintManager);
-  work_window_second_page_base_ = second_page;
+  work_window_second_page_virtual_wnd_ = second_page;
   tab_main_pages_["WorkWindowSecondPage"].reset(second_page);
   this->AddVirtualWnd(_T("WorkWindowSecondPage"),
                       tab_main_pages_["WorkWindowSecondPage"].get());
 
-  tab_main_pages_["WorkWindowThirdPage"].reset(
-      new anx::ui::WorkWindowThirdPage(this, &m_PaintManager));
+  anx::ui::WorkWindowThirdPage* third_page =
+      new anx::ui::WorkWindowThirdPage(this, &m_PaintManager);
+  work_window_third_page_virtual_wnd_ = third_page;
+  tab_main_pages_["WorkWindowThirdPage"].reset(third_page);
   this->AddVirtualWnd(_T("WorkWindowThirdPage"),
                       tab_main_pages_["WorkWindowThirdPage"].get());
 
@@ -108,6 +112,12 @@ WorkWindow::~WorkWindow() {
         anx::common::string2wstring(tab_main_page.first).c_str());
     this->RemoveVirtualWnd(name);
   }
+
+  work_window_third_page_virtual_wnd_->Unbind();
+  work_window_third_page_virtual_wnd_ = nullptr;
+
+  work_window_second_page_virtual_wnd_->Unbind();
+  work_window_second_page_virtual_wnd_ = nullptr;
   // remove tab_main_pages_
   tab_main_pages_.clear();
 
@@ -153,6 +163,7 @@ void WorkWindow::InitWindow() {
 }
 
 void WorkWindow::OnFinalMessage(HWND hWnd) {
+  __super::OnFinalMessage(hWnd);
   delete this;
 }
 
@@ -168,18 +179,14 @@ LRESULT WorkWindow::ResponseDefaultKeyEvent(WPARAM wParam) {
 void WorkWindow::Notify(DuiLib::TNotifyUI& msg) {
   if (msg.sType == kWindowInit) {
     OnPrepare(msg);
-  } else if (msg.sType == kClick) {
-    return DuiLib::WindowImplBase::Notify(msg);
-  } else if (msg.sType == kSelectChanged) {
+  } else if (msg.sType == kClick || msg.sType == kSelectChanged) {
     return DuiLib::WindowImplBase::Notify(msg);
   } else if (msg.sType == kTimer) {
     return DuiLib::WindowImplBase::Notify(msg);
   } else if (msg.sType == kMenu_Design_Connect) {
-    // TODO(hhool):
-    MessageBox(*this, msg.sType, msg.sType, MB_OK);
+    OnMenuDeviceConnectClicked(msg);
   } else if (msg.sType == kMenu_Design_DisConnect) {
-    // TODO(hhool):
-    MessageBox(*this, msg.sType, msg.sType, MB_OK);
+    OnMenuDeviceDisconnectClicked(msg);
   } else if (msg.sType == kMenu_Design_Device_Settings) {
     DialogComPortSettings* dialog_comport_settings =
         new DialogComPortSettings();
@@ -246,7 +253,7 @@ void WorkWindow::OnClick(DuiLib::TNotifyUI& msg) {
     pt.y = rt.bottom;
     pt.x = rt.left;
     ::ClientToScreen(*this, &pt);
-    CMenuDesignWnd* pMenu = new CMenuDesignWnd();
+    CMenuDesignWnd* pMenu = new CMenuDesignWnd(this);
     if (pMenu == NULL) {
       return;
     }
@@ -330,8 +337,10 @@ void WorkWindow::OnPrepare(DuiLib::TNotifyUI& msg) {
     // load default or last document solution design
     solution_design_base_->InitPage();
     UpdateArgsAreaWithSolution();
+    // init third page
+    work_window_third_page_virtual_wnd_->Bind();
     // init second page
-    work_window_second_page_base_->InitPage();
+    work_window_second_page_virtual_wnd_->Bind();
     // init status bar
     work_window_status_bar_virtual_wnd_->Bind();
   } else {
@@ -475,6 +484,68 @@ int32_t WorkWindow::SaveFileWithDialog() {
   }
 
   return 0;
+}
+
+void WorkWindow::OnMenuDeviceConnectClicked(DuiLib::TNotifyUI& msg) {
+  // create or get ultrasound device.
+  if (device_com_ul_ == nullptr) {
+    device_com_ul_ =
+        anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
+            anx::device::kDeviceCom_Ultrasound);
+    if (device_com_ul_ != nullptr) {
+      if (device_com_ul_->Open() != 0) {
+        // show status bar message
+        MessageBox(*this, _T("打开超声设备失败"), _T("打开失败"), MB_OK);
+      }
+    } else {
+      // TODO(hhool): show status bar message
+      MessageBox(*this, _T("创建超声设备失败"), _T("打开失败"), MB_OK);
+    }
+  }
+  // open static load device.
+  if (device_com_sl_ == nullptr) {
+    device_com_sl_ =
+        anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
+            anx::device::kDeviceCom_StaticLoad);
+    if (device_com_sl_ != nullptr) {
+      if (device_com_sl_->Open() != 0) {
+        // show status bar message
+        MessageBox(*this, _T("打开静载设备失败"), _T("打开失败"), MB_OK);
+      }
+    } else {
+      // TODO(hhool): show status bar message
+      MessageBox(*this, _T("创建静载设备失败"), _T("打开失败"), MB_OK);
+    }
+  }
+  if (device_com_ul_ == nullptr || device_com_sl_ == nullptr) {
+    // show status bar message
+    MessageBox(*this, _T("打开设备失败"), _T("打开失败"), MB_OK);
+  } else {
+    // status bar
+  }
+  // TODO(hhool): show status bar message
+}
+
+void WorkWindow::OnMenuDeviceDisconnectClicked(DuiLib::TNotifyUI& msg) {
+  if (device_com_sl_ != nullptr) {
+    device_com_sl_->Close();
+  }
+  if (device_com_ul_ != nullptr) {
+    device_com_ul_->Close();
+  }
+  // TODO(hhooll): show status bar message
+}
+
+bool WorkWindow::IsDeviceComInterfaceConnected() const {
+  return device_com_ul_ != nullptr && device_com_sl_ != nullptr;
+}
+
+bool WorkWindow::IsSLDeviceComInterfaceConnected() const {
+  return device_com_sl_ != nullptr;
+}
+
+bool WorkWindow::IsULDeviceComInterfaceConnected() const {
+  return device_com_ul_ != nullptr;
 }
 
 }  // namespace ui

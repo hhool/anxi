@@ -67,8 +67,8 @@ class DialogComPortSettings : public DuiLib::WindowImplBase {
   }
 
  protected:
-  void UpdateComInfoFromControlAll();
-  void UpdateComInfoFromControl(std::string tail_prefix);
+  void SaveComInfoFromControlAll();
+  void SaveComInfoFromControl(std::string tail_prefix);
 
   std::string GetComPortNameFromControl(std::string tail_prefix);
   std::string GetBaudRateFromControl(std::string tail_prefix);

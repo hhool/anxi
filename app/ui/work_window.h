@@ -14,7 +14,6 @@
 
 #include "app/ui/ui_virtual_wnd_base.h"
 #include "app/ui/work_window_tab_main_first_page_solution_design_base.h"
-#include "app/ui/work_window_tab_main_second_page_base.h"
 
 #include <map>
 #include <memory>
@@ -26,10 +25,20 @@
 using namespace DuiLib;
 
 namespace anx {
+namespace device {
+class DeviceComInterface;
+}  // namespace device
 namespace esolution {
 class SolutionDesign;
 class PageSolutionDesignBase;
 }  // namespace esolution
+namespace ui {
+class CMenuDesignWnd;
+class CMenuStoreWnd;
+class WorkWindowStatusBar;
+class WorkWindowSecondPage;
+class WorkWindowThirdPage;
+}  // namespace ui
 }  // namespace anx
 
 namespace anx {
@@ -95,14 +104,36 @@ class WorkWindow : public DuiLib::WindowImplBase {
   /// @brief Save the solution design file with dialog box
   int32_t SaveFileWithDialog();
 
+ protected:
+  /// @breif On menu device connect clicked
+  void OnMenuDeviceConnectClicked(DuiLib::TNotifyUI& msg);  // NOLINT
+  /// @breif On menu device disconnect clicked
+  void OnMenuDeviceDisconnectClicked(DuiLib::TNotifyUI& msg);  // NOLINT
+
+ protected:
+  friend class CMenuDesignWnd;
+  friend class CMenuStoreWnd;
+  friend class WorkWindowStatusBar;
+  friend class WorkWindowSecondPage;
+  friend class WorkWindowThirdPage;
+  /// @brief Is device com interface connected
+  bool IsDeviceComInterfaceConnected() const;
+  /// @brief is sl device com interface connected
+  bool IsSLDeviceComInterfaceConnected() const;
+  /// @brief is ul device com interface connected
+  bool IsULDeviceComInterfaceConnected() const;
+
  private:
   DuiLib::WindowImplBase* pOwner_;
   int32_t solution_type_;
   std::map<std::string, std::unique_ptr<DuiLib::CNotifyPump>> tab_main_pages_;
   PageSolutionDesignBase* solution_design_base_;
-  WorkWindowSecondPageBase* work_window_second_page_base_;
+  UIVirtualWndBase* work_window_second_page_virtual_wnd_;
+  UIVirtualWndBase* work_window_third_page_virtual_wnd_;
   std::unique_ptr<DuiLib::CNotifyPump> work_window_status_bar_;
   UIVirtualWndBase* work_window_status_bar_virtual_wnd_;
+  std::shared_ptr<anx::device::DeviceComInterface> device_com_ul_;
+  std::shared_ptr<anx::device::DeviceComInterface> device_com_sl_;
 
   CButtonUI* btn_close_;
   CButtonUI* btn_max_;

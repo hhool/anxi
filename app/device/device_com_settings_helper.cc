@@ -49,8 +49,8 @@ std::unique_ptr<ComSettings> LoadDeviceComSettingsWithFilePath(
 
   // Parse the file content
   std::string content(file_content.get(), file_size);
-  std::unique_ptr<ComSettings> com_settings(new ComSettings());
-  if (anx::device::ComSettings::FromXml(content, com_settings.get()) != 0) {
+  std::unique_ptr<ComSettings> com_settings = anx::device::ComSettings::FromXml(content);
+  if (com_settings.get() == nullptr) {
     return nullptr;
   }
   return com_settings;
@@ -92,7 +92,7 @@ int32_t SaveDeviceComSettingsFile(const std::string& file_path,
 
 int32_t SaveDeviceComSettingsFileDefaultPath(const ComSettings& settings) {
   std::string default_xml =
-      DefaultDeviceComSettingsXmlFilePath(settings.device_com_type_);
+      DefaultDeviceComSettingsXmlFilePath(settings.GetDeviceComType());
   // get module path
   std::string module_dir = anx::common::GetModuleDir();
   default_xml = module_dir + "\\" + default_xml;
