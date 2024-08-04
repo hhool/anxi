@@ -264,25 +264,25 @@ PageSolutionDesignBase::ExpDesignBaseParamFromControl() {
   edit = static_cast<DuiLib::CEditUI*>(
       paint_manager_ui_->FindControl(name_elastic + tail_prefix));
   value = edit->GetText().GetData();
-  float f_elastic_modulus_GPa_ = _ttof(value.GetData());
+  float f_elastic_modulus_GPa_ = static_cast<float>(_ttof(value.GetData()));
 
   DuiLib::CDuiString name_density = _T("tm_page_first_left_density");
   edit = static_cast<DuiLib::CEditUI*>(
       paint_manager_ui_->FindControl(name_density + tail_prefix));
   value = edit->GetText().GetData();
-  float f_density_kg_m3_ = _ttof(value.GetData());
+  float f_density_kg_m3_ = static_cast<float>(_ttof(value.GetData()));
 
   DuiLib::CDuiString name_max_stress = _T("tm_page_first_left_max_stress");
   edit = static_cast<DuiLib::CEditUI*>(
       paint_manager_ui_->FindControl(name_max_stress + tail_prefix));
   value = edit->GetText().GetData();
-  float f_max_stress_MPa_ = _ttof(value.GetData());
+  float f_max_stress_MPa_ = static_cast<float>(_ttof(value.GetData()));
 
   DuiLib::CDuiString name_ratio_stress = _T("tm_page_first_left_ratio_stress");
   edit = static_cast<DuiLib::CEditUI*>(
       paint_manager_ui_->FindControl(name_ratio_stress + tail_prefix));
   value = edit->GetText().GetData();
-  float f_stress_ratio_ = _ttof(value.GetData());
+  float f_stress_ratio_ = static_cast<float>(_ttof(value.GetData()));
 
   anx::esolution::ExpDesignBaseParam exp_design_base_param;
   memcpy(exp_design_base_param.material_name_, material_name.data(), 255);

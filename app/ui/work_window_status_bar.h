@@ -30,11 +30,15 @@ class WorkWindow;
 namespace anx {
 namespace ui {
 class WorkWindowStatusBar : public DuiLib::CNotifyPump,
+                            public DuiLib::INotifyUI,
                             public anx::ui::UIVirtualWndBase {
  public:
-  WorkWindowStatusBar(WorkWindow* pOwner,
+  WorkWindowStatusBar(WorkWindow* pWorkWindow,
                       DuiLib::CPaintManagerUI* paint_manager_ui);
   ~WorkWindowStatusBar();
+
+ public:
+  void Notify(TNotifyUI& msg) override;
 
  public:
   DUI_DECLARE_MESSAGE_MAP()
@@ -47,7 +51,7 @@ class WorkWindowStatusBar : public DuiLib::CNotifyPump,
   void Unbind() override;
 
  private:
-  WorkWindow* pOwner_;
+  WorkWindow* pWorkWindow_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
 };
 }  // namespace ui

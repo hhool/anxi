@@ -12,6 +12,8 @@
 #ifndef APP_UI_WORK_WINDOW_TAB_MAIN_THIRD_PAGE_H_
 #define APP_UI_WORK_WINDOW_TAB_MAIN_THIRD_PAGE_H_
 
+#include "app/ui/ui_virtual_wnd_base.h"
+
 #include <memory>
 #include <string>
 
@@ -21,9 +23,6 @@
 using namespace DuiLib;
 
 namespace anx {
-namespace esolution {
-class SolutionDesign;
-}  // namespace esolution
 namespace ui {
 class WorkWindow;
 }  // namespace ui
@@ -31,7 +30,8 @@ class WorkWindow;
 
 namespace anx {
 namespace ui {
-class WorkWindowThirdPage : public DuiLib::CNotifyPump {
+class WorkWindowThirdPage : public DuiLib::CNotifyPump,
+                            public UIVirtualWndBase {
  public:
   WorkWindowThirdPage(WorkWindow* pOwner,
                       DuiLib::CPaintManagerUI* paint_manager_ui);
@@ -40,14 +40,17 @@ class WorkWindowThirdPage : public DuiLib::CNotifyPump {
  public:
   DUI_DECLARE_MESSAGE_MAP()
   void OnClick(TNotifyUI& msg);
+  void OnTimer(TNotifyUI& msg);
+
+ public:
+  // implement the base class UIVirtualWndBase virtual function
+  void Bind() override;
+  void Unbind() override;
 
  protected:
-  void OnPrepare(DuiLib::TNotifyUI& msg);
-
  private:
-  WorkWindow* pOwner_;
+  WorkWindow* pWorkWindow_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
-  std::unique_ptr<esolution::SolutionDesign> solution_design_;
 };
 }  // namespace ui
 }  // namespace anx

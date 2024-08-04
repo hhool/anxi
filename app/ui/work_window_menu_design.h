@@ -25,13 +25,18 @@ using DuiLib::CWindowWnd;
 using DuiLib::INotifyUI;
 
 namespace anx {
+namespace ui {
+class WorkWindow;
+}  // namespace ui
+}  // namespace anx
+namespace anx {
 
 namespace ui {
 
 class CShadowWnd;
 class CMenuDesignWnd : public CWindowWnd, public INotifyUI {
  public:
-  CMenuDesignWnd();
+  explicit CMenuDesignWnd(WorkWindow* pWorkWindow);
 
   void Init(CControlUI* pOwner, POINT pt);
 
@@ -68,6 +73,7 @@ class CMenuDesignWnd : public CWindowWnd, public INotifyUI {
   LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam);
 
  public:
+  WorkWindow* pWorkWindow_;
   CPaintManagerUI m_pm;
   CControlUI* m_pOwner;
   POINT m_ptPos;

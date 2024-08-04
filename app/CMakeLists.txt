@@ -42,10 +42,16 @@ source_group("document" FILES ${DOCUMENT_FILES})
 list(APPEND APP_SOURCES ${DOCUMENT_FILES})
 
 set(DEVICE_FILES
+    device/device_com_factory.cc
+    device/device_com_factory.h
+    device/device_com_impl.cc
+    device/device_com_impl.h
     device/device_com_settings_helper.cc
     device/device_com_settings_helper.h
     device/device_com_settings.cc
-    device/device_com_settings.h)
+    device/device_com_settings.h
+    device/device_com.cc
+    device/device_com.h)
 source_group("device" FILES ${DEVICE_FILES})
 list(APPEND APP_SOURCES ${DEVICE_FILES})
 
@@ -102,7 +108,6 @@ if(WIN32)
         ui/work_window_tab_main_first_page_solution_design_base.h
         ui/work_window_tab_main_first_page_solution_design.cc
         ui/work_window_tab_main_first_page_solution_design.h
-        ui/work_window_tab_main_second_page_base.h
         ui/work_window_tab_main_second_page.cc
         ui/work_window_tab_main_second_page.h
         ui/work_window_tab_main_third_page.cc
@@ -138,8 +143,10 @@ target_include_directories(app_ui PRIVATE ${PROJECT_PATH}/third_party/tinyxml2/s
 target_link_libraries(app_ui tinyxml2::tinyxml2)
 add_dependencies(app_ui tinyxml2::tinyxml2)
 
-# add library duilib library dependencie
-target_link_libraries(app_ui tinyxml2::tinyxml2)
+# add library libcserialport library dependencie
+target_include_directories(app_ui PRIVATE ${PROJECT_PATH}/third_party/CSerialPort/source/include)
+target_link_libraries(app_ui libcserialport)
+add_dependencies(app_ui libcserialport)
 
 # ##############################################################################
 # add executable

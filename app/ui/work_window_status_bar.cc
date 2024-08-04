@@ -26,21 +26,52 @@ DUI_END_MESSAGE_MAP()
 namespace anx {
 namespace ui {
 WorkWindowStatusBar::WorkWindowStatusBar(
-    WorkWindow* pOwner,
+    WorkWindow* pWorkWindow,
     DuiLib::CPaintManagerUI* paint_manager_ui)
-    : pOwner_(pOwner), paint_manager_ui_(paint_manager_ui) {}
+    : pWorkWindow_(pWorkWindow), paint_manager_ui_(paint_manager_ui) {
+  paint_manager_ui_->AddNotifier(this);
+}
 
 WorkWindowStatusBar::~WorkWindowStatusBar() {}
 
-void WorkWindowStatusBar::OnClick(TNotifyUI& msg) {}
+void WorkWindowStatusBar::Notify(TNotifyUI& msg) {}
 
-void anx::ui::WorkWindowStatusBar::OnTimer(TNotifyUI& msg) {
+void WorkWindowStatusBar::OnClick(TNotifyUI& msg) {
+  if (msg.pSender != nullptr) {
+  } else {
+  }
+}
+
+void WorkWindowStatusBar::OnTimer(TNotifyUI& msg) {
   DuiLib::CTextUI* ui_text = static_cast<DuiLib::CTextUI*>(
       paint_manager_ui_->FindControl(_T("status_bar_current_time")));
   int64_t current_time = anx::common::GetCurrentTimeMillis();
   char date_time[256] = {0};
   anx::common::GetCurrentDateTime(date_time);
   ui_text->SetText(anx::common::string2wstring(date_time).c_str());
+
+  DuiLib::CTextUI* ui_text_connected = static_cast<DuiLib::CTextUI*>(
+      paint_manager_ui_->FindControl(_T("status_bar_connected")));
+  if (pWorkWindow_->IsDeviceComInterfaceConnected()) {
+    ui_text_connected->SetText(_T("联机"));
+  } else {
+    ui_text_connected->SetText(_T("脱机"));
+  }
+
+  int32_t connected_device_num = 0;
+  if (pWorkWindow_->IsSLDeviceComInterfaceConnected()) {
+    connected_device_num += 1;
+  }
+  if (pWorkWindow_->IsSLDeviceComInterfaceConnected()) {
+    connected_device_num += 1;
+  }
+
+  DuiLib::CTextUI* ui_text_device = static_cast<DuiLib::CTextUI*>(
+      paint_manager_ui_->FindControl(_T("status_bar_num_of_device")));
+  std::wstring text = _T("设备数量:");
+  text += anx::common::string2wstring(std::to_string(connected_device_num));
+  text += _T("台");
+  ui_text_device->SetText(text.c_str());
 }
 
 void WorkWindowStatusBar::Bind() {
