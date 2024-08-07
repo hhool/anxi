@@ -46,19 +46,10 @@ int64_t GetCurrentTimeSeconds() {
   // use GetCurrentTimeNanos() to get current time in nanoseconds
   return GetCurrentTimeMicros() / 1000000;
 }
-/*
-std::string FormatTime(int64_t time_ms) {
-  // convert time to string with format like "2024-08-04 12:00:00.000"
-  time_t sec = time_ms / 1000;
-  struct tm* timeinfo = localtime(&sec);
-  char buffer[80];
-  strftime(buffer, 80, "%Y-%m-%d %H:%M:%S", timeinfo);
-  return std::string(buffer);
-}
-*/
+
 void sleep_ms(int64_t ms) {
 #ifdef _WIN32
-  Sleep(ms);
+  Sleep((DWORD)ms);
 #else
   usleep(ms * 1000);
 #endif

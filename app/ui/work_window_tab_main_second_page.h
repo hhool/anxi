@@ -56,6 +56,8 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
 
  protected:
   void CheckDeviceComConnectedStatus();
+  void RefreshExpClipTimeControl();
+  void RefreshSampleTimeControl();
   void UpdateControlFromSettings();
   void SaveSettingsFromControl();
 
@@ -73,10 +75,10 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   bool is_exp_running_;
   std::shared_ptr<anx::device::DeviceComInterface> device_com_ul_;
   std::shared_ptr<anx::device::DeviceComInterface> device_com_sl_;
-  int32_t exp_clip_time_duration_;
-  int32_t exp_clip_time_paused_;
+  int64_t exp_clip_time_duration_;
+  int64_t exp_clip_time_paused_;
   int64_t exp_cycle_count_;
-  int32_t exp_freq_fluctuations_range_;
+  int64_t exp_freq_fluctuations_range_;
 
   int64_t sample_start_pos_;
   int64_t sample_end_pos_;
@@ -122,6 +124,8 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   DuiLib::CCheckBoxUI* chk_exp_clip_set_;
   DuiLib::CEditUI* edit_exp_clip_time_duration_;
   DuiLib::CEditUI* edit_exp_clip_time_paused_;
+  DuiLib::CTextUI* text_exp_clip_time_duration_;
+  DuiLib::CTextUI* text_exp_clip_time_paused_;
 
   /// @brief max cycle count edit
   DuiLib::CEditUI* edit_max_cycle_count_;
@@ -134,6 +138,8 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   DuiLib::CEditUI* edit_sample_end_pos_;
   /// @brief sample time duration edit
   DuiLib::CEditUI* edit_sample_interval_;
+  /// @brief sample interval text
+  DuiLib::CTextUI* text_sample_interval_;
 
   /// @brief graph time mode pre hour
   DuiLib::COptionUI* opt_graph_time_mode_pre_hour_;

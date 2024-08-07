@@ -35,6 +35,28 @@ DUI_END_MESSAGE_MAP()
 
 namespace anx {
 namespace ui {
+namespace {
+
+std::string format_num(int64_t num) {
+  std::string value;
+  int64_t integer_part = num / 1000;
+  int64_t decimal_part = num % 1000;
+  // remove the 0 at the end of the decimal.
+  while (decimal_part % 10 == 0) {
+    decimal_part /= 10;
+    if (decimal_part == 0) {
+      break;
+    }
+  }
+  // format integer part
+  value += std::to_string(integer_part);
+  if (decimal_part != 0) {
+    value += ".";
+    value += std::to_string(decimal_part);
+  }
+  return value;
+}
+}  // namespace
 WorkWindowSecondPage::WorkWindowSecondPage(
     WorkWindow* pWorkWindow,
     DuiLib::CPaintManagerUI* paint_manager_ui)
@@ -104,33 +126,33 @@ void WorkWindowSecondPage::OnClick(TNotifyUI& msg) {
 }
 
 void WorkWindowSecondPage::OnTimer(TNotifyUI& msg) {
-  if (msg.sType == _T("timer")) {
-    uint32_t id_timer = msg.wParam;
-    if (id_timer == 1) {
-      if (is_exp_running_) {
-        if (device_com_ul_) {
-          // do something
-          std::cout << "exp running" << std::endl;
-          uint8_t hex[8];
-          hex[0] = 0x01;
-          hex[1] = 0x04;
-          hex[2] = 0x00;
-          hex[3] = 0x01;
-          hex[4] = 0x00;
-          hex[5] = 0x01;
-          hex[6] = 0x60;
-          hex[7] = 0x0A;
-          int written = device_com_ul_->Write(hex, sizeof(hex));
-          if (written < 0) {
-            std::cout << "ul written error:" << written;
-          }
+  uint32_t id_timer = msg.wParam;
+  if (id_timer == 1) {
+    if (is_exp_running_) {
+      if (device_com_ul_) {
+        // do something
+        std::cout << "exp running" << std::endl;
+        uint8_t hex[8];
+        hex[0] = 0x01;
+        hex[1] = 0x04;
+        hex[2] = 0x00;
+        hex[3] = 0x01;
+        hex[4] = 0x00;
+        hex[5] = 0x01;
+        hex[6] = 0x60;
+        hex[7] = 0x0A;
+        int written = device_com_ul_->Write(hex, sizeof(hex));
+        if (written < 0) {
+          std::cout << "ul written error:" << written;
         }
       }
-    } else if (id_timer == 2) {
-      CheckDeviceComConnectedStatus();
-    } else {
-      std::cout << "";
     }
+  } else if (id_timer == 2) {
+    CheckDeviceComConnectedStatus();
+    RefreshExpClipTimeControl();
+    RefreshSampleTimeControl();
+  } else {
+    std::cout << "";
   }
 }
 
@@ -183,9 +205,13 @@ void WorkWindowSecondPage::Bind() {
   chk_exp_clip_set_ = static_cast<DuiLib::CCheckBoxUI*>(
       paint_manager_ui_->FindControl(_T("exp_clip_set")));
   edit_exp_clip_time_duration_ = static_cast<DuiLib::CEditUI*>(
-      paint_manager_ui_->FindControl(_T("exp_clip_time_duration")));
+      paint_manager_ui_->FindControl(_T("edit_exp_clip_time_duration")));
   edit_exp_clip_time_paused_ = static_cast<DuiLib::CEditUI*>(
-      paint_manager_ui_->FindControl(_T("exp_clip_time_paused")));
+      paint_manager_ui_->FindControl(_T("edit_exp_clip_time_paused")));
+  text_exp_clip_time_duration_ = static_cast<DuiLib::CTextUI*>(
+      paint_manager_ui_->FindControl(_T("text_exp_clip_time_duration")));
+  text_exp_clip_time_paused_ = static_cast<DuiLib::CTextUI*>(
+      paint_manager_ui_->FindControl(_T("text_exp_clip_time_paused")));
 
   /// @brief max cycle count edit
   edit_max_cycle_count_ = static_cast<DuiLib::CEditUI*>(
@@ -204,6 +230,8 @@ void WorkWindowSecondPage::Bind() {
   /// @brief sample time duration edit
   edit_sample_interval_ = static_cast<DuiLib::CEditUI*>(
       paint_manager_ui_->FindControl(_T("edit_sampling_interval")));
+  text_sample_interval_ = static_cast<DuiLib::CTextUI*>(
+      paint_manager_ui_->FindControl(_T("text_sampling_interval")));
 
   /// @brife graph time mode pre hour
   opt_graph_time_mode_pre_hour_ = static_cast<DuiLib::COptionUI*>(
@@ -261,6 +289,40 @@ void WorkWindowSecondPage::CheckDeviceComConnectedStatus() {
   }
 }
 
+void WorkWindowSecondPage::RefreshExpClipTimeControl() {
+  int64_t exp_clip_time_duration =
+      _ttoll(edit_exp_clip_time_duration_->GetText());
+  if (exp_clip_time_duration_ != exp_clip_time_duration) {
+    exp_clip_time_duration_ = exp_clip_time_duration;
+    std::string value = ("=");
+    value += format_num(exp_clip_time_duration * 100);
+    value += "S";
+    text_exp_clip_time_duration_->SetText(
+        anx::common::string2wstring(value).c_str());
+  }
+
+  int64_t exp_clip_time_paused = _ttoll(edit_exp_clip_time_paused_->GetText());
+  if (exp_clip_time_paused_ != exp_clip_time_paused) {
+    exp_clip_time_paused_ = exp_clip_time_paused;
+    std::string value = ("=");
+    value += format_num(exp_clip_time_paused * 100);
+    value += ("S");
+    text_exp_clip_time_paused_->SetText(
+        anx::common::string2wstring(value).c_str());
+  }
+}
+
+void WorkWindowSecondPage::RefreshSampleTimeControl() {
+  std::string value = ("=");
+  int64_t sample_time_interval = _ttoll(edit_sample_interval_->GetText());
+  if (sample_time_interval_ != sample_time_interval) {
+    sample_time_interval_ = sample_time_interval;
+    value += format_num(sample_time_interval * 100);
+    value += "S";
+    text_sample_interval_->SetText(anx::common::string2wstring(value).c_str());
+  }
+}
+
 int32_t WorkWindowSecondPage::exp_start() {
   if (is_exp_running_) {
     return 0;
@@ -301,16 +363,16 @@ void WorkWindowSecondPage::exp_stop() {
 }
 
 void WorkWindowSecondPage::UpdateExpClipTimeFromControl() {
-  exp_clip_time_duration_ = _ttoi(edit_exp_clip_time_duration_->GetText());
-  exp_clip_time_paused_ = _ttoi(edit_exp_clip_time_paused_->GetText());
-  int32_t exp_power = _ttoi(edit_max_cycle_power_->GetText());
-  exp_cycle_count_ = _ttoi(edit_max_cycle_count_->GetText()) * exp_power;
+  exp_clip_time_duration_ = _ttoll(edit_exp_clip_time_duration_->GetText());
+  exp_clip_time_paused_ = _ttoll(edit_exp_clip_time_paused_->GetText());
+  int64_t exp_power = _ttoll(edit_max_cycle_power_->GetText());
+  exp_cycle_count_ = _ttoll(edit_max_cycle_count_->GetText()) * exp_power;
   exp_freq_fluctuations_range_ =
-      _ttoi(edit_frequency_fluctuations_range_->GetText());
+      _ttoll(edit_frequency_fluctuations_range_->GetText());
 
-  sample_start_pos_ = _ttoi(edit_sample_start_pos_->GetText());
-  sample_end_pos_ = _ttoi(edit_sample_end_pos_->GetText());
-  sample_time_interval_ = _ttoi(edit_sample_interval_->GetText());
+  sample_start_pos_ = _ttoll(edit_sample_start_pos_->GetText());
+  sample_end_pos_ = _ttoll(edit_sample_end_pos_->GetText());
+  sample_time_interval_ = _ttoll(edit_sample_interval_->GetText());
 }
 
 void WorkWindowSecondPage::UpdateControlFromSettings() {
