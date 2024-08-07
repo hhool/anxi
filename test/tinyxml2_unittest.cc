@@ -4,16 +4,14 @@
  * @brief  test file for tinyxml2
  * @version 0.1
  * @date 2024-07-29
- * 
+ *
  * @copyright Copyright (c) 2024
- * 
+ *
  */
 
 #include <gtest/gtest.h>
-
-#include <iostream>
-
 #include <tinyxml2.h>
+#include <iostream>
 
 TEST(TinyXml2Test, TestTinyXml2) {
   tinyxml2::XMLDocument doc;
@@ -37,7 +35,8 @@ TEST(TinyXml2Test, TestTinyXml2Load) {
   tinyxml2::XMLDocument doc;
   doc.LoadFile("d:\\0_0.xml");
   tinyxml2::XMLElement* header_element = doc.FirstChildElement("header");
-  tinyxml2::XMLElement* base_param_element = doc.FirstChildElement("base_param");
+  tinyxml2::XMLElement* base_param_element =
+      doc.FirstChildElement("base_param");
   tinyxml2::XMLElement* result_element = doc.FirstChildElement("result");
   const char* text = result_element->Attribute("type");
   std::cout << text << std::endl;

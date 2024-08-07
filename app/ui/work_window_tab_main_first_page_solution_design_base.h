@@ -18,7 +18,7 @@
 #include "third_party\duilib\source\DuiLib\UIlib.h"
 
 // for DUI_DECLARE_MESSAGE_MAP
-using namespace DuiLib;
+using namespace DuiLib;  // NOLINT
 
 namespace anx {
 namespace esolution {

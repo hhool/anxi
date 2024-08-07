@@ -33,6 +33,7 @@ class ComPortDeviceImpl : public DeviceComInterface {
  public:
   /// impliment DeviceComInterface
   int32_t Open() override;
+  bool isOpened() override;
   void Close() override;
   int32_t Read(char* buffer, int32_t size) override;
   int32_t Write(const uint8_t* buffer, int32_t size) override;

@@ -15,8 +15,11 @@
 #include <utility>
 
 #include "app/common/defines.h"
+#include "app/common/string_utils.h"
 #include "app/device/device_com_factory.h"
 #include "app/device/device_com_settings.h"
+#include "app/device/device_exp_graph_settings.h"
+#include "app/device/device_exp_ultrasound_settings.h"
 #include "app/esolution/solution_design.h"
 #include "app/esolution/solution_design_default.h"
 #include "app/ui/dialog_amplitude_calibration_settings.h"
@@ -60,6 +63,7 @@ void WorkWindowSecondPage::OnClick(TNotifyUI& msg) {
     } else if (msg.pSender == btn_tab_data_) {
       btn_tablayout_->SelectItem(1);
     } else if (msg.pSender == this->btn_sa_clear_) {
+      // TODO(hhool): add clear action
     } else if (msg.pSender == this->btn_sa_setting_) {
       DialogStaticLoadGuaranteedSettings*
           dialog_static_load_guraranteed_settings =
@@ -70,6 +74,7 @@ void WorkWindowSecondPage::OnClick(TNotifyUI& msg) {
       dialog_static_load_guraranteed_settings->CenterWindow();
       dialog_static_load_guraranteed_settings->ShowModal();
     } else if (msg.pSender == this->btn_sa_reset_) {
+      // TODO(hhool): add reset action
     } else if (msg.pSender == this->btn_exp_start_) {
       exp_start();
     } else if (msg.pSender == this->btn_exp_stop_) {
@@ -77,8 +82,11 @@ void WorkWindowSecondPage::OnClick(TNotifyUI& msg) {
     } else if (msg.pSender == this->btn_exp_pause_) {
       exp_pause();
     } else if (msg.pSender == this->btn_sa_up_) {
+      // TODO(hhool): add up action
     } else if (msg.pSender == this->btn_sa_down_) {
+      // TODO(hhool): add down action
     } else if (msg.pSender == this->btn_sa_stop_) {
+      // TODO(hhool): add stop action
     } else if (msg.pSender == this->btn_aa_setting_) {
       DialogAmplitudeCalibrationSettings*
           dialog_amplitude_calibration_settings =
@@ -88,8 +96,10 @@ void WorkWindowSecondPage::OnClick(TNotifyUI& msg) {
           UI_WNDSTYLE_FRAME, WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
       dialog_amplitude_calibration_settings->CenterWindow();
       dialog_amplitude_calibration_settings->ShowModal();
+      // TODO(hhool): refresh the tab main third page.
     }
   } else if (msg.sType == _T("selectchanged")) {
+    // TODO(hhool): add selectchanged action
   }
 }
 
@@ -140,9 +150,6 @@ void WorkWindowSecondPage::Bind() {
   btn_sa_reset_ = static_cast<DuiLib::CButtonUI*>(
       paint_manager_ui_->FindControl(_T("btn_sa_reset")));
 
-  // disable the static aircraft button
-  btn_sa_setting_->SetEnabled(false);
-
   /// @brief exp action releated button
   btn_exp_start_ = static_cast<DuiLib::CButtonUI*>(
       paint_manager_ui_->FindControl(_T("btn_exp_start")));
@@ -171,7 +178,6 @@ void WorkWindowSecondPage::Bind() {
   btn_sa_up_->SetEnabled(false);
   btn_sa_down_->SetEnabled(false);
   btn_sa_stop_->SetEnabled(false);
-  btn_aa_setting_->SetEnabled(false);
 
   /// @brief exp clip set checkbox
   chk_exp_clip_set_ = static_cast<DuiLib::CCheckBoxUI*>(
@@ -199,10 +205,38 @@ void WorkWindowSecondPage::Bind() {
   edit_sample_interval_ = static_cast<DuiLib::CEditUI*>(
       paint_manager_ui_->FindControl(_T("edit_sampling_interval")));
 
+  /// @brife graph time mode pre hour
+  opt_graph_time_mode_pre_hour_ = static_cast<DuiLib::COptionUI*>(
+      paint_manager_ui_->FindControl(_T("graph_settings_pre_hour")));
+  opt_graph_time_mode_pre_hour_->Selected(false);
+  opt_graph_time_mode_now_ = static_cast<DuiLib::COptionUI*>(
+      paint_manager_ui_->FindControl(_T("graph_settings_current_hour")));
+  opt_graph_time_mode_now_->Selected(true);
+
+  chk_graph_always_show_new_ = static_cast<DuiLib::CCheckBoxUI*>(
+      paint_manager_ui_->FindControl(_T("graph_settings_always_new")));
+  chk_graph_always_show_new_->Selected(true);
+
+  opt_graph_time_range_5_mnitues_ = static_cast<DuiLib::COptionUI*>(
+      paint_manager_ui_->FindControl(_T("graph_settings_5_minite")));
+  opt_graph_time_range_5_mnitues_->Selected(false);
+  opt_graph_time_range_10_mnitues_ = static_cast<DuiLib::COptionUI*>(
+      paint_manager_ui_->FindControl(_T("graph_settings_10_minite")));
+  opt_graph_time_range_10_mnitues_->Selected(false);
+  opt_graph_time_range_30_mnitues_ = static_cast<DuiLib::COptionUI*>(
+      paint_manager_ui_->FindControl(_T("graph_settings_30_minite")));
+  opt_graph_time_range_30_mnitues_->Selected(false);
+  opt_graph_time_range_60_mnitues_ = static_cast<DuiLib::COptionUI*>(
+      paint_manager_ui_->FindControl(_T("graph_settings_60_minite")));
+  opt_graph_time_range_60_mnitues_->Selected(true);
+
+  UpdateControlFromSettings();
   paint_manager_ui_->SetTimer(btn_exp_start_, 2, 1000);
 }
 
 void WorkWindowSecondPage::Unbind() {
+  SaveSettingsFromControl();
+
   paint_manager_ui_->KillTimer(btn_exp_start_, 1);
   device_com_sl_.reset();
   device_com_ul_.reset();
@@ -211,23 +245,19 @@ void WorkWindowSecondPage::Unbind() {
 
 void WorkWindowSecondPage::CheckDeviceComConnectedStatus() {
   if (pWorkWindow_->IsDeviceComInterfaceConnected()) {
-    btn_sa_setting_->SetEnabled(true);
     btn_exp_start_->SetEnabled(true);
     btn_exp_stop_->SetEnabled(true);
     btn_exp_pause_->SetEnabled(true);
     btn_sa_up_->SetEnabled(true);
     btn_sa_down_->SetEnabled(true);
     btn_sa_stop_->SetEnabled(true);
-    btn_aa_setting_->SetEnabled(true);
   } else {
-    btn_sa_setting_->SetEnabled(false);
     btn_exp_start_->SetEnabled(false);
     btn_exp_stop_->SetEnabled(false);
     btn_exp_pause_->SetEnabled(false);
     btn_sa_up_->SetEnabled(false);
     btn_sa_down_->SetEnabled(false);
     btn_sa_stop_->SetEnabled(false);
-    btn_aa_setting_->SetEnabled(false);
   }
 }
 
@@ -281,6 +311,134 @@ void WorkWindowSecondPage::UpdateExpClipTimeFromControl() {
   sample_start_pos_ = _ttoi(edit_sample_start_pos_->GetText());
   sample_end_pos_ = _ttoi(edit_sample_end_pos_->GetText());
   sample_time_interval_ = _ttoi(edit_sample_interval_->GetText());
+}
+
+void WorkWindowSecondPage::UpdateControlFromSettings() {
+  std::unique_ptr<anx::device::DeviceUltrasoundSettings> dus =
+      anx::device::LoadDeviceUltrasoundSettingsDefaultResource();
+  if (dus != nullptr) {
+    edit_exp_clip_time_duration_->SetText(
+        anx::common::string2wstring(
+            std::to_string(dus->exp_clip_time_duration_).c_str())
+            .c_str());
+    edit_exp_clip_time_paused_->SetText(
+        anx::common::string2wstring(
+            std::to_string(dus->exp_clip_time_paused_).c_str())
+            .c_str());
+    edit_max_cycle_count_->SetText(
+        anx::common::string2wstring(
+            std::to_string(dus->exp_max_cycle_count_).c_str())
+            .c_str());
+    edit_max_cycle_power_->SetText(
+        anx::common::string2wstring(
+            std::to_string(dus->exp_max_cycle_power_).c_str())
+            .c_str());
+    edit_frequency_fluctuations_range_->SetText(
+        anx::common::string2wstring(
+            std::to_string(dus->exp_frequency_fluctuations_range_).c_str())
+            .c_str());
+    edit_sample_start_pos_->SetText(
+        anx::common::string2wstring(
+            std::to_string(dus->sampling_start_pos_).c_str())
+            .c_str());
+    edit_sample_end_pos_->SetText(
+        anx::common::string2wstring(
+            std::to_string(dus->sampling_end_pos_).c_str())
+            .c_str());
+    edit_sample_interval_->SetText(
+        anx::common::string2wstring(
+            std::to_string(dus->sampling_interval_).c_str())
+            .c_str());
+
+    if (dus->exp_clipping_enable_ == 1) {
+      chk_exp_clip_set_->Selected(true);
+    } else {
+      chk_exp_clip_set_->Selected(false);
+    }
+  }
+
+  std::unique_ptr<anx::device::DeviceExpGraphSettings> dcs =
+      anx::device::LoadDeviceExpGraphSettingsDefaultResource();
+  if (dcs != nullptr) {
+    if (dcs->exp_graph_show_time_type_ == 0) {
+      opt_graph_time_mode_pre_hour_->Selected(true);
+      opt_graph_time_mode_now_->Selected(false);
+    } else {
+      opt_graph_time_mode_pre_hour_->Selected(false);
+      opt_graph_time_mode_now_->Selected(true);
+    }
+
+    if (dcs->exp_graph_range_minitues_ == 0) {
+      opt_graph_time_range_5_mnitues_->Selected(true);
+      opt_graph_time_range_10_mnitues_->Selected(false);
+      opt_graph_time_range_30_mnitues_->Selected(false);
+      opt_graph_time_range_60_mnitues_->Selected(false);
+    } else if (dcs->exp_graph_range_minitues_ == 1) {
+      opt_graph_time_range_5_mnitues_->Selected(false);
+      opt_graph_time_range_10_mnitues_->Selected(true);
+      opt_graph_time_range_30_mnitues_->Selected(false);
+      opt_graph_time_range_60_mnitues_->Selected(false);
+    } else if (dcs->exp_graph_range_minitues_ == 2) {
+      opt_graph_time_range_5_mnitues_->Selected(false);
+      opt_graph_time_range_10_mnitues_->Selected(false);
+      opt_graph_time_range_30_mnitues_->Selected(true);
+      opt_graph_time_range_60_mnitues_->Selected(false);
+    } else {
+      opt_graph_time_range_5_mnitues_->Selected(false);
+      opt_graph_time_range_10_mnitues_->Selected(false);
+      opt_graph_time_range_30_mnitues_->Selected(false);
+      opt_graph_time_range_60_mnitues_->Selected(true);
+    }
+
+    if (dcs->exp_graph_always_new_ == 1) {
+      chk_graph_always_show_new_->Selected(true);
+    } else {
+      chk_graph_always_show_new_->Selected(false);
+    }
+  }
+}
+
+void WorkWindowSecondPage::SaveSettingsFromControl() {
+  anx::device::DeviceUltrasoundSettings dus;
+  dus.exp_clip_time_duration_ = _ttoi(edit_exp_clip_time_duration_->GetText());
+  dus.exp_clip_time_paused_ = _ttoi(edit_exp_clip_time_paused_->GetText());
+  dus.exp_max_cycle_count_ = _ttoi(edit_max_cycle_count_->GetText());
+  dus.exp_max_cycle_power_ = _ttoi(edit_max_cycle_power_->GetText());
+  dus.exp_frequency_fluctuations_range_ =
+      _ttoi(edit_frequency_fluctuations_range_->GetText());
+  dus.sampling_start_pos_ = _ttoi(edit_sample_start_pos_->GetText());
+  dus.sampling_end_pos_ = _ttoi(edit_sample_end_pos_->GetText());
+  dus.sampling_interval_ = _ttoi(edit_sample_interval_->GetText());
+  if (chk_exp_clip_set_->IsSelected()) {
+    dus.exp_clipping_enable_ = 1;
+  } else {
+    dus.exp_clipping_enable_ = 0;
+  }
+  anx::device::SaveDeviceUltrasoundSettingsDefaultResource(dus);
+
+  anx::device::DeviceExpGraphSettings dcs;
+  if (opt_graph_time_mode_pre_hour_->IsSelected()) {
+    dcs.exp_graph_show_time_type_ = 0;
+  } else {
+    dcs.exp_graph_show_time_type_ = 1;
+  }
+
+  if (opt_graph_time_range_5_mnitues_->IsSelected()) {
+    dcs.exp_graph_range_minitues_ = 0;
+  } else if (opt_graph_time_range_10_mnitues_->IsSelected()) {
+    dcs.exp_graph_range_minitues_ = 1;
+  } else if (opt_graph_time_range_30_mnitues_->IsSelected()) {
+    dcs.exp_graph_range_minitues_ = 2;
+  } else {
+    dcs.exp_graph_range_minitues_ = 3;
+  }
+
+  if (chk_graph_always_show_new_->IsSelected()) {
+    dcs.exp_graph_always_new_ = 1;
+  } else {
+    dcs.exp_graph_always_new_ = 0;
+  }
+  anx::device::SaveDeviceExpGraphSettingsDefaultResource(dcs);
 }
 
 }  // namespace ui

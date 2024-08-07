@@ -152,21 +152,20 @@ std::string ExpDesignResult::ToXml(bool close_tag) const {
   return xml;
 }
 
-
 //////////////////////////
 // ExpDesignResult0
 ExpDesignResult0::ExpDesignResult0(int32_t solution_type)
-	: ExpDesignResult(solution_type) {
-	// do something
+    : ExpDesignResult(solution_type) {
+  // do something
 }
 
 std::string ExpDesignResult0::ToXml(bool close_tag) const {
-	std::string xml;
-	xml += "<f_eamplitude>" + std::to_string(f_eamplitude_) +
-		"</f_eamplitude>\r\n";
-	xml += "<f_dc_stress_MPa>" + std::to_string(f_dc_stress_MPa_) +
-		"</f_dc_stress_MPa>\r\n";
-	return xml;
+  std::string xml;
+  xml +=
+      "<f_eamplitude>" + std::to_string(f_eamplitude_) + "</f_eamplitude>\r\n";
+  xml += "<f_dc_stress_MPa>" + std::to_string(f_dc_stress_MPa_) +
+         "</f_dc_stress_MPa>\r\n";
+  return xml;
 }
 
 //////////////////////////
@@ -606,8 +605,7 @@ int32_t SolutionDesign::FromXml(const std::string& xml,
       tinyxml2::XMLElement* f_eamplitude_element =
           result_element->FirstChildElement("f_eamplitude");
       if (f_eamplitude_element) {
-        result_vibration.f_eamplitude_ =
-            f_eamplitude_element->FloatText();
+        result_vibration.f_eamplitude_ = f_eamplitude_element->FloatText();
       }
 
       tinyxml2::XMLElement* f_dc_stress_MPa_element =

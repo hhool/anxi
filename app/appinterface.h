@@ -18,8 +18,6 @@ namespace anx {
 namespace app {
 class AppInterface {
  public:
-
- public:
   virtual ~AppInterface() {}
 
   virtual int32_t Run() = 0;

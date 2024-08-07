@@ -12,15 +12,15 @@
 #ifndef APP_UI_WORK_WINDOW_TAB_MAIN_SECOND_PAGE_H_
 #define APP_UI_WORK_WINDOW_TAB_MAIN_SECOND_PAGE_H_
 
-#include "app/ui/ui_virtual_wnd_base.h"
-
 #include <memory>
 #include <string>
+
+#include "app/ui/ui_virtual_wnd_base.h"
 
 #include "third_party\duilib\source\DuiLib\UIlib.h"
 
 // for DUI_DECLARE_MESSAGE_MAP
-using namespace DuiLib;
+using namespace DuiLib;  // NOLINT
 
 namespace anx {
 namespace device {
@@ -46,8 +46,8 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
 
  public:
   DUI_DECLARE_MESSAGE_MAP()
-  void OnClick(TNotifyUI& msg);
-  void OnTimer(TNotifyUI& msg);
+  void OnClick(TNotifyUI& msg);  // NOLINT
+  void OnTimer(TNotifyUI& msg);  // NOLINT
 
  public:
   // implement the base class UIVirtualWndBase virtual function
@@ -56,6 +56,8 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
 
  protected:
   void CheckDeviceComConnectedStatus();
+  void UpdateControlFromSettings();
+  void SaveSettingsFromControl();
 
  protected:
   int32_t exp_start();
@@ -132,6 +134,20 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   DuiLib::CEditUI* edit_sample_end_pos_;
   /// @brief sample time duration edit
   DuiLib::CEditUI* edit_sample_interval_;
+
+  /// @brief graph time mode pre hour
+  DuiLib::COptionUI* opt_graph_time_mode_pre_hour_;
+  /// @brief graph time mode now
+  DuiLib::COptionUI* opt_graph_time_mode_now_;
+
+  /// @brief graph time alway show new
+  DuiLib::CCheckBoxUI* chk_graph_always_show_new_;
+
+  /// @brief graph time range option
+  DuiLib::COptionUI* opt_graph_time_range_5_mnitues_;
+  DuiLib::COptionUI* opt_graph_time_range_10_mnitues_;
+  DuiLib::COptionUI* opt_graph_time_range_30_mnitues_;
+  DuiLib::COptionUI* opt_graph_time_range_60_mnitues_;
 };
 
 }  // namespace ui

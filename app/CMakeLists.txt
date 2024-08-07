@@ -19,12 +19,6 @@ set(PROJECT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/..")
 message(STATUS "PROJECT_PATH: ${PROJECT_PATH}")
 include_directories(${PROJECT_PATH})
 
-# add micro define
-if(WIN32)
-    add_definitions(-DUNICODE -D_UNICODE)
-    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-endif()
-
 set(COMMON_FILES
     common/defines.h
     common/module_utils.cc
@@ -51,7 +45,16 @@ set(DEVICE_FILES
     device/device_com_settings.cc
     device/device_com_settings.h
     device/device_com.cc
-    device/device_com.h)
+    device/device_com.h
+    device/device_exp_amplitude_settings.cc
+    device/device_exp_amplitude_settings.h
+    device/device_exp_graph_settings.cc
+    device/device_exp_graph_settings.h
+    device/device_exp_load_static_settings.cc
+    device/device_exp_load_static_settings.h
+    device/device_exp_ultrasound_settings.cc
+    device/device_exp_ultrasound_settings.h)
+
 source_group("device" FILES ${DEVICE_FILES})
 list(APPEND APP_SOURCES ${DEVICE_FILES})
 

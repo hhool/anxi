@@ -220,7 +220,7 @@ void WorkWindow::Notify(DuiLib::TNotifyUI& msg) {
       MessageBox(*this, _T("保存成功"), _T("保存成功"), MB_OK);
     }
   } else if (msg.sType == kMenu_Design_Exit) {
-    // TODO(hhool):kMenu_Store_ExpRecord}
+    // TODO(hhool): kMenu_Store_ExpRecord
   } else if (msg.sType == kMenu_Store_ExpRecord) {
     // TODO(hhool):
     MessageBox(*this, msg.sType, msg.sType, MB_OK);
@@ -530,14 +530,18 @@ void WorkWindow::OnMenuDeviceDisconnectClicked(DuiLib::TNotifyUI& msg) {
   if (device_com_sl_ != nullptr) {
     device_com_sl_->Close();
   }
+  device_com_sl_ = nullptr;
+
   if (device_com_ul_ != nullptr) {
     device_com_ul_->Close();
   }
+  device_com_ul_ = nullptr;
   // TODO(hhooll): show status bar message
 }
 
 bool WorkWindow::IsDeviceComInterfaceConnected() const {
-  return device_com_ul_ != nullptr && device_com_sl_ != nullptr;
+  return (device_com_ul_ != nullptr && device_com_ul_->isOpened()) ||
+         (device_com_sl_ != nullptr && device_com_sl_->isOpened());
 }
 
 bool WorkWindow::IsSLDeviceComInterfaceConnected() const {

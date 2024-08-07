@@ -11,11 +11,11 @@
 
 #include "app/esolution/solution_design_helper.h"
 
+#include <cassert>
+
 #include "app/common/module_utils.h"
 #include "app/esolution/solution_design.h"
 #include "app/esolution/solution_design_default.h"
-
-#include <cassert>
 
 namespace anx {
 namespace esolution {

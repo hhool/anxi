@@ -18,7 +18,7 @@
 #include "third_party\duilib\source\DuiLib\UIlib.h"
 
 // for DUI_DECLARE_MESSAGE_MAP
-using namespace DuiLib;
+using namespace DuiLib;  // NOLINT
 
 using DuiLib::CControlUI;
 using DuiLib::CPaintManagerUI;
@@ -60,9 +60,17 @@ class DialogAmplitudeCalibrationSettings : public DuiLib::WindowImplBase {
     return _T("dialog_amplitude_calibration_settings");
   }
 
+  void UpdateControlFromSettings();
+  void SaveSettingsFromControl();
+
  private:
   CButtonUI* btn_close_;
   CButtonUI* btn_ok_;
+
+  CEditUI* edit_amp_level_one_;
+  CEditUI* edit_amp_level_two_;
+  CEditUI* edit_amp_level_third_;
+  CEditUI* edit_amp_level_fourth_;
 };
 }  // namespace ui
 }  // namespace anx

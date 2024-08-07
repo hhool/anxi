@@ -12,15 +12,15 @@
 #ifndef APP_UI_WORK_WINDOW_TAB_MAIN_THIRD_PAGE_H_
 #define APP_UI_WORK_WINDOW_TAB_MAIN_THIRD_PAGE_H_
 
-#include "app/ui/ui_virtual_wnd_base.h"
-
 #include <memory>
 #include <string>
+
+#include "app/ui/ui_virtual_wnd_base.h"
 
 #include "third_party\duilib\source\DuiLib\UIlib.h"
 
 // for DUI_DECLARE_MESSAGE_MAP
-using namespace DuiLib;
+using namespace DuiLib;  // NOLINT
 
 namespace anx {
 namespace ui {
@@ -39,8 +39,8 @@ class WorkWindowThirdPage : public DuiLib::CNotifyPump,
 
  public:
   DUI_DECLARE_MESSAGE_MAP()
-  void OnClick(TNotifyUI& msg);
-  void OnTimer(TNotifyUI& msg);
+  void OnClick(TNotifyUI& msg);  // NOLINT
+  void OnTimer(TNotifyUI& msg);  // NOLINT
 
  public:
   // implement the base class UIVirtualWndBase virtual function
@@ -48,9 +48,19 @@ class WorkWindowThirdPage : public DuiLib::CNotifyPump,
   void Unbind() override;
 
  protected:
+  void UpdateControlFromSettings();
+
  private:
   WorkWindow* pWorkWindow_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
+
+  COptionUI* opt_direct_up_;
+  COptionUI* opt_direct_down_;
+  COptionUI* opt_action_pull_;
+  COptionUI* opt_action_push_;
+
+  CEditUI* edit_speed_;
+  CEditUI* edit_retention_;
 };
 }  // namespace ui
 }  // namespace anx

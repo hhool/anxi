@@ -209,12 +209,11 @@ extern const TCHAR* const
 extern const TCHAR* const
     kMenu_Store_ComRecord;  // = _T("menu_store_item_com_record");
 
-
 /////////////////////////////////////////////////////////////////////////////////////
 //
 //
 // some menu.button related
-extern const TCHAR* const kMenu_Button_ExpTitle;// = _T("exp_title");
+extern const TCHAR* const kMenu_Button_ExpTitle;  // = _T("exp_title");
 }  // namespace ui
 }  // namespace anx
 

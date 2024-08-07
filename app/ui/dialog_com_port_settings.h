@@ -24,7 +24,7 @@ class ComPort;
 }  // namespace anx
 
 // for DUI_DECLARE_MESSAGE_MAP
-using namespace DuiLib;
+using namespace DuiLib;  // NOLINT
 
 using DuiLib::CControlUI;
 using DuiLib::CPaintManagerUI;

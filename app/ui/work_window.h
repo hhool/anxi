@@ -12,17 +12,17 @@
 #ifndef APP_UI_WORK_WINDOW_H_
 #define APP_UI_WORK_WINDOW_H_
 
-#include "app/ui/ui_virtual_wnd_base.h"
-#include "app/ui/work_window_tab_main_first_page_solution_design_base.h"
-
 #include <map>
 #include <memory>
 #include <string>
 
+#include "app/ui/ui_virtual_wnd_base.h"
+#include "app/ui/work_window_tab_main_first_page_solution_design_base.h"
+
 #include "third_party\duilib\source\DuiLib\UIlib.h"
 
 // for DUI_DECLARE_MESSAGE_MAP
-using namespace DuiLib;
+using namespace DuiLib;  // NOLINT
 
 namespace anx {
 namespace device {
@@ -57,8 +57,8 @@ class WorkWindow : public DuiLib::WindowImplBase {
 
   DUI_DECLARE_MESSAGE_MAP()
   void OnClick(DuiLib::TNotifyUI& msg) override;
-  virtual void OnSelectChanged(DuiLib::TNotifyUI& msg);
-  virtual void OnTimer(DuiLib::TNotifyUI& msg);
+  virtual void OnSelectChanged(DuiLib::TNotifyUI& msg);  // NOLINT
+  virtual void OnTimer(DuiLib::TNotifyUI& msg);          // NOLINT
 
   DuiLib::CDuiString GetSkinFolder() override {
 #ifdef _DEBUG
@@ -83,7 +83,7 @@ class WorkWindow : public DuiLib::WindowImplBase {
                        BOOL& bHandled) override;
 
  protected:
-  void OnPrepare(DuiLib::TNotifyUI& msg);
+  void OnPrepare(DuiLib::TNotifyUI& msg); // NOLINT
 
   /// @brief Update the work window tile with the solution type
   /// @param solution_type

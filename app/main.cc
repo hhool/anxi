@@ -21,22 +21,28 @@
 
 #if defined(WIN32)
 #if !defined(UNDER_CE)
-int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR /*lpCmdLine*/, int nCmdShow) {
+int APIENTRY WinMain(HINSTANCE hInstance,
+                     HINSTANCE /*hPrevInstance*/,
+                     LPSTR /*lpCmdLine*/,
+                     int nCmdShow) {
 #else
-int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lpCmdLine, int nCmdShow) {
+int APIENTRY WinMain(HINSTANCE hInstance,
+                     HINSTANCE /*hPrevInstance*/,
+                     LPTSTR lpCmdLine,
+                     int nCmdShow) {
 #endif
 #else
 int main() {
-#endif 
+#endif
 #if defined(_DEBUG) && defined(_MSC_VER) && defined(WIN32)
   int Flag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
   Flag |= _CRTDBG_LEAK_CHECK_DF;
   _CrtSetDbgFlag(Flag);
-   // _CrtSetBreakAlloc(2840);
+  // _CrtSetBreakAlloc(2840);
 #endif
   void* handle_app = anx::app::CreateApp(hInstance);
   if (handle_app == nullptr) {
-	  return -1;
+    return -1;
   }
   anx::app::Run(handle_app);
   anx::app::DestroyApp(handle_app);

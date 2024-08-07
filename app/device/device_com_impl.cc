@@ -58,8 +58,8 @@ itas109::StopBits toItas109StopBits(int stop_bits) {
     case 1:
       return itas109::StopBits::StopOne;
     case 2:
-		return itas109::StopBits::StopTwo;
-	case 3:
+      return itas109::StopBits::StopTwo;
+    case 3:
       return itas109::StopBits::StopOneAndHalf;
     default:
       return itas109::StopBits::StopOne;
@@ -100,7 +100,7 @@ int32_t ComPortDeviceImpl::Open() {
   native_serialport->init(
       com_port_device_.GetComName().c_str(),
       com_port_device_.GetComPort().baud_rate,
-	  toItas109Parity(com_port_device_.GetComPort().parity),
+      toItas109Parity(com_port_device_.GetComPort().parity),
       toItas109DataBits(com_port_device_.GetComPort().data_bits),
       toItas109StopBits(com_port_device_.GetComPort().stop_bits),
       toItas109FlowControl(com_port_device_.GetComPort().flow_control),
@@ -111,6 +111,17 @@ int32_t ComPortDeviceImpl::Open() {
   }
   native_serialport_ = native_serialport.release();
   return 0;
+}
+
+bool ComPortDeviceImpl::isOpened() {
+  std::cout << "ComPortDeviceImpl::IsOpen" << std::endl;
+  if (native_serialport_ == nullptr) {
+    return false;
+  }
+
+  itas109::CSerialPort* native_serialport =
+      reinterpret_cast<itas109::CSerialPort*>(native_serialport_);
+  return native_serialport->isOpen();
 }
 
 void ComPortDeviceImpl::Close() {

@@ -19,7 +19,7 @@
 
 #include "third_party\duilib\source\DuiLib\UIlib.h"
 // for DUI_DECLARE_MESSAGE_MAP
-using namespace DuiLib;
+using namespace DuiLib;  // NOLINT
 
 namespace anx {
 namespace ui {
@@ -42,8 +42,8 @@ class WorkWindowStatusBar : public DuiLib::CNotifyPump,
 
  public:
   DUI_DECLARE_MESSAGE_MAP()
-  void OnClick(TNotifyUI& msg);
-  void OnTimer(TNotifyUI& msg);
+  void OnClick(TNotifyUI& msg);  // NOLINT
+  void OnTimer(TNotifyUI& msg);  // NOLINT
 
  public:
   // implement the base class virtual function

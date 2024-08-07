@@ -9,14 +9,10 @@
  *
  */
 
-
 #include <gtest/gtest.h>
+#include <json/json.h>
 
 #include <iostream>
 #include <string>
 
-#include <json/json.h>
-
-TEST(JsonTest, TestJson) {
- 
-}
+TEST(JsonTest, TestJson) {}

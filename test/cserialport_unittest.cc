@@ -14,16 +14,16 @@
 #include <iostream>
 #include <string>
 
-#include <CSerialPort/SerialPort.h>
-#include <CSerialPort/SerialPortInfo.h>
-
 #if defined(_WIN32)
 #include <windows.h>
 #else
 #include <unistd.h>
 #endif
 
-using namespace itas109;
+#include <CSerialPort/SerialPort.h>
+#include <CSerialPort/SerialPortInfo.h>
+
+using namespace itas109;  // NOLINT
 
 static char portName1[256];
 static char portName2[256];
@@ -56,7 +56,7 @@ class CSerialPortTests : public testing::Test {
       usleep(1000 * 100);
 #endif
     }
-  };
+  }
   CSerialPort m_serialport;
   CSerialPort m_serialport2;
   std::vector<SerialPortInfo> m_availablePortsInfoVector;
@@ -83,7 +83,7 @@ void sleep_ms(int64_t ms) {
 
 class MyListener : public CSerialPortListener {
  public:
-  MyListener(CSerialPort* sp) : p_sp(sp) {};
+  explicit MyListener(CSerialPort* sp) : p_sp(sp) {}
 
   void onReadEvent(const char* portName, unsigned int readBufferLen) {
     if (readBufferLen > 0) {

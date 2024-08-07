@@ -169,9 +169,9 @@ LRESULT CMenuDesignWnd::OnKillFocus(UINT uMsg,
                                     WPARAM wParam,
                                     LPARAM lParam,
                                     BOOL& bHandled) {
-  if ((HWND)wParam == m_hWnd)
+  if ((HWND)wParam == m_hWnd) {
     bHandled = TRUE;
-  else if (m_pShadowWnd != NULL && (HWND)wParam == m_pShadowWnd->GetHWND()) {
+  } else if (m_pShadowWnd != NULL && (HWND)wParam == m_pShadowWnd->GetHWND()) {
     CWindowWnd::HandleMessage(uMsg, wParam, lParam);
     ::SetFocus(m_hWnd);
     bHandled = TRUE;

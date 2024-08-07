@@ -4,15 +4,14 @@
  * @brief  define file for the ui constant
  * @version 0.1
  * @date 2024-07-25
- * 
+ *
  * @copyright Copyright (c) 2024
- * 
+ *
  */
 #include "app/ui/ui_constants.h"
 
 namespace anx {
 namespace ui {
-
 
 /////////////////////////////////////////////////////////////////////////////////////
 //
@@ -127,12 +126,15 @@ const TCHAR* const kListTextElementUIClassName = _T("ListTextElementUI");
 const TCHAR* const kListTextElementUIInterfaceName = _T("ListTextElement");
 
 // ListExpandElementUI
-//const TCHAR* const kListExpandElementUIClassName = _T("ListExpandElementUI");
-//const TCHAR* const kListExpandElementUIInterfaceName = _T("ListExpandElement");
+// const TCHAR* const kListExpandElementUIClassName = _T("ListExpandElementUI");
+// const TCHAR* const kListExpandElementUIInterfaceName =
+// _T("ListExpandElement");
 
 // ListContainerElementUI
-const TCHAR* const kListContainerElementUIClassName = _T("ListContainerElementUI");
-const TCHAR* const kListContainerElementUIInterfaceName = _T("ListContainerElement");
+const TCHAR* const kListContainerElementUIClassName =
+    _T("ListContainerElementUI");
+const TCHAR* const kListContainerElementUIInterfaceName =
+    _T("ListContainerElement");
 
 // RichEditUI
 const TCHAR* const kRichEditUIClassName = _T("RichEditUI");
@@ -173,10 +175,14 @@ const TCHAR* const kRestoreButtonControlName = _T("restorebtn");
 // header menu design related
 const TCHAR* const kMenu_Design_Connect = _T("menu_design_item_connect");
 const TCHAR* const kMenu_Design_DisConnect = _T("menu_design_item_disconnect");
-const TCHAR* const kMenu_Design_Device_Settings = _T("menu_design_item_device_settings");
-const TCHAR* const kMenu_Design_Modify_Addr = _T("menu_design_item_modify_address");
-const TCHAR* const kMenu_Design_Read_Solution = _T("menu_design_item_read_solution");
-const TCHAR* const kMenu_Design_Save_Solution = _T("menu_design_item_save_solution");
+const TCHAR* const kMenu_Design_Device_Settings =
+    _T("menu_design_item_device_settings");
+const TCHAR* const kMenu_Design_Modify_Addr =
+    _T("menu_design_item_modify_address");
+const TCHAR* const kMenu_Design_Read_Solution =
+    _T("menu_design_item_read_solution");
+const TCHAR* const kMenu_Design_Save_Solution =
+    _T("menu_design_item_save_solution");
 const TCHAR* const kMenu_Design_Exit = _T("menu_design_item_exit");
 
 /////////////////////////////////////////////////////////////////////////////////////

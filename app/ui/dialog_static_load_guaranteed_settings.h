@@ -18,7 +18,7 @@
 #include "third_party\duilib\source\DuiLib\UIlib.h"
 
 // for DUI_DECLARE_MESSAGE_MAP
-using namespace DuiLib;
+using namespace DuiLib;  // NOLINT
 
 using DuiLib::CControlUI;
 using DuiLib::CPaintManagerUI;
@@ -60,9 +60,20 @@ class DialogStaticLoadGuaranteedSettings : public DuiLib::WindowImplBase {
     return _T("dialog_static_load_guaranteed_settings");
   }
 
+  void UpdateControlFromSettings();
+  void SaveSettingsFromControl();
+
  private:
   CButtonUI* btn_close_;
   CButtonUI* btn_ok_;
+
+  COptionUI* opt_direct_up_;
+  COptionUI* opt_direct_down_;
+  COptionUI* opt_action_pull_;
+  COptionUI* opt_action_push_;
+
+  CEditUI* edit_speed_;
+  CEditUI* edit_retention_;
 };
 }  // namespace ui
 }  // namespace anx

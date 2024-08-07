@@ -19,7 +19,7 @@
 
 // for DUI_DECLARE_MESSAGE_MAP
 
-using namespace DuiLib;
+using namespace DuiLib;  //NOLINT
 
 namespace anx {
 

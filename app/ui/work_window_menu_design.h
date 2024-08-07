@@ -58,17 +58,35 @@ class CMenuDesignWnd : public CWindowWnd, public INotifyUI {
 
   void ShowWindow(bool bShow = true, bool bTakeFocus = true);
 
-  LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+  LRESULT OnCreate(UINT uMsg,
+                   WPARAM wParam,
+                   LPARAM lParam,
+                   BOOL& bHandled);  // NOLINT
 
-  LRESULT OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+  LRESULT OnClose(UINT uMsg,
+                  WPARAM wParam,
+                  LPARAM lParam,
+                  BOOL& bHandled);  // NOLINT
 
-  LRESULT OnKillFocus(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+  LRESULT OnKillFocus(UINT uMsg,
+                      WPARAM wParam,
+                      LPARAM lParam,
+                      BOOL& bHandled);  // NOLINT
 
-  LRESULT OnKeyDown(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+  LRESULT OnKeyDown(UINT uMsg,
+                    WPARAM wParam,
+                    LPARAM lParam,
+                    BOOL& bHandled);  // NOLINT
 
-  LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+  LRESULT OnSize(UINT uMsg,
+                 WPARAM wParam,
+                 LPARAM lParam,
+                 BOOL& bHandled);  // NOLINT
 
-  LRESULT OnMove(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+  LRESULT OnMove(UINT uMsg,
+                 WPARAM wParam,
+                 LPARAM lParam,
+                 BOOL& bHandled);  // NOLINT
 
   LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam);
 

@@ -98,7 +98,7 @@ void DialogComPortSettings::SaveComInfoFromControl(std::string tail_prefix) {
   com_port.data_bits = anx::device::ComPort::ValueDataBitsFromString(data_bits);
   com_port.stop_bits = anx::device::ComPort::ValueStopBitsFromString(stop_bits);
   com_port.parity = anx::device::ComPort::ValueParityFromString(parity);
-  // TODO(hhool);
+  // TODO(hhool):
   com_port.flow_control =
       anx::device::ComPort::ValueFlowControlFromString("hardware");
   int32_t device_com_type = TailPrefixToDeviceComType(tail_prefix);

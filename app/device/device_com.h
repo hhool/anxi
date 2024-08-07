@@ -92,10 +92,30 @@ class ComPortDevice {
 
 class DeviceComInterface {
  public:
+  /// @brief  Open the device com
+  /// @return int32_t 0 success, non-zero fail
   virtual int32_t Open() = 0;
+  /// @brief  Check the device com is opened
+  /// @return bool true opened, false not opened
+  virtual bool isOpened() = 0;
+  /// @brief  Close the device com
   virtual void Close() = 0;
+  /// @brief  Read data from the device com
+  /// @param buffer  data buffer
+  /// @param size  data buffer size
+  /// @return int32_t  read data size
   virtual int32_t Read(char* buffer, int32_t size) = 0;
+  /// @brief  Write data to the device com
+  /// @param buffer  data buffer
+  /// @param size  data buffer size
+  /// @return int32_t  write data size
   virtual int32_t Write(const uint8_t* buffer, int32_t size) = 0;
+  /// @brief  Write data to the device com and read data from the device com
+  /// @param write_buffer  write data buffer
+  /// @param write_size  write data buffer size
+  /// @param read_buffer  read data buffer
+  /// @param read_size  read data buffer size
+  /// @return int32_t  read data size
   virtual int32_t WriteRead(const uint8_t* write_buffer,
                             int32_t write_size,
                             uint8_t* read_buffer,
@@ -108,6 +128,9 @@ class DeviceComListener {
   DeviceComListener() = default;
   virtual ~DeviceComListener() = default;
 
+  /// @brief  On data received
+  /// @param data  data buffer
+  /// @param size  data buffer size
   virtual void OnDataReceived(const char* data, int32_t size) = 0;
 };
 }  // namespace device
