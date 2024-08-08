@@ -62,7 +62,7 @@ void WorkWindowStatusBar::OnTimer(TNotifyUI& msg) {
   if (pWorkWindow_->IsSLDeviceComInterfaceConnected()) {
     connected_device_num += 1;
   }
-  if (pWorkWindow_->IsSLDeviceComInterfaceConnected()) {
+  if (pWorkWindow_->IsULDeviceComInterfaceConnected()) {
     connected_device_num += 1;
   }
 

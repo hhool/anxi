@@ -16,6 +16,7 @@
 #include <memory>
 #include <string>
 
+#include "app/device/device_com.h"
 #include "app/ui/ui_virtual_wnd_base.h"
 #include "app/ui/work_window_tab_main_first_page_solution_design_base.h"
 
@@ -27,6 +28,7 @@ using namespace DuiLib;  // NOLINT
 namespace anx {
 namespace device {
 class DeviceComInterface;
+class DeviceComListener;
 }  // namespace device
 namespace esolution {
 class SolutionDesign;
@@ -43,7 +45,8 @@ class WorkWindowThirdPage;
 
 namespace anx {
 namespace ui {
-class WorkWindow : public DuiLib::WindowImplBase {
+class WorkWindow : public DuiLib::WindowImplBase,
+                   public anx::device::DeviceComListener {
  public:
   explicit WorkWindow(DuiLib::WindowImplBase* pOwner, int32_t solution_type);
   ~WorkWindow() override;
@@ -83,7 +86,7 @@ class WorkWindow : public DuiLib::WindowImplBase {
                        BOOL& bHandled) override;
 
  protected:
-  void OnPrepare(DuiLib::TNotifyUI& msg); // NOLINT
+  void OnPrepare(DuiLib::TNotifyUI& msg);  // NOLINT
 
   /// @brief Update the work window tile with the solution type
   /// @param solution_type
@@ -122,6 +125,19 @@ class WorkWindow : public DuiLib::WindowImplBase {
   bool IsSLDeviceComInterfaceConnected() const;
   /// @brief is ul device com interface connected
   bool IsULDeviceComInterfaceConnected() const;
+  /// @brief Open device com interface
+  int32_t OpenDeviceCom(int32_t device_type);
+  /// @brief Close all device com interface
+  void CloseDeviceCom(int32_t device_type);
+
+ protected:
+  // impliment anx::device::DeviceComListener;
+  void OnDataReceived(anx::device::DeviceComInterface* device,
+                      const uint8_t* data,
+                      int32_t size) override;
+  void OnDataOutgoing(anx::device::DeviceComInterface* device,
+                      const uint8_t* data,
+                      int32_t size) override;
 
  private:
   DuiLib::WindowImplBase* pOwner_;

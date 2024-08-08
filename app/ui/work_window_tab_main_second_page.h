@@ -15,6 +15,7 @@
 #include <memory>
 #include <string>
 
+#include "app/device/device_com.h"
 #include "app/ui/ui_virtual_wnd_base.h"
 
 #include "third_party\duilib\source\DuiLib\UIlib.h"
@@ -25,7 +26,8 @@ using namespace DuiLib;  // NOLINT
 namespace anx {
 namespace device {
 class DeviceComInterface;
-}
+class DeviceComListener;
+}  // namespace device
 namespace esolution {
 class SolutionDesign;
 }  // namespace esolution
@@ -38,7 +40,8 @@ namespace anx {
 namespace ui {
 
 class WorkWindowSecondPage : public DuiLib::CNotifyPump,
-                             public UIVirtualWndBase {
+                             public UIVirtualWndBase,
+                             public anx::device::DeviceComListener {
  public:
   WorkWindowSecondPage(WorkWindow* pWorkWindow,
                        DuiLib::CPaintManagerUI* paint_manager_ui);
@@ -68,6 +71,15 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   void exp_resume();
 
   void UpdateExpClipTimeFromControl();
+
+ protected:
+  // impliment anx::device::DeviceComListener;
+  void OnDataReceived(anx::device::DeviceComInterface* device,
+                      const uint8_t* data,
+                      int32_t size) override;
+  void OnDataOutgoing(anx::device::DeviceComInterface* device,
+                      const uint8_t* data,
+                      int32_t size) override;
 
  private:
   WorkWindow* pWorkWindow_;
@@ -154,6 +166,9 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   DuiLib::COptionUI* opt_graph_time_range_10_mnitues_;
   DuiLib::COptionUI* opt_graph_time_range_30_mnitues_;
   DuiLib::COptionUI* opt_graph_time_range_60_mnitues_;
+
+  /// @brief data list control
+  DuiLib::CListUI* list_data_;
 };
 
 }  // namespace ui

@@ -17,6 +17,7 @@
 #include "app/common/string_utils.h"
 #include "app/device/device_com_factory.h"
 #include "app/device/device_com_settings.h"
+#include "app/device/device_com_settings_helper.h"
 #include "app/esolution/solution_design.h"
 #include "app/esolution/solution_design_default.h"
 #include "app/esolution/solution_design_helper.h"
@@ -235,6 +236,8 @@ void WorkWindow::Notify(DuiLib::TNotifyUI& msg) {
 void WorkWindow::OnClick(DuiLib::TNotifyUI& msg) {
   if (msg.pSender == btn_close_) {
     if (pOwner_ != nullptr) {
+      CloseDeviceCom(anx::device::kDeviceCom_Ultrasound);
+      CloseDeviceCom(anx::device::kDeviceCom_StaticLoad);
       pOwner_->ShowWindow(true, true);
       this->Close();
     } else {
@@ -287,7 +290,7 @@ void WorkWindow::OnClick(DuiLib::TNotifyUI& msg) {
   }
 }
 
-void anx::ui::WorkWindow::OnSelectChanged(DuiLib::TNotifyUI& msg) {
+void WorkWindow::OnSelectChanged(DuiLib::TNotifyUI& msg) {
   DuiLib::CDuiString name = msg.pSender->GetName();
   DuiLib::CTabLayoutUI* pControl = static_cast<DuiLib::CTabLayoutUI*>(
       m_PaintManager.FindControl(_T("tab_main")));
@@ -306,7 +309,7 @@ void anx::ui::WorkWindow::OnSelectChanged(DuiLib::TNotifyUI& msg) {
   }
 }
 
-void anx::ui::WorkWindow::OnTimer(DuiLib::TNotifyUI& msg) {}
+void WorkWindow::OnTimer(DuiLib::TNotifyUI& msg) {}
 
 LRESULT WorkWindow::OnSysCommand(UINT uMsg,
                                  WPARAM wParam,
@@ -489,53 +492,33 @@ int32_t WorkWindow::SaveFileWithDialog() {
 void WorkWindow::OnMenuDeviceConnectClicked(DuiLib::TNotifyUI& msg) {
   // create or get ultrasound device.
   if (device_com_ul_ == nullptr) {
-    device_com_ul_ =
-        anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
-            anx::device::kDeviceCom_Ultrasound);
-    if (device_com_ul_ != nullptr) {
-      if (device_com_ul_->Open() != 0) {
-        // show status bar message
-        MessageBox(*this, _T("打开超声设备失败"), _T("打开失败"), MB_OK);
-      }
-    } else {
+    int32_t ret = OpenDeviceCom(anx::device::kDeviceCom_Ultrasound);
+    if (ret == -1) {
       // TODO(hhool): show status bar message
-      MessageBox(*this, _T("创建超声设备失败"), _T("打开失败"), MB_OK);
+    } else if (ret == -2) {
+      // TODO(hhool): show status bar message
     }
   }
   // open static load device.
   if (device_com_sl_ == nullptr) {
-    device_com_sl_ =
-        anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
-            anx::device::kDeviceCom_StaticLoad);
-    if (device_com_sl_ != nullptr) {
-      if (device_com_sl_->Open() != 0) {
-        // show status bar message
-        MessageBox(*this, _T("打开静载设备失败"), _T("打开失败"), MB_OK);
-      }
-    } else {
+    int32_t ret = OpenDeviceCom(anx::device::kDeviceCom_StaticLoad);
+    if (ret == -1) {
       // TODO(hhool): show status bar message
-      MessageBox(*this, _T("创建静载设备失败"), _T("打开失败"), MB_OK);
+    } else if (ret == -2) {
+      // TODO(hhool): show status bar message
     }
   }
-  if (device_com_ul_ == nullptr || device_com_sl_ == nullptr) {
-    // show status bar message
+  if (device_com_ul_ == nullptr && device_com_sl_ == nullptr) {
+    // TODO(hhool): show status bar message
     MessageBox(*this, _T("打开设备失败"), _T("打开失败"), MB_OK);
   } else {
     // status bar
   }
-  // TODO(hhool): show status bar message
 }
 
 void WorkWindow::OnMenuDeviceDisconnectClicked(DuiLib::TNotifyUI& msg) {
-  if (device_com_sl_ != nullptr) {
-    device_com_sl_->Close();
-  }
-  device_com_sl_ = nullptr;
-
-  if (device_com_ul_ != nullptr) {
-    device_com_ul_->Close();
-  }
-  device_com_ul_ = nullptr;
+  CloseDeviceCom(anx::device::kDeviceCom_Ultrasound);
+  CloseDeviceCom(anx::device::kDeviceCom_StaticLoad);
   // TODO(hhooll): show status bar message
 }
 
@@ -551,6 +534,83 @@ bool WorkWindow::IsSLDeviceComInterfaceConnected() const {
 bool WorkWindow::IsULDeviceComInterfaceConnected() const {
   return device_com_ul_ != nullptr;
 }
+
+int32_t WorkWindow::OpenDeviceCom(int32_t device_type) {
+  if (device_type == anx::device::kDeviceCom_Ultrasound) {
+    if (device_com_ul_ == nullptr) {
+      device_com_ul_ = anx::device::DeviceComFactory::Instance()
+                           ->CreateOrGetDeviceComWithType(
+                               anx::device::kDeviceCom_Ultrasound, this);
+      if (device_com_ul_ != nullptr) {
+        std::unique_ptr<anx::device::ComSettings> com_settings =
+            anx::device::LoadDeviceComSettingsDefaultResourceWithType(
+                device_type);
+        if (com_settings == nullptr) {
+          return -1;
+        }
+        if (device_com_ul_->Open(
+                *(reinterpret_cast<anx::device::ComPortDevice*>(
+                    com_settings.get()))) != 0) {
+          // show status bar message
+          return -2;
+        }
+      } else {
+        // show status bar message
+        return -3;
+      }
+    }
+  } else if (device_type == anx::device::kDeviceCom_StaticLoad) {
+    if (device_com_sl_ == nullptr) {
+      device_com_sl_ = anx::device::DeviceComFactory::Instance()
+                           ->CreateOrGetDeviceComWithType(
+                               anx::device::kDeviceCom_StaticLoad, this);
+      if (device_com_sl_ != nullptr) {
+        std::unique_ptr<anx::device::ComSettings> com_settings =
+            anx::device::LoadDeviceComSettingsDefaultResourceWithType(
+                device_type);
+        if (com_settings == nullptr) {
+          return -1;
+        }
+        if (device_com_sl_->Open(
+                *(reinterpret_cast<anx::device::ComPortDevice*>(
+                    com_settings.get()))) != 0) {
+          // show status bar message
+          return -2;
+        }
+      } else {
+        // show status bar message
+        return -3;
+      }
+    }
+  } else {
+    assert(false && "Invalid device type");
+  }
+  return 0;
+}
+
+void WorkWindow::CloseDeviceCom(int32_t device_type) {
+  if (device_type == anx::device::kDeviceCom_Ultrasound) {
+    if (device_com_ul_ != nullptr) {
+      device_com_ul_->Close();
+    }
+    device_com_ul_ = nullptr;
+  } else if (device_type == anx::device::kDeviceCom_StaticLoad) {
+    if (device_com_sl_ != nullptr) {
+      device_com_sl_->Close();
+    }
+    device_com_sl_ = nullptr;
+  } else {
+    assert(false && "Invalid device type");
+  }
+}
+
+void WorkWindow::OnDataReceived(anx::device::DeviceComInterface* device,
+                                const uint8_t* data,
+                                int32_t size) {}
+
+void WorkWindow::OnDataOutgoing(anx::device::DeviceComInterface* device,
+                                const uint8_t* data,
+                                int32_t size) {}
 
 }  // namespace ui
 }  // namespace anx

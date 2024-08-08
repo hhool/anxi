@@ -15,6 +15,7 @@
 #include <memory>
 #include <string>
 
+#include "app/device/device_com.h"
 #include "app/ui/ui_virtual_wnd_base.h"
 
 #include "third_party\duilib\source\DuiLib\UIlib.h"
@@ -23,6 +24,10 @@
 using namespace DuiLib;  // NOLINT
 
 namespace anx {
+namespace device {
+class DeviceComInterface;
+class DeviceComListener;
+}  // namespace device
 namespace ui {
 class WorkWindow;
 }  // namespace ui
@@ -31,7 +36,8 @@ class WorkWindow;
 namespace anx {
 namespace ui {
 class WorkWindowThirdPage : public DuiLib::CNotifyPump,
-                            public UIVirtualWndBase {
+                            public UIVirtualWndBase,
+                            public anx::device::DeviceComListener {
  public:
   WorkWindowThirdPage(WorkWindow* pOwner,
                       DuiLib::CPaintManagerUI* paint_manager_ui);
@@ -50,9 +56,20 @@ class WorkWindowThirdPage : public DuiLib::CNotifyPump,
  protected:
   void UpdateControlFromSettings();
 
+ protected:
+  // impliment anx::device::DeviceComListener;
+  void OnDataReceived(anx::device::DeviceComInterface* device,
+                      const uint8_t* data,
+                      int32_t size) override;
+  void OnDataOutgoing(anx::device::DeviceComInterface* device,
+                      const uint8_t* data,
+                      int32_t size) override;
+
  private:
   WorkWindow* pWorkWindow_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
+  std::shared_ptr<anx::device::DeviceComInterface> device_com_ul_;
+  std::shared_ptr<anx::device::DeviceComInterface> device_com_sl_;
 
   COptionUI* opt_direct_up_;
   COptionUI* opt_direct_down_;
@@ -61,6 +78,15 @@ class WorkWindowThirdPage : public DuiLib::CNotifyPump,
 
   CEditUI* edit_speed_;
   CEditUI* edit_retention_;
+
+  CLabelUI* label_displacement_;
+  CLabelUI* label_strength_;
+  CCheckBoxUI* check_box_display_send_;
+  CCheckBoxUI* check_box_display_recv_notify_;
+
+  CListUI* list_send_;
+  CListUI* list_recv_;
+  CListUI* list_recv_notify_;
 };
 }  // namespace ui
 }  // namespace anx

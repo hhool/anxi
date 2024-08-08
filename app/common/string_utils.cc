@@ -158,5 +158,14 @@ std::wstring String2WString(const std::string& str) {
 }
 #endif
 
+std::string ByteArrayToHexString(const uint8_t* byte, int32_t size) {
+  std::string result;
+  for (int32_t i = 0; i < size; ++i) {
+    char buffer[3];
+    snprintf(buffer, sizeof(buffer), "%02X", byte[i]);
+    result += buffer;
+  }
+  return result;
+}
 }  // namespace common
 }  // namespace anx

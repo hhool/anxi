@@ -71,10 +71,17 @@ std::vector<ComPortDevice> DeviceComFactory::GetComPortDeviceList() {
 }
 
 std::shared_ptr<DeviceComInterface>
-DeviceComFactory::CreateOrGetDeviceComWithType(int32_t device_com_type) {
-  // find the device com pointer from the map
+DeviceComFactory::CreateOrGetDeviceComWithType(int32_t device_com_type,
+                                               DeviceComListener* listener) {
+  // find the device com pointer from the ,
   auto it = device_com_map_.find(device_com_type);
   if (it != device_com_map_.end()) {
+    // add the listener to the device com
+    if (listener != nullptr) {
+      ComPortDeviceImpl* device_com_impl =
+          reinterpret_cast<ComPortDeviceImpl*>(it->second.get());
+      device_com_impl->AddListener(listener);
+    }
     return it->second;
   }
 
@@ -86,18 +93,40 @@ DeviceComFactory::CreateOrGetDeviceComWithType(int32_t device_com_type) {
   // create the device com pointer
   std::shared_ptr<DeviceComInterface> device_com;
   if (device_com_type == kDeviceCom_Ultrasound) {
-    device_com = std::make_shared<ComPortDeviceImpl>(
-        "ul", *(reinterpret_cast<ComPortDevice*>(com_settings.get())));
+    device_com = std::make_shared<ComPortDeviceImpl>("ul");
   } else if (device_com_type == kDeviceCom_StaticLoad) {
-    device_com = std::make_shared<ComPortDeviceImpl>(
-        "sl", *(reinterpret_cast<ComPortDevice*>(com_settings.get())));
+    device_com = std::make_shared<ComPortDeviceImpl>("sl");
   } else if (device_com_type == kDeviceCom_Air_compressor) {
-    device_com = std::make_shared<ComPortDeviceImpl>(
-        "ac", *(reinterpret_cast<ComPortDevice*>(com_settings.get())));
+    device_com = std::make_shared<ComPortDeviceImpl>("ac");
+  } else {
+    return nullptr;
+  }
+
+  // add the listener to the device com
+  if (listener != nullptr) {
+    ComPortDeviceImpl* device_com_impl =
+        reinterpret_cast<ComPortDeviceImpl*>(device_com.get());
+    device_com_impl->AddListener(listener);
   }
   // store the device com pointer to DeviceComManager
   device_com_map_[device_com_type] = device_com;
   return device_com;
+}
+
+int32_t DeviceComFactory::OpenDeviceComWithType(int32_t device_com_type) {
+  std::unique_ptr<ComSettings> com_settings =
+      LoadDeviceComSettingsDefaultResourceWithType(device_com_type);
+  if (com_settings == nullptr) {
+    return -1;
+  }
+  // find the device com pointer from the map
+  auto it = device_com_map_.find(device_com_type);
+  if (it != device_com_map_.end()) {
+    // open the device com
+    return it->second->Open(
+        *(reinterpret_cast<ComPortDevice*>(com_settings.get())));
+  }
+  return -2;
 }
 
 void DeviceComFactory::CloseDeviceComWithType(int32_t device_com_type) {

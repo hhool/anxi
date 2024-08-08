@@ -50,7 +50,13 @@ class DeviceComFactory {
   /// @param device_com_type the device com type
   /// @return the device com pointer
   std::shared_ptr<DeviceComInterface> CreateOrGetDeviceComWithType(
-      int32_t device_com_type);
+      int32_t device_com_type,
+      DeviceComListener* listener = nullptr);
+
+  /// @brief Open the device com with the device type
+  /// @param device_com_type the device com type
+  /// @return 0 if success, -1 if failed
+  int32_t OpenDeviceComWithType(int32_t device_com_type);
 
   /// @brief Close the device com with the device type
   /// @param device_com_type the device com type
@@ -63,6 +69,9 @@ class DeviceComFactory {
   /// key is the device com type, value is the device com interface shared
   /// pointer
   std::map<int32_t, std::shared_ptr<DeviceComInterface>> device_com_map_;
+
+  std::map<int32_t, std::shared_ptr<DeviceComListener>>
+      device_com_listener_map_;
 };
 
 }  // namespace device

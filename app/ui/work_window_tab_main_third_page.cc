@@ -15,6 +15,8 @@
 #include <utility>
 
 #include "app/common/string_utils.h"
+#include "app/device/device_com_factory.h"
+#include "app/device/device_com_settings.h"
 #include "app/device/device_exp_load_static_settings.h"
 #include "app/esolution/solution_design.h"
 #include "app/esolution/solution_design_default.h"
@@ -80,10 +82,46 @@ void WorkWindowThirdPage::Bind() {
 
   edit_retention_ = static_cast<CEditUI*>(
       paint_manager_ui_->FindControl(_T("tab_page_three_left_retention")));
+
+  label_displacement_ = static_cast<CLabelUI*>(
+      paint_manager_ui_->FindControl(_T("tab_page_three_label_displacement")));
+
+  label_strength_ = static_cast<CLabelUI*>(
+      paint_manager_ui_->FindControl(_T("tab_page_three_label_strength")));
+
+  check_box_display_send_ = static_cast<CCheckBoxUI*>(
+      paint_manager_ui_->FindControl(_T("tab_page_three_right_refresh_data")));
+
+  check_box_display_recv_notify_ =
+      static_cast<CCheckBoxUI*>(paint_manager_ui_->FindControl(
+          _T("tab_page_three_right_stop_recv_output")));
+
+  list_send_ = static_cast<CListUI*>(
+	  paint_manager_ui_->FindControl(_T("tab_page_three_list_send")));
+
+  list_recv_ = static_cast<CListUI*>(
+	  paint_manager_ui_->FindControl(_T("tab_page_three_list_recv")));
+
+  list_recv_notify_ = static_cast<CListUI*>(
+	  paint_manager_ui_->FindControl(_T("tab_page_three_list_recv_notify")));
+
   UpdateControlFromSettings();
+
+  device_com_ul_ =
+      anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
+          anx::device::kDeviceCom_Ultrasound, this);
+  device_com_sl_ =
+      anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
+          anx::device::kDeviceCom_StaticLoad, this);
 }
 
 void WorkWindowThirdPage::Unbind() {
+  if (device_com_ul_ != nullptr) {
+    device_com_ul_.reset();
+  }
+  if (device_com_sl_ != nullptr) {
+    device_com_sl_.reset();
+  }
   DuiLib::CHorizontalLayoutUI* layout =
       static_cast<DuiLib::CHorizontalLayoutUI*>(
           paint_manager_ui_->FindControl(_T("tab_page_three")));
@@ -108,5 +146,45 @@ void WorkWindowThirdPage::UpdateControlFromSettings() {
       anx::common::string2wstring(std::to_string(lss->retention_).c_str())
           .c_str());
 }
+
+void WorkWindowThirdPage::OnDataReceived(
+    anx::device::DeviceComInterface* device,
+    const uint8_t* data,
+    int32_t size) {
+  if (device == device_com_ul_.get()) {
+  } else if (device == device_com_sl_.get()) {
+  }
+
+  std::string hex_str;
+  hex_str = anx::common::ByteArrayToHexString(data, size);
+  DuiLib::CListLabelElementUI* item = new DuiLib::CListLabelElementUI();
+  DuiLib::CDuiString dui_string = anx::common::string2wstring(hex_str).c_str();
+  dui_string.Append(anx::common::string2wstring(hex_str).c_str());
+  item->SetText(dui_string);
+  list_recv_notify_->Add(item);
+  {
+	  DuiLib::CListLabelElementUI* item = new DuiLib::CListLabelElementUI();
+	  item->SetText(dui_string);
+	  list_recv_->Add(item);
+  }
+}
+
+void WorkWindowThirdPage::OnDataOutgoing(
+    anx::device::DeviceComInterface* device,
+    const uint8_t* data,
+    int32_t size) {
+  // do nothing
+  if (device == device_com_ul_.get()) {
+  } else if (device == device_com_sl_.get()) {
+  }
+  std::string hex_str;
+  hex_str = anx::common::ByteArrayToHexString(data, size);
+  DuiLib::CListLabelElementUI* item = new DuiLib::CListLabelElementUI();
+  DuiLib::CDuiString dui_string = anx::common::string2wstring(hex_str).c_str();
+  dui_string.Append(anx::common::string2wstring(hex_str).c_str());
+  item->SetText(dui_string);
+  list_send_->Add(item);
+}
+
 }  // namespace ui
 }  // namespace anx

@@ -94,7 +94,7 @@ class DeviceComInterface {
  public:
   /// @brief  Open the device com
   /// @return int32_t 0 success, non-zero fail
-  virtual int32_t Open() = 0;
+  virtual int32_t Open(const ComPortDevice& com_port) = 0;
   /// @brief  Check the device com is opened
   /// @return bool true opened, false not opened
   virtual bool isOpened() = 0;
@@ -104,7 +104,7 @@ class DeviceComInterface {
   /// @param buffer  data buffer
   /// @param size  data buffer size
   /// @return int32_t  read data size
-  virtual int32_t Read(char* buffer, int32_t size) = 0;
+  virtual int32_t Read(uint8_t* buffer, int32_t size) = 0;
   /// @brief  Write data to the device com
   /// @param buffer  data buffer
   /// @param size  data buffer size
@@ -131,7 +131,15 @@ class DeviceComListener {
   /// @brief  On data received
   /// @param data  data buffer
   /// @param size  data buffer size
-  virtual void OnDataReceived(const char* data, int32_t size) = 0;
+  virtual void OnDataReceived(anx::device::DeviceComInterface* device,
+                              const uint8_t* data,
+                              int32_t size) = 0;
+  /// @brief  On data outgoing
+  /// @param data  data buffer
+  /// @param size  data buffer size
+  virtual void OnDataOutgoing(anx::device::DeviceComInterface* device,
+                              const uint8_t* data,
+                              int32_t size) = 0;
 };
 }  // namespace device
 }  // namespace anx

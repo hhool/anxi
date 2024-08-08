@@ -21,6 +21,8 @@ include_directories(${PROJECT_PATH})
 
 set(COMMON_FILES
     common/defines.h
+    common/crc16.cc
+    common/crc16.h
     common/module_utils.cc
     common/module_utils.h
     common/string_utils.cc

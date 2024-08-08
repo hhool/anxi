@@ -14,6 +14,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "app/device/device_com.h"
 
@@ -23,19 +24,19 @@ namespace device {
 class ComPortDeviceImpl : public DeviceComInterface {
  public:
   ComPortDeviceImpl() = delete;
-  ComPortDeviceImpl(std::string name, const ComPortDevice& com_port);
+  ComPortDeviceImpl(std::string name);
   virtual ~ComPortDeviceImpl();
 
-  void SetDeviceComListener(DeviceComListener* listener) {
-    listener_ = listener;
-  }
+ public:
+  void AddListener(DeviceComListener* listener);
+  void RemoveListener(DeviceComListener* listener);
 
  public:
   /// impliment DeviceComInterface
-  int32_t Open() override;
+  int32_t Open(const ComPortDevice& com_port) override;
   bool isOpened() override;
   void Close() override;
-  int32_t Read(char* buffer, int32_t size) override;
+  int32_t Read(uint8_t* buffer, int32_t size) override;
   int32_t Write(const uint8_t* buffer, int32_t size) override;
   int32_t WriteRead(const uint8_t* write_buffer,
                     int32_t write_size,
@@ -51,6 +52,7 @@ class ComPortDeviceImpl : public DeviceComInterface {
   ComPortDevice com_port_device_;
   DeviceComListener* listener_;
   void* native_serialport_;
+  std::vector<DeviceComListener*> listeners_;
 };
 
 }  // namespace device

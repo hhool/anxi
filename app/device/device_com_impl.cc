@@ -80,36 +80,65 @@ itas109::FlowControl toItas109FlowControl(int flow_control) {
 }
 }  // namespace
 
-ComPortDeviceImpl::ComPortDeviceImpl(std::string name,
-                                     const ComPortDevice& com_port_device)
-    : name_(name), com_port_device_(com_port_device) {}
+ComPortDeviceImpl::ComPortDeviceImpl(std::string name) : name_(name) {
+  std::unique_ptr<itas109::CSerialPort> native_serialport(
+      new itas109::CSerialPort());
+  native_serialport_ = native_serialport.release();
+}
 
-ComPortDeviceImpl::~ComPortDeviceImpl() {}
+ComPortDeviceImpl::~ComPortDeviceImpl() {
+  itas109::CSerialPort* native_serialport =
+      reinterpret_cast<itas109::CSerialPort*>(native_serialport_);
+  delete native_serialport;
+  native_serialport_ = nullptr;
+}
 
-int32_t ComPortDeviceImpl::Open() {
+void ComPortDeviceImpl::AddListener(DeviceComListener* listener) {
+  std::cout << "ComPortDeviceImpl::AddListener" << std::endl;
+  // find the listener from the list
+  for (auto& it : listeners_) {
+    if (it == listener) {
+      return;
+    }
+  }
+  listeners_.push_back(listener);
+}
+
+void ComPortDeviceImpl::RemoveListener(DeviceComListener* listener) {
+  std::cout << "ComPortDeviceImpl::RemoveListener" << std::endl;
+  // find the listener from the list
+  for (auto it = listeners_.begin(); it != listeners_.end(); ++it) {
+    if (*it == listener) {
+      listeners_.erase(it);
+      return;
+    }
+  }
+}
+
+int32_t ComPortDeviceImpl::Open(const ComPortDevice& com_port) {
   std::cout << "ComPortDeviceImpl::Open" << std::endl;
-  if (com_port_device_.GetComPort().baud_rate == 0) {
+  if (com_port.GetComPort().baud_rate == 0) {
     return -1;
   }
 
-  std::unique_ptr<itas109::CSerialPort> native_serialport(
-      new itas109::CSerialPort());
-  if (native_serialport == nullptr) {
+  if (native_serialport_ == nullptr) {
     return -2;
   }
+
+  itas109::CSerialPort* native_serialport =
+      reinterpret_cast<itas109::CSerialPort*>(native_serialport_);
+
   native_serialport->init(
-      com_port_device_.GetComName().c_str(),
-      com_port_device_.GetComPort().baud_rate,
-      toItas109Parity(com_port_device_.GetComPort().parity),
-      toItas109DataBits(com_port_device_.GetComPort().data_bits),
-      toItas109StopBits(com_port_device_.GetComPort().stop_bits),
-      toItas109FlowControl(com_port_device_.GetComPort().flow_control),
-      com_port_device_.GetComPort().timeout);
+      com_port.GetComName().c_str(), com_port.GetComPort().baud_rate,
+      toItas109Parity(com_port.GetComPort().parity),
+      toItas109DataBits(com_port.GetComPort().data_bits),
+      toItas109StopBits(com_port.GetComPort().stop_bits),
+      toItas109FlowControl(com_port.GetComPort().flow_control),
+      com_port.GetComPort().timeout);
 
   if (!native_serialport->open()) {
     return -3;
   }
-  native_serialport_ = native_serialport.release();
   return 0;
 }
 
@@ -133,11 +162,9 @@ void ComPortDeviceImpl::Close() {
   itas109::CSerialPort* native_serialport =
       reinterpret_cast<itas109::CSerialPort*>(native_serialport_);
   native_serialport->close();
-  delete native_serialport;
-  native_serialport_ = nullptr;
 }
 
-int32_t ComPortDeviceImpl::Read(char* buffer, int32_t size) {
+int32_t ComPortDeviceImpl::Read(uint8_t* buffer, int32_t size) {
   std::cout << "ComPortDeviceImpl::Read" << std::endl;
   if (native_serialport_ == nullptr) {
     return -1;
@@ -146,6 +173,11 @@ int32_t ComPortDeviceImpl::Read(char* buffer, int32_t size) {
   itas109::CSerialPort* native_serialport =
       reinterpret_cast<itas109::CSerialPort*>(native_serialport_);
   int readed = native_serialport->readData(buffer, size);
+  if (readed > 0) {
+    for (auto& it : listeners_) {
+      it->OnDataReceived(this, buffer, readed);
+    }
+  }
   return readed;
 }
 
@@ -159,6 +191,11 @@ int32_t ComPortDeviceImpl::Write(const uint8_t* buffer, int32_t size) {
       reinterpret_cast<itas109::CSerialPort*>(native_serialport_);
   int written =
       native_serialport->writeData(reinterpret_cast<const void*>(buffer), size);
+  if (written > 0) {
+    for (auto& it : listeners_) {
+      it->OnDataOutgoing(this, buffer, written);
+    }
+  }
   return written;
 }
 

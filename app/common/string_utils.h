@@ -4,9 +4,9 @@
  * @brief string utils for the common string utils
  * @version 0.1
  * @date 2024-08-01
- * 
+ *
  * @copyright Copyright (c) 2024
- * 
+ *
  */
 
 #ifndef APP_COMMON_STRING_UTILS_H_
@@ -57,7 +57,7 @@ std::string ReplaceAll(const std::string& str,
 std::vector<std::string> Split(const std::string& str,
                                const std::string& delimiter);
 
-                               /// @brief Join the string with the delimiter
+/// @brief Join the string with the delimiter
 /// @param str the string to be joined
 /// @param delimiter the delimiter to join the string
 /// @return the joined string
@@ -71,6 +71,10 @@ std::wstring string2wstring(std::string str);
 /// @brief Convert from wstring to string
 /// @param str the string to be converted
 std::string wstring2string(std::wstring wstr);
+
+/// @brief byte array to hex string
+/// @param byte the bytes to be converted
+std::string ByteArrayToHexString(const uint8_t* byte, int32_t size);
 
 }  // namespace common
 }  // namespace anx

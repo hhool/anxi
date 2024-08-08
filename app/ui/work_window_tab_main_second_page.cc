@@ -146,6 +146,35 @@ void WorkWindowSecondPage::OnTimer(TNotifyUI& msg) {
           std::cout << "ul written error:" << written;
         }
       }
+      if (device_com_sl_) {
+        uint8_t hex[64] = {0};
+        int32_t readed = device_com_sl_->Read(hex, sizeof(hex));
+        if (readed > 0) {
+          std::cout << "sl readed:" << readed;
+        }
+      }
+      if (device_com_sl_) {
+        uint8_t hex[8];
+        hex[0] = 0xB0;
+        hex[1] = 0x03;
+        hex[2] = 0x00;
+        hex[3] = 0x01;
+        hex[4] = 0x00;
+        hex[5] = 0x03;
+        hex[6] = 0x4F;
+        hex[7] = 0xEA;
+        int written = device_com_sl_->Write(hex, sizeof(hex));
+        if (written < 0) {
+          std::cout << "sl written error:" << written;
+        }
+      }
+      if (device_com_ul_) {
+        uint8_t hex[64] = {0};
+        int32_t readed = device_com_ul_->Read(hex, sizeof(hex));
+        if (readed > 0) {
+          std::cout << "ul readed:" << readed;
+        }
+      }
     }
   } else if (id_timer == 2) {
     CheckDeviceComConnectedStatus();
@@ -258,6 +287,9 @@ void WorkWindowSecondPage::Bind() {
       paint_manager_ui_->FindControl(_T("graph_settings_60_minite")));
   opt_graph_time_range_60_mnitues_->Selected(true);
 
+  list_data_ = static_cast<DuiLib::CListUI*>(
+      paint_manager_ui_->FindControl(_T("tab_graph_data_list_data")));
+
   UpdateControlFromSettings();
   paint_manager_ui_->SetTimer(btn_exp_start_, 2, 1000);
 }
@@ -338,10 +370,10 @@ int32_t WorkWindowSecondPage::exp_start() {
   // create or get ultrasound device.
   device_com_ul_ =
       anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
-          anx::device::kDeviceCom_Ultrasound);
+          anx::device::kDeviceCom_Ultrasound, this);
   device_com_sl_ =
       anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
-          anx::device::kDeviceCom_StaticLoad);
+          anx::device::kDeviceCom_StaticLoad, this);
   is_exp_running_ = true;
   paint_manager_ui_->SetTimer(btn_exp_start_, 1, 40);
   return 0;
@@ -373,6 +405,55 @@ void WorkWindowSecondPage::UpdateExpClipTimeFromControl() {
   sample_start_pos_ = _ttoll(edit_sample_start_pos_->GetText());
   sample_end_pos_ = _ttoll(edit_sample_end_pos_->GetText());
   sample_time_interval_ = _ttoll(edit_sample_interval_->GetText());
+}
+
+void WorkWindowSecondPage::OnDataReceived(
+    anx::device::DeviceComInterface* device,
+    const uint8_t* data,
+    int32_t size) {
+  // TODO(hhool): process data
+  std::string hex_str;
+  if (device == device_com_ul_.get()) {
+    // process the data from ultrasound device
+    // 1. parse the data
+    // 2. update the data to the graph
+    // 3. update the data to the data table
+    // output the data as hex to the std::string
+    hex_str = anx::common::ByteArrayToHexString(data, size);
+    std::cout << hex_str << std::endl;
+  } else if (device == device_com_sl_.get()) {
+    // process the data from static load device
+    // 1. parse the data
+    // 2. update the data to the graph
+    // 3. update the data to the data table
+    hex_str = anx::common::ByteArrayToHexString(data, size);
+    std::cout << hex_str << std::endl;
+  }
+  DuiLib::CListTextElementUI* item_no = new DuiLib::CListTextElementUI();
+  list_data_->Add(item_no);
+  item_no->SetText(0, anx::common::string2wstring(hex_str).c_str());
+  item_no->SetText(1, anx::common::string2wstring(hex_str).c_str());
+  item_no->SetText(2, anx::common::string2wstring(hex_str).c_str());
+  item_no->SetText(3, anx::common::string2wstring(hex_str).c_str());
+  item_no->SetText(4, anx::common::string2wstring(hex_str).c_str());
+}
+
+void WorkWindowSecondPage::OnDataOutgoing(
+    anx::device::DeviceComInterface* device,
+    const uint8_t* data,
+    int32_t size) {
+  // TODO(hhool):
+  if (device == device_com_ul_.get()) {
+    // process the data from ultrasound device
+    // 1. parse the data
+    // 2. update the data to the graph
+    // 3. update the data to the data table
+  } else if (device == device_com_sl_.get()) {
+    // process the data from static load device
+    // 1. parse the data
+    // 2. update the data to the graph
+    // 3. update the data to the data table
+  }
 }
 
 void WorkWindowSecondPage::UpdateControlFromSettings() {
