@@ -12,6 +12,7 @@
 #ifndef APP_UI_WORK_WINDOW_TAB_MAIN_SECOND_PAGE_H_
 #define APP_UI_WORK_WINDOW_TAB_MAIN_SECOND_PAGE_H_
 
+#include <map>
 #include <memory>
 #include <string>
 
@@ -84,6 +85,14 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
  private:
   WorkWindow* pWorkWindow_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
+  // std::map<std::string, std::unique_ptr<DuiLib::CNotifyPump>>
+  // tab_second_pages_;
+  std::unique_ptr<DuiLib::CNotifyPump>
+      work_window_second_page_graph_notify_pump_;
+  UIVirtualWndBase* work_window_second_page_graph_virtual_wnd_;
+  std::unique_ptr<DuiLib::CNotifyPump>
+      work_window_second_page_data_notify_pump_;
+  UIVirtualWndBase* work_window_second_page_data_virtual_wnd_;
   bool is_exp_running_;
   std::shared_ptr<anx::device::DeviceComInterface> device_com_ul_;
   std::shared_ptr<anx::device::DeviceComInterface> device_com_sl_;
@@ -91,10 +100,6 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   int64_t exp_clip_time_paused_;
   int64_t exp_cycle_count_;
   int64_t exp_freq_fluctuations_range_;
-
-  int64_t sample_start_pos_;
-  int64_t sample_end_pos_;
-  int64_t sample_time_interval_;
 
   DuiLib::CTabLayoutUI* btn_tablayout_;
   DuiLib::CButtonUI* btn_tab_graph_;
@@ -143,32 +148,6 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   DuiLib::CEditUI* edit_max_cycle_count_;
   DuiLib::CEditUI* edit_max_cycle_power_;
   DuiLib::CEditUI* edit_frequency_fluctuations_range_;
-
-  /// @brief sample start pos edit
-  DuiLib::CEditUI* edit_sample_start_pos_;
-  /// @brief sample end pos edit
-  DuiLib::CEditUI* edit_sample_end_pos_;
-  /// @brief sample time duration edit
-  DuiLib::CEditUI* edit_sample_interval_;
-  /// @brief sample interval text
-  DuiLib::CTextUI* text_sample_interval_;
-
-  /// @brief graph time mode pre hour
-  DuiLib::COptionUI* opt_graph_time_mode_pre_hour_;
-  /// @brief graph time mode now
-  DuiLib::COptionUI* opt_graph_time_mode_now_;
-
-  /// @brief graph time alway show new
-  DuiLib::CCheckBoxUI* chk_graph_always_show_new_;
-
-  /// @brief graph time range option
-  DuiLib::COptionUI* opt_graph_time_range_5_mnitues_;
-  DuiLib::COptionUI* opt_graph_time_range_10_mnitues_;
-  DuiLib::COptionUI* opt_graph_time_range_30_mnitues_;
-  DuiLib::COptionUI* opt_graph_time_range_60_mnitues_;
-
-  /// @brief data list control
-  DuiLib::CListUI* list_data_;
 };
 
 }  // namespace ui

@@ -47,6 +47,14 @@ const int32_t kTimerCurrentTimePeriod = 50;
 
 WorkWindow::WorkWindow(DuiLib::WindowImplBase* pOwner, int32_t solution_type)
     : pOwner_(pOwner), solution_type_(solution_type) {
+  device_com_ul_ =
+      anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
+          anx::device::kDeviceCom_Ultrasound, this);
+
+  device_com_sl_ =
+      anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
+          anx::device::kDeviceCom_StaticLoad, this);
+
   if (solution_type == anx::esolution::kSolutionName_Axially_Symmetrical) {
     anx::ui::WorkWindowFirstPageAxiallySymmetrical* page_axially =
         new anx::ui::WorkWindowFirstPageAxiallySymmetrical(this,
@@ -491,28 +499,18 @@ int32_t WorkWindow::SaveFileWithDialog() {
 
 void WorkWindow::OnMenuDeviceConnectClicked(DuiLib::TNotifyUI& msg) {
   // create or get ultrasound device.
-  if (device_com_ul_ == nullptr) {
-    int32_t ret = OpenDeviceCom(anx::device::kDeviceCom_Ultrasound);
-    if (ret == -1) {
-      // TODO(hhool): show status bar message
-    } else if (ret == -2) {
-      // TODO(hhool): show status bar message
-    }
+  int32_t ret = OpenDeviceCom(anx::device::kDeviceCom_Ultrasound);
+  if (ret == -1) {
+    // TODO(hhool): show status bar message
+  } else if (ret == -2) {
+    // TODO(hhool): show status bar message
   }
   // open static load device.
-  if (device_com_sl_ == nullptr) {
-    int32_t ret = OpenDeviceCom(anx::device::kDeviceCom_StaticLoad);
-    if (ret == -1) {
-      // TODO(hhool): show status bar message
-    } else if (ret == -2) {
-      // TODO(hhool): show status bar message
-    }
-  }
-  if (device_com_ul_ == nullptr && device_com_sl_ == nullptr) {
+  ret = OpenDeviceCom(anx::device::kDeviceCom_StaticLoad);
+  if (ret == -1) {
     // TODO(hhool): show status bar message
-    MessageBox(*this, _T("打开设备失败"), _T("打开失败"), MB_OK);
-  } else {
-    // status bar
+  } else if (ret == -2) {
+    // TODO(hhool): show status bar message
   }
 }
 
@@ -528,59 +526,47 @@ bool WorkWindow::IsDeviceComInterfaceConnected() const {
 }
 
 bool WorkWindow::IsSLDeviceComInterfaceConnected() const {
-  return device_com_sl_ != nullptr;
+  return device_com_sl_ != nullptr && device_com_sl_->isOpened();
 }
 
 bool WorkWindow::IsULDeviceComInterfaceConnected() const {
-  return device_com_ul_ != nullptr;
+  return device_com_ul_ != nullptr && device_com_ul_->isOpened();
 }
 
 int32_t WorkWindow::OpenDeviceCom(int32_t device_type) {
   if (device_type == anx::device::kDeviceCom_Ultrasound) {
-    if (device_com_ul_ == nullptr) {
-      device_com_ul_ = anx::device::DeviceComFactory::Instance()
-                           ->CreateOrGetDeviceComWithType(
-                               anx::device::kDeviceCom_Ultrasound, this);
-      if (device_com_ul_ != nullptr) {
-        std::unique_ptr<anx::device::ComSettings> com_settings =
-            anx::device::LoadDeviceComSettingsDefaultResourceWithType(
-                device_type);
-        if (com_settings == nullptr) {
-          return -1;
-        }
-        if (device_com_ul_->Open(
-                *(reinterpret_cast<anx::device::ComPortDevice*>(
-                    com_settings.get()))) != 0) {
-          // show status bar message
-          return -2;
-        }
-      } else {
-        // show status bar message
-        return -3;
+    if (!device_com_ul_->isOpened()) {
+      std::unique_ptr<anx::device::ComSettings> com_settings =
+          anx::device::LoadDeviceComSettingsDefaultResourceWithType(
+              device_type);
+      if (com_settings == nullptr) {
+        return -1;
       }
+      if (device_com_ul_->Open(*(reinterpret_cast<anx::device::ComPortDevice*>(
+              com_settings.get()))) != 0) {
+        // show status bar message
+        return -2;
+      }
+    } else {
+      // show status bar message
+      return -3;
     }
   } else if (device_type == anx::device::kDeviceCom_StaticLoad) {
-    if (device_com_sl_ == nullptr) {
-      device_com_sl_ = anx::device::DeviceComFactory::Instance()
-                           ->CreateOrGetDeviceComWithType(
-                               anx::device::kDeviceCom_StaticLoad, this);
-      if (device_com_sl_ != nullptr) {
-        std::unique_ptr<anx::device::ComSettings> com_settings =
-            anx::device::LoadDeviceComSettingsDefaultResourceWithType(
-                device_type);
-        if (com_settings == nullptr) {
-          return -1;
-        }
-        if (device_com_sl_->Open(
-                *(reinterpret_cast<anx::device::ComPortDevice*>(
-                    com_settings.get()))) != 0) {
-          // show status bar message
-          return -2;
-        }
-      } else {
-        // show status bar message
-        return -3;
+    if (!device_com_sl_->isOpened()) {
+      std::unique_ptr<anx::device::ComSettings> com_settings =
+          anx::device::LoadDeviceComSettingsDefaultResourceWithType(
+              device_type);
+      if (com_settings == nullptr) {
+        return -1;
       }
+      if (device_com_sl_->Open(*(reinterpret_cast<anx::device::ComPortDevice*>(
+              com_settings.get()))) != 0) {
+        // show status bar message
+        return -2;
+      }
+    } else {
+      // show status bar message
+      return -3;
     }
   } else {
     assert(false && "Invalid device type");
@@ -593,12 +579,10 @@ void WorkWindow::CloseDeviceCom(int32_t device_type) {
     if (device_com_ul_ != nullptr) {
       device_com_ul_->Close();
     }
-    device_com_ul_ = nullptr;
   } else if (device_type == anx::device::kDeviceCom_StaticLoad) {
     if (device_com_sl_ != nullptr) {
       device_com_sl_->Close();
     }
-    device_com_sl_ = nullptr;
   } else {
     assert(false && "Invalid device type");
   }

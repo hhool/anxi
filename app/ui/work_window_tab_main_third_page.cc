@@ -97,13 +97,13 @@ void WorkWindowThirdPage::Bind() {
           _T("tab_page_three_right_stop_recv_output")));
 
   list_send_ = static_cast<CListUI*>(
-	  paint_manager_ui_->FindControl(_T("tab_page_three_list_send")));
+      paint_manager_ui_->FindControl(_T("tab_page_three_list_send")));
 
   list_recv_ = static_cast<CListUI*>(
-	  paint_manager_ui_->FindControl(_T("tab_page_three_list_recv")));
+      paint_manager_ui_->FindControl(_T("tab_page_three_list_recv")));
 
   list_recv_notify_ = static_cast<CListUI*>(
-	  paint_manager_ui_->FindControl(_T("tab_page_three_list_recv_notify")));
+      paint_manager_ui_->FindControl(_T("tab_page_three_list_recv_notify")));
 
   UpdateControlFromSettings();
 
@@ -163,9 +163,9 @@ void WorkWindowThirdPage::OnDataReceived(
   item->SetText(dui_string);
   list_recv_notify_->Add(item);
   {
-	  DuiLib::CListLabelElementUI* item = new DuiLib::CListLabelElementUI();
-	  item->SetText(dui_string);
-	  list_recv_->Add(item);
+    DuiLib::CListLabelElementUI* item = new DuiLib::CListLabelElementUI();
+    item->SetText(dui_string);
+    list_recv_->Add(item);
   }
 }
 

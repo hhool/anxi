@@ -26,6 +26,8 @@
 #include "app/ui/dialog_static_load_guaranteed_settings.h"
 #include "app/ui/ui_constants.h"
 #include "app/ui/work_window.h"
+#include "app/ui/work_window_tab_main_second_page_data.h"
+#include "app/ui/work_window_tab_main_second_page_graph.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 DUI_BEGIN_MESSAGE_MAP(anx::ui::WorkWindowSecondPage, DuiLib::CNotifyPump)
@@ -66,10 +68,21 @@ WorkWindowSecondPage::WorkWindowSecondPage(
       exp_clip_time_duration_(0),
       exp_clip_time_paused_(0),
       exp_cycle_count_(0),
-      exp_freq_fluctuations_range_(0),
-      sample_start_pos_(0),
-      sample_end_pos_(0),
-      sample_time_interval_(0) {}
+      exp_freq_fluctuations_range_(0) {
+  WorkWindowSecondPageGraph* graph_page =
+      new WorkWindowSecondPageGraph(pWorkWindow, paint_manager_ui);
+  work_window_second_page_graph_virtual_wnd_ = graph_page;
+  work_window_second_page_graph_notify_pump_.reset(graph_page);
+  this->AddVirtualWnd(_T("WorkWindowSecondPageGraph"),
+                      work_window_second_page_graph_notify_pump_.get());
+
+  WorkWindowSecondPageData* data_page =
+      new WorkWindowSecondPageData(pWorkWindow, paint_manager_ui);
+  work_window_second_page_data_virtual_wnd_ = data_page;
+  work_window_second_page_data_notify_pump_.reset(data_page);
+  this->AddVirtualWnd(_T("WorkWindowSecondPageData"),
+                      work_window_second_page_data_notify_pump_.get());
+}
 
 WorkWindowSecondPage::~WorkWindowSecondPage() {
   paint_manager_ui_->KillTimer(btn_exp_start_, 1);
@@ -250,51 +263,22 @@ void WorkWindowSecondPage::Bind() {
   edit_frequency_fluctuations_range_ = static_cast<DuiLib::CEditUI*>(
       paint_manager_ui_->FindControl(_T("edit_frequency_fluctuations_range")));
 
-  /// @brief sample start pos edit
-  edit_sample_start_pos_ = static_cast<DuiLib::CEditUI*>(
-      paint_manager_ui_->FindControl(_T("edit_sampling_start_pos")));
-  /// @brief sample end pos edit
-  edit_sample_end_pos_ = static_cast<DuiLib::CEditUI*>(
-      paint_manager_ui_->FindControl(_T("edit_sampling_end_pos")));
-  /// @brief sample time duration edit
-  edit_sample_interval_ = static_cast<DuiLib::CEditUI*>(
-      paint_manager_ui_->FindControl(_T("edit_sampling_interval")));
-  text_sample_interval_ = static_cast<DuiLib::CTextUI*>(
-      paint_manager_ui_->FindControl(_T("text_sampling_interval")));
-
-  /// @brife graph time mode pre hour
-  opt_graph_time_mode_pre_hour_ = static_cast<DuiLib::COptionUI*>(
-      paint_manager_ui_->FindControl(_T("graph_settings_pre_hour")));
-  opt_graph_time_mode_pre_hour_->Selected(false);
-  opt_graph_time_mode_now_ = static_cast<DuiLib::COptionUI*>(
-      paint_manager_ui_->FindControl(_T("graph_settings_current_hour")));
-  opt_graph_time_mode_now_->Selected(true);
-
-  chk_graph_always_show_new_ = static_cast<DuiLib::CCheckBoxUI*>(
-      paint_manager_ui_->FindControl(_T("graph_settings_always_new")));
-  chk_graph_always_show_new_->Selected(true);
-
-  opt_graph_time_range_5_mnitues_ = static_cast<DuiLib::COptionUI*>(
-      paint_manager_ui_->FindControl(_T("graph_settings_5_minite")));
-  opt_graph_time_range_5_mnitues_->Selected(false);
-  opt_graph_time_range_10_mnitues_ = static_cast<DuiLib::COptionUI*>(
-      paint_manager_ui_->FindControl(_T("graph_settings_10_minite")));
-  opt_graph_time_range_10_mnitues_->Selected(false);
-  opt_graph_time_range_30_mnitues_ = static_cast<DuiLib::COptionUI*>(
-      paint_manager_ui_->FindControl(_T("graph_settings_30_minite")));
-  opt_graph_time_range_30_mnitues_->Selected(false);
-  opt_graph_time_range_60_mnitues_ = static_cast<DuiLib::COptionUI*>(
-      paint_manager_ui_->FindControl(_T("graph_settings_60_minite")));
-  opt_graph_time_range_60_mnitues_->Selected(true);
-
-  list_data_ = static_cast<DuiLib::CListUI*>(
-      paint_manager_ui_->FindControl(_T("tab_graph_data_list_data")));
-
   UpdateControlFromSettings();
   paint_manager_ui_->SetTimer(btn_exp_start_, 2, 1000);
+
+  work_window_second_page_graph_virtual_wnd_->Bind();
+  work_window_second_page_data_virtual_wnd_->Bind();
 }
 
 void WorkWindowSecondPage::Unbind() {
+  this->RemoveVirtualWnd(_T("WorkWindowSecondPageData"));
+  work_window_second_page_data_virtual_wnd_->Unbind();
+  work_window_second_page_data_notify_pump_.reset();
+
+  this->RemoveVirtualWnd(_T("WorkWindowSecondPageGraph"));
+  work_window_second_page_graph_virtual_wnd_->Unbind();
+  work_window_second_page_graph_notify_pump_.reset();
+
   SaveSettingsFromControl();
 
   paint_manager_ui_->KillTimer(btn_exp_start_, 1);
@@ -344,16 +328,7 @@ void WorkWindowSecondPage::RefreshExpClipTimeControl() {
   }
 }
 
-void WorkWindowSecondPage::RefreshSampleTimeControl() {
-  std::string value = ("=");
-  int64_t sample_time_interval = _ttoll(edit_sample_interval_->GetText());
-  if (sample_time_interval_ != sample_time_interval) {
-    sample_time_interval_ = sample_time_interval;
-    value += format_num(sample_time_interval * 100);
-    value += "S";
-    text_sample_interval_->SetText(anx::common::string2wstring(value).c_str());
-  }
-}
+void WorkWindowSecondPage::RefreshSampleTimeControl() {}
 
 int32_t WorkWindowSecondPage::exp_start() {
   if (is_exp_running_) {
@@ -401,10 +376,6 @@ void WorkWindowSecondPage::UpdateExpClipTimeFromControl() {
   exp_cycle_count_ = _ttoll(edit_max_cycle_count_->GetText()) * exp_power;
   exp_freq_fluctuations_range_ =
       _ttoll(edit_frequency_fluctuations_range_->GetText());
-
-  sample_start_pos_ = _ttoll(edit_sample_start_pos_->GetText());
-  sample_end_pos_ = _ttoll(edit_sample_end_pos_->GetText());
-  sample_time_interval_ = _ttoll(edit_sample_interval_->GetText());
 }
 
 void WorkWindowSecondPage::OnDataReceived(
@@ -429,13 +400,6 @@ void WorkWindowSecondPage::OnDataReceived(
     hex_str = anx::common::ByteArrayToHexString(data, size);
     std::cout << hex_str << std::endl;
   }
-  DuiLib::CListTextElementUI* item_no = new DuiLib::CListTextElementUI();
-  list_data_->Add(item_no);
-  item_no->SetText(0, anx::common::string2wstring(hex_str).c_str());
-  item_no->SetText(1, anx::common::string2wstring(hex_str).c_str());
-  item_no->SetText(2, anx::common::string2wstring(hex_str).c_str());
-  item_no->SetText(3, anx::common::string2wstring(hex_str).c_str());
-  item_no->SetText(4, anx::common::string2wstring(hex_str).c_str());
 }
 
 void WorkWindowSecondPage::OnDataOutgoing(
@@ -480,63 +444,11 @@ void WorkWindowSecondPage::UpdateControlFromSettings() {
         anx::common::string2wstring(
             std::to_string(dus->exp_frequency_fluctuations_range_).c_str())
             .c_str());
-    edit_sample_start_pos_->SetText(
-        anx::common::string2wstring(
-            std::to_string(dus->sampling_start_pos_).c_str())
-            .c_str());
-    edit_sample_end_pos_->SetText(
-        anx::common::string2wstring(
-            std::to_string(dus->sampling_end_pos_).c_str())
-            .c_str());
-    edit_sample_interval_->SetText(
-        anx::common::string2wstring(
-            std::to_string(dus->sampling_interval_).c_str())
-            .c_str());
 
     if (dus->exp_clipping_enable_ == 1) {
       chk_exp_clip_set_->Selected(true);
     } else {
       chk_exp_clip_set_->Selected(false);
-    }
-  }
-
-  std::unique_ptr<anx::device::DeviceExpGraphSettings> dcs =
-      anx::device::LoadDeviceExpGraphSettingsDefaultResource();
-  if (dcs != nullptr) {
-    if (dcs->exp_graph_show_time_type_ == 0) {
-      opt_graph_time_mode_pre_hour_->Selected(true);
-      opt_graph_time_mode_now_->Selected(false);
-    } else {
-      opt_graph_time_mode_pre_hour_->Selected(false);
-      opt_graph_time_mode_now_->Selected(true);
-    }
-
-    if (dcs->exp_graph_range_minitues_ == 0) {
-      opt_graph_time_range_5_mnitues_->Selected(true);
-      opt_graph_time_range_10_mnitues_->Selected(false);
-      opt_graph_time_range_30_mnitues_->Selected(false);
-      opt_graph_time_range_60_mnitues_->Selected(false);
-    } else if (dcs->exp_graph_range_minitues_ == 1) {
-      opt_graph_time_range_5_mnitues_->Selected(false);
-      opt_graph_time_range_10_mnitues_->Selected(true);
-      opt_graph_time_range_30_mnitues_->Selected(false);
-      opt_graph_time_range_60_mnitues_->Selected(false);
-    } else if (dcs->exp_graph_range_minitues_ == 2) {
-      opt_graph_time_range_5_mnitues_->Selected(false);
-      opt_graph_time_range_10_mnitues_->Selected(false);
-      opt_graph_time_range_30_mnitues_->Selected(true);
-      opt_graph_time_range_60_mnitues_->Selected(false);
-    } else {
-      opt_graph_time_range_5_mnitues_->Selected(false);
-      opt_graph_time_range_10_mnitues_->Selected(false);
-      opt_graph_time_range_30_mnitues_->Selected(false);
-      opt_graph_time_range_60_mnitues_->Selected(true);
-    }
-
-    if (dcs->exp_graph_always_new_ == 1) {
-      chk_graph_always_show_new_->Selected(true);
-    } else {
-      chk_graph_always_show_new_->Selected(false);
     }
   }
 }
@@ -549,39 +461,17 @@ void WorkWindowSecondPage::SaveSettingsFromControl() {
   dus.exp_max_cycle_power_ = _ttoi(edit_max_cycle_power_->GetText());
   dus.exp_frequency_fluctuations_range_ =
       _ttoi(edit_frequency_fluctuations_range_->GetText());
+  // TODO(hhool): add sample time control
+  /*
   dus.sampling_start_pos_ = _ttoi(edit_sample_start_pos_->GetText());
   dus.sampling_end_pos_ = _ttoi(edit_sample_end_pos_->GetText());
-  dus.sampling_interval_ = _ttoi(edit_sample_interval_->GetText());
+  dus.sampling_interval_ = _ttoi(edit_sample_interval_->GetText());*/
   if (chk_exp_clip_set_->IsSelected()) {
     dus.exp_clipping_enable_ = 1;
   } else {
     dus.exp_clipping_enable_ = 0;
   }
   anx::device::SaveDeviceUltrasoundSettingsDefaultResource(dus);
-
-  anx::device::DeviceExpGraphSettings dcs;
-  if (opt_graph_time_mode_pre_hour_->IsSelected()) {
-    dcs.exp_graph_show_time_type_ = 0;
-  } else {
-    dcs.exp_graph_show_time_type_ = 1;
-  }
-
-  if (opt_graph_time_range_5_mnitues_->IsSelected()) {
-    dcs.exp_graph_range_minitues_ = 0;
-  } else if (opt_graph_time_range_10_mnitues_->IsSelected()) {
-    dcs.exp_graph_range_minitues_ = 1;
-  } else if (opt_graph_time_range_30_mnitues_->IsSelected()) {
-    dcs.exp_graph_range_minitues_ = 2;
-  } else {
-    dcs.exp_graph_range_minitues_ = 3;
-  }
-
-  if (chk_graph_always_show_new_->IsSelected()) {
-    dcs.exp_graph_always_new_ = 1;
-  } else {
-    dcs.exp_graph_always_new_ = 0;
-  }
-  anx::device::SaveDeviceExpGraphSettingsDefaultResource(dcs);
 }
 
 }  // namespace ui

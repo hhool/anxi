@@ -21,11 +21,7 @@ namespace device {
 class DeviceUltrasound {
  public:
   DeviceUltrasound();
-  DeviceUltrasound(int32_t sample_mode,
-                   int32_t sampling_start_pos,
-                   int32_t sampling_end_pos,
-                   int32_t sampling_interval,
-                   int32_t exp_clipping_enable,
+  DeviceUltrasound(int32_t exp_clipping_enable,
                    int32_t exp_clip_time_duration,
                    int32_t exp_clip_time_paused,
                    int64_t exp_max_cycle_count,
@@ -34,15 +30,6 @@ class DeviceUltrasound {
   virtual ~DeviceUltrasound();
 
  public:
-  /// @brief  sample mode 0: exponent, 1: linear.
-  int32_t sample_mode_;
-  /// @brief  sampling frequency start position.
-  int32_t sampling_start_pos_;
-  /// @brief  sampling frequency end position.
-  int32_t sampling_end_pos_;
-  /// @brief  sampling frequency step.
-  int32_t sampling_interval_;
-
   /// @brief  exp clipping enable.
   int32_t exp_clipping_enable_;
 

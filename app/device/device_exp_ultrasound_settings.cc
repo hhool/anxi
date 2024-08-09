@@ -26,21 +26,13 @@ namespace device {
 // clz DeviceUltrasound
 DeviceUltrasound::DeviceUltrasound() {}
 
-DeviceUltrasound::DeviceUltrasound(int32_t sample_mode,
-                                   int32_t sampling_start_pos,
-                                   int32_t sampling_end_pos,
-                                   int32_t sampling_interval,
-                                   int32_t exp_clipping_enable,
+DeviceUltrasound::DeviceUltrasound(int32_t exp_clipping_enable,
                                    int32_t exp_clip_time_duration,
                                    int32_t exp_clip_time_paused,
                                    int64_t exp_max_cycle_count,
                                    int32_t exp_max_cycle_power,
                                    int32_t exp_frequency_fluctuations_range)
-    : sample_mode_(sample_mode),
-      sampling_start_pos_(sampling_start_pos),
-      sampling_end_pos_(sampling_end_pos),
-      sampling_interval_(sampling_interval),
-      exp_clipping_enable_(exp_clipping_enable),
+    : exp_clipping_enable_(exp_clipping_enable),
       exp_clip_time_duration_(exp_clip_time_duration),
       exp_clip_time_paused_(exp_clip_time_paused),
       exp_max_cycle_count_(exp_max_cycle_count),
@@ -48,16 +40,6 @@ DeviceUltrasound::DeviceUltrasound(int32_t sample_mode,
       exp_frequency_fluctuations_range_(exp_frequency_fluctuations_range) {}
 
 DeviceUltrasound::~DeviceUltrasound() {}
-
-std::string DeviceUltrasound::ValueSampleModeToString() const {
-  if (sample_mode_ == 0) {
-    return "exponent";
-  } else if (sample_mode_ == 1) {
-    return "linear";
-  } else {
-    return "exponent";
-  }
-}
 
 std::string DeviceUltrasound::ValueExpClippingEnableToString() const {
   if (exp_clipping_enable_ == 0) {
@@ -90,28 +72,6 @@ std::string DeviceUltrasound::ValueExpClipTimeDurationToString() const {
   return std::to_string(exp_clip_time_duration_);
 }
 
-std::string DeviceUltrasound::ValueSamplingIntervalToString() const {
-  return std::to_string(sampling_interval_);
-}
-
-std::string DeviceUltrasound::ValueSamplingEndPosToString() const {
-  return std::to_string(sampling_end_pos_);
-}
-
-std::string DeviceUltrasound::ValueSamplingStartPosToString() const {
-  return std::to_string(sampling_start_pos_);
-}
-
-int32_t DeviceUltrasound::ValueSampleModeFromString(
-    const std::string& sample_mode_str) {
-  if (sample_mode_str == "exponent") {
-    return 0;
-  } else if (sample_mode_str == "linear") {
-    return 1;
-  } else {
-    return 0;
-  }
-}
 ////////////////////////////////////////////////////////////////////
 // clz DeviceUltrasoundSettings
 DeviceUltrasoundSettings::DeviceUltrasoundSettings() {}
@@ -123,13 +83,6 @@ std::string DeviceUltrasoundSettings::ToXml(bool close_tag) const {
   if (close_tag) {
     ss << "<device_exp_ultrasound_settings>\r\n";
   }
-  ss << "<sample_mode>" << ValueSampleModeToString() << "</sample_mode>\r\n";
-  ss << "<sampling_start_pos>" << ValueSamplingStartPosToString()
-     << "</sampling_start_pos>\r\n";
-  ss << "<sampling_end_pos>" << ValueSamplingEndPosToString()
-     << "</sampling_end_pos>\r\n";
-  ss << "<sampling_interval>" << ValueSamplingIntervalToString()
-     << "</sampling_interval>\r\n";
   ss << "<exp_clipping_enable>" << ValueExpClippingEnableToString()
      << "</exp_clipping_enable>\r\n";
   ss << "<exp_clip_time_duration>" << ValueExpClipTimeDurationToString()
@@ -163,10 +116,6 @@ std::unique_ptr<DeviceUltrasoundSettings> DeviceUltrasoundSettings::FromXml(
     return nullptr;
   }
 
-  int32_t sample_mode = 0;
-  int32_t sampling_start_pos = 0;
-  int32_t sampling_end_pos = 0;
-  int32_t sampling_interval = 0;
   int32_t exp_clipping_enable = 0;
   int32_t exp_clip_time_duration = 0;
   int32_t exp_clip_time_paused = 0;
@@ -174,28 +123,8 @@ std::unique_ptr<DeviceUltrasoundSettings> DeviceUltrasoundSettings::FromXml(
   int32_t exp_max_cycle_power = 0;
   int32_t exp_frequency_fluctuations_range = 0;
 
-  tinyxml2::XMLElement* element = root->FirstChildElement("sample_mode");
-  if (element != nullptr) {
-    std::string str = element->GetText();
-    sample_mode = DeviceUltrasound::ValueSampleModeFromString(str);
-  }
-
-  element = root->FirstChildElement("sampling_start_pos");
-  if (element != nullptr) {
-    sampling_start_pos = std::stoi(element->GetText());
-  }
-
-  element = root->FirstChildElement("sampling_end_pos");
-  if (element != nullptr) {
-    sampling_end_pos = std::stoi(element->GetText());
-  }
-
-  element = root->FirstChildElement("sampling_interval");
-  if (element != nullptr) {
-    sampling_interval = std::stoi(element->GetText());
-  }
-
-  element = root->FirstChildElement("exp_clipping_enable");
+  tinyxml2::XMLElement* element =
+      root->FirstChildElement("exp_clipping_enable");
   if (element != nullptr) {
     std::string str = element->GetText();
     if (str == "enable") {
@@ -230,10 +159,6 @@ std::unique_ptr<DeviceUltrasoundSettings> DeviceUltrasoundSettings::FromXml(
 
   std::unique_ptr<DeviceUltrasoundSettings> settings(
       new DeviceUltrasoundSettings());
-  settings->sample_mode_ = sample_mode;
-  settings->sampling_start_pos_ = sampling_start_pos;
-  settings->sampling_end_pos_ = sampling_end_pos;
-  settings->sampling_interval_ = sampling_interval;
   settings->exp_clipping_enable_ = exp_clipping_enable;
   settings->exp_clip_time_duration_ = exp_clip_time_duration;
   settings->exp_clip_time_paused_ = exp_clip_time_paused;

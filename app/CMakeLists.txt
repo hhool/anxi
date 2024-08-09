@@ -50,6 +50,8 @@ set(DEVICE_FILES
     device/device_com.h
     device/device_exp_amplitude_settings.cc
     device/device_exp_amplitude_settings.h
+    device/device_exp_data_sample_settings.cc
+    device/device_exp_data_sample_settings.h
     device/device_exp_graph_settings.cc
     device/device_exp_graph_settings.h
     device/device_exp_load_static_settings.cc
@@ -113,6 +115,10 @@ if(WIN32)
         ui/work_window_tab_main_first_page_solution_design_base.h
         ui/work_window_tab_main_first_page_solution_design.cc
         ui/work_window_tab_main_first_page_solution_design.h
+        ui/work_window_tab_main_second_page_data.cc
+        ui/work_window_tab_main_second_page_data.h
+        ui/work_window_tab_main_second_page_graph.cc
+        ui/work_window_tab_main_second_page_graph.h
         ui/work_window_tab_main_second_page.cc
         ui/work_window_tab_main_second_page.h
         ui/work_window_tab_main_third_page.cc
