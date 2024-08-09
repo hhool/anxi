@@ -273,11 +273,17 @@ void WorkWindowSecondPage::Bind() {
 void WorkWindowSecondPage::Unbind() {
   this->RemoveVirtualWnd(_T("WorkWindowSecondPageData"));
   work_window_second_page_data_virtual_wnd_->Unbind();
-  work_window_second_page_data_notify_pump_.reset();
+  WorkWindowSecondPageData* data_page =
+      reinterpret_cast<WorkWindowSecondPageData*>(
+          work_window_second_page_data_notify_pump_.release());
+  delete data_page;
 
   this->RemoveVirtualWnd(_T("WorkWindowSecondPageGraph"));
   work_window_second_page_graph_virtual_wnd_->Unbind();
-  work_window_second_page_graph_notify_pump_.reset();
+  WorkWindowSecondPageGraph* graph_page =
+      reinterpret_cast<WorkWindowSecondPageGraph*>(
+          work_window_second_page_graph_notify_pump_.release());
+  delete graph_page;
 
   SaveSettingsFromControl();
 

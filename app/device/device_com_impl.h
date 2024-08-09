@@ -28,8 +28,8 @@ class ComPortDeviceImpl : public DeviceComInterface {
   virtual ~ComPortDeviceImpl();
 
  public:
-  void AddListener(DeviceComListener* listener);
-  void RemoveListener(DeviceComListener* listener);
+  void AddListener(DeviceComListener* listener) override;
+  void RemoveListener(DeviceComListener* listener) override;
 
  public:
   /// impliment DeviceComInterface

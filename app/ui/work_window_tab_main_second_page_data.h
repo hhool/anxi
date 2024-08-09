@@ -27,10 +27,8 @@ namespace anx {
 namespace device {
 class DeviceComInterface;
 class DeviceComListener;
+class DeviceExpDataSampleSettings;
 }  // namespace device
-namespace esolution {
-class SolutionDesign;
-}  // namespace esolution
 namespace ui {
 class WorkWindow;
 }  // namespace ui
@@ -81,10 +79,8 @@ class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
   DuiLib::CPaintManagerUI* paint_manager_ui_;
   std::shared_ptr<anx::device::DeviceComInterface> device_com_ul_;
   std::shared_ptr<anx::device::DeviceComInterface> device_com_sl_;
-
-  int64_t sample_start_pos_;
-  int64_t sample_end_pos_;
-  int64_t sample_time_interval_;
+  std::unique_ptr<anx::device::DeviceExpDataSampleSettings>
+      device_exp_data_settings_;
 
   /// @brief sample mode option button
   DuiLib::COptionUI* option_sample_mode_exp_;

@@ -134,6 +134,8 @@ void WorkWindowSecondPageGraph::Unbind() {
   paint_manager_ui_->KillTimer(opt_graph_time_mode_now_, 1);
   //  paint_manager_ui_->KillTimer(opt_graph_time_mode_now_, 2);
   // release the device com interface
+  device_com_sl_->RemoveListener(this);
+  device_com_ul_->RemoveListener(this);
   device_com_sl_ = nullptr;
   device_com_ul_ = nullptr;
 }

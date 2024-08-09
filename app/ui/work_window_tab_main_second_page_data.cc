@@ -19,10 +19,6 @@
 #include "app/device/device_com_factory.h"
 #include "app/device/device_com_settings.h"
 #include "app/device/device_exp_data_sample_settings.h"
-#include "app/esolution/solution_design.h"
-#include "app/esolution/solution_design_default.h"
-#include "app/ui/dialog_amplitude_calibration_settings.h"
-#include "app/ui/dialog_static_load_guaranteed_settings.h"
 #include "app/ui/ui_constants.h"
 #include "app/ui/work_window.h"
 
@@ -59,14 +55,13 @@ std::string format_num(int64_t num) {
 WorkWindowSecondPageData::WorkWindowSecondPageData(
     WorkWindow* pWorkWindow,
     DuiLib::CPaintManagerUI* paint_manager_ui)
-    : pWorkWindow_(pWorkWindow),
-      paint_manager_ui_(paint_manager_ui),
-      sample_start_pos_(0),
-      sample_end_pos_(0),
-      sample_time_interval_(0) {}
+    : pWorkWindow_(pWorkWindow), paint_manager_ui_(paint_manager_ui) {
+  device_exp_data_settings_.reset(
+      new anx::device::DeviceExpDataSampleSettings());
+}
 
 WorkWindowSecondPageData::~WorkWindowSecondPageData() {
-  paint_manager_ui_->KillTimer(edit_sample_start_pos_, 1);
+  device_exp_data_settings_.reset();
 }
 
 void WorkWindowSecondPageData::OnClick(TNotifyUI& msg) {
@@ -128,6 +123,8 @@ void WorkWindowSecondPageData::Unbind() {
   paint_manager_ui_->KillTimer(edit_sample_start_pos_, 1);
 
   // release the device com interface
+  device_com_sl_->RemoveListener(this);
+  device_com_ul_->RemoveListener(this);
   device_com_sl_ = nullptr;
   device_com_ul_ = nullptr;
 }
@@ -138,9 +135,9 @@ void WorkWindowSecondPageData::RefreshExpClipTimeControl() {}
 
 void WorkWindowSecondPageData::RefreshSampleTimeControl() {
   std::string value = ("=");
-  int64_t sample_time_interval = _ttoll(edit_sample_interval_->GetText());
-  if (sample_time_interval_ != sample_time_interval) {
-    sample_time_interval_ = sample_time_interval;
+  int32_t sample_time_interval = _ttol(edit_sample_interval_->GetText());
+  if (device_exp_data_settings_->sampling_interval_ != sample_time_interval) {
+    device_exp_data_settings_->sampling_interval_ = sample_time_interval;
     value += format_num(sample_time_interval * 100);
     value += "S";
     text_sample_interval_->SetText(anx::common::string2wstring(value).c_str());
@@ -148,9 +145,9 @@ void WorkWindowSecondPageData::RefreshSampleTimeControl() {
 }
 
 void WorkWindowSecondPageData::UpdateExpClipTimeFromControl() {
-  sample_start_pos_ = _ttoll(edit_sample_start_pos_->GetText());
-  sample_end_pos_ = _ttoll(edit_sample_end_pos_->GetText());
-  sample_time_interval_ = _ttoll(edit_sample_interval_->GetText());
+  /* sample_start_pos_ = _ttoll(edit_sample_start_pos_->GetText());
+   sample_end_pos_ = _ttoll(edit_sample_end_pos_->GetText());
+   sample_time_interval_ = _ttoll(edit_sample_interval_->GetText());*/
 }
 
 void WorkWindowSecondPageData::OnDataReceived(

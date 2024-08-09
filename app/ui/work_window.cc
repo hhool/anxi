@@ -578,10 +578,12 @@ void WorkWindow::CloseDeviceCom(int32_t device_type) {
   if (device_type == anx::device::kDeviceCom_Ultrasound) {
     if (device_com_ul_ != nullptr) {
       device_com_ul_->Close();
+      device_com_ul_->RemoveListener(this);
     }
   } else if (device_type == anx::device::kDeviceCom_StaticLoad) {
     if (device_com_sl_ != nullptr) {
       device_com_sl_->Close();
+      device_com_sl_->RemoveListener(this);
     }
   } else {
     assert(false && "Invalid device type");

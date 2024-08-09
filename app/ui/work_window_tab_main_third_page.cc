@@ -116,6 +116,9 @@ void WorkWindowThirdPage::Bind() {
 }
 
 void WorkWindowThirdPage::Unbind() {
+  // release the device com interface
+  device_com_sl_->RemoveListener(this);
+  device_com_ul_->RemoveListener(this);
   if (device_com_ul_ != nullptr) {
     device_com_ul_.reset();
   }
