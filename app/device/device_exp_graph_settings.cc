@@ -109,7 +109,11 @@ LoadDeviceExpGraphSettingsDefaultWithFilePath(const std::string& file_path) {
   fseek(file, 0, SEEK_SET);
   // Read the file content
   std::unique_ptr<char[]> file_content(new char[file_size]);
-  fread(file_content.get(), 1, file_size, file);
+  size_t size = fread(file_content.get(), 1, file_size, file);
+  if (size != file_size) {
+    fclose(file);
+    return nullptr;
+  }
   fclose(file);
 
   // Parse the file content

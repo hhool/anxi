@@ -44,12 +44,17 @@ std::unique_ptr<ComSettings> LoadDeviceComSettingsWithFilePath(
   fseek(file, 0, SEEK_SET);
   // Read the file content
   std::unique_ptr<char[]> file_content(new char[file_size]);
-  fread(file_content.get(), 1, file_size, file);
+  size_t size = fread(file_content.get(), 1, file_size, file);
+  if (size != file_size) {
+    fclose(file);
+    return nullptr;
+  }
   fclose(file);
 
   // Parse the file content
   std::string content(file_content.get(), file_size);
-  std::unique_ptr<ComSettings> com_settings = anx::device::ComSettings::FromXml(content);
+  std::unique_ptr<ComSettings> com_settings =
+      anx::device::ComSettings::FromXml(content);
   if (com_settings.get() == nullptr) {
     return nullptr;
   }

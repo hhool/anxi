@@ -43,11 +43,15 @@ std::unique_ptr<SolutionDesign> LoadSolutionDesignWithFilePath(
     return nullptr;
   }
   fseek(file, 0, SEEK_END);
-  int32_t size = static_cast<int32_t>(ftell(file));
+  int32_t file_size = static_cast<int32_t>(ftell(file));
   fseek(file, 0, SEEK_SET);
   // read file
-  std::unique_ptr<char[]> buffer(new char[size]);
-  fread(buffer.get(), size, 1, file);
+  std::unique_ptr<char[]> buffer(new char[file_size]);
+  size_t size = fread(buffer.get(), 1, file_size, file);
+  if (size != file_size) {
+    fclose(file);
+    return nullptr;
+  }
   fclose(file);
   // parse xml
   std::string xml(buffer.get(), size);
