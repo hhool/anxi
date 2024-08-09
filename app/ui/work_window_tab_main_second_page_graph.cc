@@ -71,6 +71,15 @@ WorkWindowSecondPageGraph::~WorkWindowSecondPageGraph() {
 void WorkWindowSecondPageGraph::OnClick(TNotifyUI& msg) {
   if (msg.sType == kWindowInit) {
   } else if (msg.sType == kClick) {
+    if (msg.pSender->GetName() == _T("btn_exp_start")) {
+      OnExpStart();
+    } else if (msg.pSender->GetName() == _T("btn_exp_stop")) {
+      OnExpStop();
+    } else if (msg.pSender->GetName() == _T("btn_exp_pause")) {
+      OnExpPause();
+    } else if (msg.pSender->GetName() == _T("btn_exp_resume")) {
+      OnExpResume();
+    }
   } else if (msg.sType == _T("selectchanged")) {
     // TODO(hhool): add selectchanged action
   }
@@ -134,8 +143,14 @@ void WorkWindowSecondPageGraph::Unbind() {
   paint_manager_ui_->KillTimer(opt_graph_time_mode_now_, 1);
   //  paint_manager_ui_->KillTimer(opt_graph_time_mode_now_, 2);
   // release the device com interface
-  device_com_sl_ = nullptr;
-  device_com_ul_ = nullptr;
+  if (device_com_sl_ != nullptr) {
+    device_com_sl_->RemoveListener(this);
+    device_com_sl_ = nullptr;
+  }
+  if (device_com_ul_ != nullptr) {
+    device_com_ul_->RemoveListener(this);
+    device_com_ul_ = nullptr;
+  }
 }
 
 void WorkWindowSecondPageGraph::CheckDeviceComConnectedStatus() {}
@@ -256,6 +271,16 @@ void WorkWindowSecondPageGraph::SaveSettingsFromControl() {
   }
   anx::device::SaveDeviceExpGraphSettingsDefaultResource(dcs);
 }
+
+void WorkWindowSecondPageGraph::OnExpStart() {
+  UpdateExpClipTimeFromControl();
+}
+
+void WorkWindowSecondPageGraph::OnExpStop() {}
+
+void WorkWindowSecondPageGraph::OnExpPause() {}
+
+void WorkWindowSecondPageGraph::OnExpResume() {}
 
 }  // namespace ui
 }  // namespace anx

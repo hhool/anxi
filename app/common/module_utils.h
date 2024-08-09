@@ -23,6 +23,10 @@ std::string GetAppPath();
 /// @brief Get the module directory
 /// @return the module directory
 std::string GetModuleDir();
+
+/// @brief Get the module name
+/// @return the module name
+std::string GetModuleName();
 }  // namespace common
 }  // namespace anx
 

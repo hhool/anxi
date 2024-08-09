@@ -62,6 +62,12 @@ set(DEVICE_FILES
 source_group("device" FILES ${DEVICE_FILES})
 list(APPEND APP_SOURCES ${DEVICE_FILES})
 
+set(EXPDATA_FILES
+    expdata/experiment_data_base.cc
+    expdata/experiment_data_base.h)
+source_group("expdata" FILES ${EXPDATA_FILES})
+list(APPEND APP_SOURCES ${EXPDATA_FILES})
+
 set(ESOLUTION_FILES
     esolution/solution_design_default.cc
     esolution/solution_design_default.h
@@ -97,6 +103,8 @@ if(WIN32)
         ui/dialog_amplitude_calibration_settings.h
         ui/dialog_com_port_settings.cc
         ui/dialog_com_port_settings.h
+        ui/dialog_common.cc
+        ui/dialog_common.h
         ui/dialog_static_load_guaranteed_settings.cc
         ui/dialog_static_load_guaranteed_settings.h
         ui/main_window.cc

@@ -29,9 +29,6 @@ namespace device {
 class DeviceComInterface;
 class DeviceComListener;
 }  // namespace device
-namespace esolution {
-class SolutionDesign;
-}  // namespace esolution
 namespace ui {
 class WorkWindow;
 }  // namespace ui
@@ -61,9 +58,9 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
  protected:
   void CheckDeviceComConnectedStatus();
   void RefreshExpClipTimeControl();
-  void RefreshSampleTimeControl();
   void UpdateControlFromSettings();
   void SaveSettingsFromControl();
+  void UpdateExpClipTimeFromControl();
 
  protected:
   int32_t exp_start();
@@ -71,7 +68,9 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   void exp_stop();
   void exp_resume();
 
-  void UpdateExpClipTimeFromControl();
+  /// @brief  Update button with exp status
+  /// @param status  0 - stop, 1 - start, 2 - pause
+  void UpdateUIWithExpStatus(int status);
 
  protected:
   // impliment anx::device::DeviceComListener;
@@ -93,7 +92,9 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   std::unique_ptr<DuiLib::CNotifyPump>
       work_window_second_page_data_notify_pump_;
   UIVirtualWndBase* work_window_second_page_data_virtual_wnd_;
-  bool is_exp_running_;
+  /// @brief exp status
+  /// 0 - stop, 1 - start, 2 - pause, <0 - unvalid
+  int32_t is_exp_state_;
   std::shared_ptr<anx::device::DeviceComInterface> device_com_ul_;
   std::shared_ptr<anx::device::DeviceComInterface> device_com_sl_;
   int64_t exp_clip_time_duration_;
@@ -122,6 +123,12 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   DuiLib::CButtonUI* btn_exp_stop_;
   /// @brief exp action pause button
   DuiLib::CButtonUI* btn_exp_pause_;
+  /// @brief exp action resume button
+  DuiLib::CButtonUI* btn_exp_resume_;
+  /// @brief exp pause layout
+  DuiLib::CHorizontalLayoutUI* layout_exp_pause_;
+  /// @brief exp resume layout
+  DuiLib::CHorizontalLayoutUI* layout_exp_resume_;
 
   /// @brief Static aircraft action releated button
   ///

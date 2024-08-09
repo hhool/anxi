@@ -89,8 +89,16 @@ class ComPortDevice {
 };
 
 ////////////////////////////////////////////////////////////
-
+class DeviceComListener;
 class DeviceComInterface {
+ public:
+  /// @brief  Add listener
+  /// @param listener  listener
+  virtual void AddListener(DeviceComListener* listener) = 0;
+  /// @brief  Remove listener
+  /// @param listener  listener
+  virtual void RemoveListener(DeviceComListener* listener) = 0;
+
  public:
   /// @brief  Open the device com
   /// @return int32_t 0 success, non-zero fail

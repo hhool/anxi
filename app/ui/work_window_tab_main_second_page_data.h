@@ -14,8 +14,10 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "app/device/device_com.h"
+#include "app/expdata/experiment_data_base.h"
 #include "app/ui/ui_virtual_wnd_base.h"
 
 #include "third_party\duilib\source\DuiLib\UIlib.h"
@@ -27,10 +29,8 @@ namespace anx {
 namespace device {
 class DeviceComInterface;
 class DeviceComListener;
+class DeviceExpDataSampleSettings;
 }  // namespace device
-namespace esolution {
-class SolutionDesign;
-}  // namespace esolution
 namespace ui {
 class WorkWindow;
 }  // namespace ui
@@ -38,8 +38,8 @@ class WorkWindow;
 
 namespace anx {
 namespace ui {
-
 class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
+                                 public DuiLib::IListCallbackUI,
                                  public UIVirtualWndBase,
                                  public anx::device::DeviceComListener {
  public:
@@ -52,20 +52,23 @@ class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
   void OnClick(TNotifyUI& msg);  // NOLINT
   void OnTimer(TNotifyUI& msg);  // NOLINT
 
+  // Inherited via IListCallbackUI
+  LPCTSTR GetItemText(CControlUI* pList, int iItem, int iSubItem) override;
+
  public:
   // implement the base class UIVirtualWndBase virtual function
   void Bind() override;
   void Unbind() override;
 
  protected:
-  void CheckDeviceComConnectedStatus();
-  void RefreshExpClipTimeControl();
   void RefreshSampleTimeControl();
+  std::unique_ptr<anx::device::DeviceExpDataSampleSettings>
+  UpdateExpClipTimeFromControl();
   void UpdateControlFromSettings();
   void SaveSettingsFromControl();
-
- protected:
-  void UpdateExpClipTimeFromControl();
+  /// @brief  Update button with exp status
+  /// @param status  0 - stop, 1 - start, 2 - pause
+  void UpdateUIWithExpStatus(int status);
 
  protected:
   // impliment anx::device::DeviceComListener;
@@ -76,15 +79,19 @@ class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
                       const uint8_t* data,
                       int32_t size) override;
 
+ protected:
+  void OnExpStart();
+  void OnExpStop();
+  void OnExpPause();
+  void OnExpResume();
+
  private:
   WorkWindow* pWorkWindow_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
   std::shared_ptr<anx::device::DeviceComInterface> device_com_ul_;
   std::shared_ptr<anx::device::DeviceComInterface> device_com_sl_;
-
-  int64_t sample_start_pos_;
-  int64_t sample_end_pos_;
-  int64_t sample_time_interval_;
+  std::unique_ptr<anx::device::DeviceExpDataSampleSettings>
+      device_exp_data_settings_;
 
   /// @brief sample mode option button
   DuiLib::COptionUI* option_sample_mode_exp_;
@@ -100,6 +107,19 @@ class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
 
   /// @brief data list control
   DuiLib::CListUI* list_data_;
+
+  /// @brief experiment related data
+  /// @brief exp status
+  /// 0 - stop, 1 - start, 2 - pause, <0 - unvalid
+  int32_t is_exp_state_ = -1;
+  int64_t exp_start_time_ms_ = 0;
+  uint64_t exp_data_incoming_num_ = 0;
+  int64_t exp_time_interval_num_ = 0;
+  uint32_t exp_data_table_no_ = 0;
+  int64_t exp_sample_interval_ms_ = 0;
+
+  /// @brief experiment data
+  std::vector<anx::expdata::ExperimentData> exp_datas_;
 };
 
 }  // namespace ui

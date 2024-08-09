@@ -34,36 +34,150 @@ DUI_END_MESSAGE_MAP()
 
 namespace anx {
 namespace ui {
+
+std::string format_num(int64_t num) {
+  std::string value;
+  int64_t integer_part = num / 1000;
+  int64_t decimal_part = num % 1000;
+  // remove the 0 at the end of the decimal.
+  while (decimal_part % 10 == 0) {
+    decimal_part /= 10;
+    if (decimal_part == 0) {
+      break;
+    }
+  }
+  // format integer part
+  value += std::to_string(integer_part);
+  if (decimal_part != 0) {
+    value += ".";
+    value += std::to_string(decimal_part);
+  }
+  return value;
+}
+
 namespace {
 const int32_t kTimerID = 0x1;
 const int32_t kTimerElapse = 1000;
 }  // namespace
+
+class WorkWindowThirdPage::ListSendGetter : public DuiLib::IListCallbackUI {
+ public:
+  explicit ListSendGetter(std::vector<std::string>* items) : items_(items) {}
+  ~ListSendGetter() {}
+
+  LPCTSTR GetItemText(DuiLib::CControlUI* pControl,
+                      int iItem,
+                      int iSubItem) override {
+    if (iItem < 0 || static_cast<size_t>(iItem) >= items_->size()) {
+      pControl->SetUserData(_T(""));
+      return pControl->GetUserData();
+    }
+    pControl->SetUserData(
+        anx::common::string2wstring(items_->at(iItem).c_str()).c_str());
+    return pControl->GetUserData();
+  }
+
+ private:
+  std::vector<std::string>* items_;
+};
+
+class WorkWindowThirdPage::ListRecvGetter : public DuiLib::IListCallbackUI {
+ public:
+  explicit ListRecvGetter(std::vector<std::string>* items) : items_(items) {}
+  ~ListRecvGetter() {}
+
+  LPCTSTR GetItemText(DuiLib::CControlUI* pControl,
+                      int iItem,
+                      int iSubItem) override {
+    if (iItem < 0 || static_cast<size_t>(iItem) >= items_->size()) {
+      pControl->SetUserData(_T(""));
+      return pControl->GetUserData();
+    }
+    pControl->SetUserData(
+        anx::common::string2wstring(items_->at(iItem).c_str()).c_str());
+    return pControl->GetUserData();
+  }
+
+ private:
+  std::vector<std::string>* items_;
+};
+
+class WorkWindowThirdPage::ListRecvNotifyGetter
+    : public DuiLib::IListCallbackUI {
+ public:
+  explicit ListRecvNotifyGetter(std::vector<std::string>* items)
+      : items_(items) {}
+  ~ListRecvNotifyGetter() {}
+
+  LPCTSTR GetItemText(DuiLib::CControlUI* pControl,
+                      int iItem,
+                      int iSubItem) override {
+    if (iItem < 0 || static_cast<size_t>(iItem) >= items_->size()) {
+      pControl->SetUserData(_T(""));
+      return pControl->GetUserData();
+    }
+    pControl->SetUserData(
+        anx::common::string2wstring(items_->at(iItem).c_str()).c_str());
+    return pControl->GetUserData();
+  }
+
+ private:
+  std::vector<std::string>* items_;
+};
+
 WorkWindowThirdPage::WorkWindowThirdPage(
     WorkWindow* pWorkWindow,
     DuiLib::CPaintManagerUI* paint_manager_ui)
-    : pWorkWindow_(pWorkWindow), paint_manager_ui_(paint_manager_ui) {}
+    : pWorkWindow_(pWorkWindow), paint_manager_ui_(paint_manager_ui) {
+  send_data_items_.clear();
+  recv_data_items_.clear();
+  recv_notify_data_items_.clear();
+  list_send_getter_.reset(new ListSendGetter(&send_data_items_));
+  list_recv_getter_.reset(new ListRecvGetter(&recv_data_items_));
+  list_recv_notify_getter_.reset(
+      new ListRecvNotifyGetter(&recv_notify_data_items_));
+}
 
-WorkWindowThirdPage::~WorkWindowThirdPage() {}
+WorkWindowThirdPage::~WorkWindowThirdPage() {
+  list_recv_notify_getter_.reset();
+  list_recv_getter_.reset();
+  list_send_getter_.reset();
+}
 
 void WorkWindowThirdPage::OnClick(TNotifyUI& msg) {
   if (msg.sType == kWindowInit) {
   } else if (msg.sType == kClick) {
-  } else if (msg.sType == kSelectChanged) {
+    if (msg.pSender == check_box_display_send_) {
+      // TODO(hhool):
+    } else if (msg.pSender == check_box_display_stop_recv_notify_) {
+      // TODO(hhool):
+    } else {
+      // TODO(hhool): do nothing
+    }
+  } else {
+    // TODO(hhool): do nothing
   }
 }
 
 void WorkWindowThirdPage::OnTimer(TNotifyUI& msg) {
   if (msg.wParam == kTimerID) {
+    UpdateControlFromSettings();
   } else {
   }
 }
 
 void WorkWindowThirdPage::Bind() {
+  // initialize the device com interface
+  device_com_ul_ =
+      anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
+          anx::device::kDeviceCom_Ultrasound, this);
+  device_com_sl_ =
+      anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
+          anx::device::kDeviceCom_StaticLoad, this);
   // bind timer
   DuiLib::CHorizontalLayoutUI* layout =
       static_cast<DuiLib::CHorizontalLayoutUI*>(
           paint_manager_ui_->FindControl(_T("tab_page_three")));
-  // unbind timer
   paint_manager_ui_->SetTimer(layout, kTimerID, kTimerElapse);
 
   // bind control
@@ -92,41 +206,41 @@ void WorkWindowThirdPage::Bind() {
   check_box_display_send_ = static_cast<CCheckBoxUI*>(
       paint_manager_ui_->FindControl(_T("tab_page_three_right_refresh_data")));
 
-  check_box_display_recv_notify_ =
+  check_box_display_stop_recv_notify_ =
       static_cast<CCheckBoxUI*>(paint_manager_ui_->FindControl(
           _T("tab_page_three_right_stop_recv_output")));
 
   list_send_ = static_cast<CListUI*>(
       paint_manager_ui_->FindControl(_T("tab_page_three_list_send")));
-
   list_recv_ = static_cast<CListUI*>(
       paint_manager_ui_->FindControl(_T("tab_page_three_list_recv")));
 
   list_recv_notify_ = static_cast<CListUI*>(
       paint_manager_ui_->FindControl(_T("tab_page_three_list_recv_notify")));
 
-  UpdateControlFromSettings();
+  list_send_->SetTextCallback(list_send_getter_.get());
+  list_recv_->SetTextCallback(list_recv_getter_.get());
+  list_recv_notify_->SetTextCallback(list_recv_notify_getter_.get());
 
-  device_com_ul_ =
-      anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
-          anx::device::kDeviceCom_Ultrasound, this);
-  device_com_sl_ =
-      anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
-          anx::device::kDeviceCom_StaticLoad, this);
+  UpdateControlFromSettings();
 }
 
 void WorkWindowThirdPage::Unbind() {
-  if (device_com_ul_ != nullptr) {
-    device_com_ul_.reset();
-  }
-  if (device_com_sl_ != nullptr) {
-    device_com_sl_.reset();
-  }
   DuiLib::CHorizontalLayoutUI* layout =
       static_cast<DuiLib::CHorizontalLayoutUI*>(
           paint_manager_ui_->FindControl(_T("tab_page_three")));
   // unbind timer
   paint_manager_ui_->KillTimer(layout, kTimerID);
+
+  // release the device com interface
+  if (device_com_ul_ != nullptr) {
+    device_com_ul_->RemoveListener(this);
+    device_com_ul_.reset();
+  }
+  if (device_com_sl_ != nullptr) {
+    device_com_sl_->RemoveListener(this);
+    device_com_sl_.reset();
+  }
 }
 
 void WorkWindowThirdPage::UpdateControlFromSettings() {
@@ -151,39 +265,53 @@ void WorkWindowThirdPage::OnDataReceived(
     anx::device::DeviceComInterface* device,
     const uint8_t* data,
     int32_t size) {
+  // TODO(hhool): review the implementation
   if (device == device_com_ul_.get()) {
   } else if (device == device_com_sl_.get()) {
   }
-
-  std::string hex_str;
-  hex_str = anx::common::ByteArrayToHexString(data, size);
-  DuiLib::CListLabelElementUI* item = new DuiLib::CListLabelElementUI();
-  DuiLib::CDuiString dui_string = anx::common::string2wstring(hex_str).c_str();
-  dui_string.Append(anx::common::string2wstring(hex_str).c_str());
-  item->SetText(dui_string);
-  list_recv_notify_->Add(item);
-  {
-    DuiLib::CListLabelElementUI* item = new DuiLib::CListLabelElementUI();
-    item->SetText(dui_string);
+  if (!check_box_display_stop_recv_notify_->IsSelected()) {
+    std::string hex_str;
+    hex_str = anx::common::ByteArrayToHexString(data, size);
+    DuiLib::CListTextElementUI* item = new DuiLib::CListTextElementUI();
+    recv_notify_data_items_.push_back(hex_str);
+    list_recv_notify_->Add(item);
+  }
+  if (check_box_display_send_->IsSelected()) {
+    std::string hex_str;
+    hex_str = anx::common::ByteArrayToHexString(data, size);
+    DuiLib::CListTextElementUI* item = new DuiLib::CListTextElementUI();
+    recv_data_items_.push_back(hex_str);
     list_recv_->Add(item);
   }
+  // update the label_displacement_ with random value
+  float displacement = 0.0f;
+  displacement = static_cast<float>(rand() % 100);
+  std::string num_format = format_num(static_cast<int64_t>(displacement * 100));
+  label_displacement_->SetText(
+      anx::common::string2wstring(num_format.c_str()).c_str());
+  // update the label_strength_ with random value
+  float strength = 0.0f;
+  strength = static_cast<float>(rand() % 100);
+  num_format = format_num(static_cast<int64_t>(strength * 100));
+  label_strength_->SetText(
+      anx::common::string2wstring(num_format.c_str()).c_str());
 }
 
 void WorkWindowThirdPage::OnDataOutgoing(
     anx::device::DeviceComInterface* device,
     const uint8_t* data,
     int32_t size) {
-  // do nothing
+  // TODO(hhool): review the implementation
   if (device == device_com_ul_.get()) {
   } else if (device == device_com_sl_.get()) {
   }
-  std::string hex_str;
-  hex_str = anx::common::ByteArrayToHexString(data, size);
-  DuiLib::CListLabelElementUI* item = new DuiLib::CListLabelElementUI();
-  DuiLib::CDuiString dui_string = anx::common::string2wstring(hex_str).c_str();
-  dui_string.Append(anx::common::string2wstring(hex_str).c_str());
-  item->SetText(dui_string);
-  list_send_->Add(item);
+  if (check_box_display_send_->IsSelected()) {
+    std::string hex_str;
+    hex_str = anx::common::ByteArrayToHexString(data, size);
+    DuiLib::CListTextElementUI* item = new DuiLib::CListTextElementUI();
+    send_data_items_.push_back(hex_str);
+    list_send_->Add(item);
+  }
 }
 
 }  // namespace ui

@@ -47,6 +47,7 @@ const int32_t kTimerCurrentTimePeriod = 50;
 
 WorkWindow::WorkWindow(DuiLib::WindowImplBase* pOwner, int32_t solution_type)
     : pOwner_(pOwner), solution_type_(solution_type) {
+  // initial device com
   device_com_ul_ =
       anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
           anx::device::kDeviceCom_Ultrasound, this);
@@ -124,14 +125,29 @@ WorkWindow::~WorkWindow() {
 
   work_window_third_page_virtual_wnd_->Unbind();
   work_window_third_page_virtual_wnd_ = nullptr;
+  WorkWindowThirdPage* work_window_third_page =
+      reinterpret_cast<WorkWindowThirdPage*>(
+          tab_main_pages_["WorkWindowThirdPage"].release());
+  delete work_window_third_page;
 
   work_window_second_page_virtual_wnd_->Unbind();
   work_window_second_page_virtual_wnd_ = nullptr;
-  // remove tab_main_pages_
-  tab_main_pages_.clear();
+  WorkWindowSecondPage* work_window_second_page =
+      reinterpret_cast<WorkWindowSecondPage*>(
+          tab_main_pages_["WorkWindowSecondPage"].release());
+  delete work_window_second_page;
 
   work_window_status_bar_virtual_wnd_->Unbind();
   work_window_status_bar_virtual_wnd_ = nullptr;
+  WorkWindowStatusBar* work_window_status_bar =
+      reinterpret_cast<WorkWindowStatusBar*>(work_window_status_bar_.release());
+  delete work_window_status_bar;
+  // remove tab_main_pages_
+  tab_main_pages_.clear();
+
+  // close devices all
+  CloseDeviceCom(anx::device::kDeviceCom_Ultrasound);
+  CloseDeviceCom(anx::device::kDeviceCom_StaticLoad);
 }
 
 void WorkWindow::InitWindow() {
@@ -323,6 +339,18 @@ LRESULT WorkWindow::OnSysCommand(UINT uMsg,
                                  WPARAM wParam,
                                  LPARAM lParam,
                                  BOOL& bHandled) {
+  if (wParam == SC_CLOSE) {
+    if (pOwner_ != nullptr) {
+      CloseDeviceCom(anx::device::kDeviceCom_Ultrasound);
+      CloseDeviceCom(anx::device::kDeviceCom_StaticLoad);
+      pOwner_->ShowWindow(true, true);
+      this->Close();
+    } else {
+      PostQuitMessage(0);
+    }
+    bHandled = TRUE;
+    return 0;
+  }
   BOOL bZoomed = ::IsZoomed(m_hWnd);
   LRESULT lRes = CWindowWnd::HandleMessage(uMsg, wParam, lParam);
   if (::IsZoomed(m_hWnd) != bZoomed) {
@@ -578,10 +606,12 @@ void WorkWindow::CloseDeviceCom(int32_t device_type) {
   if (device_type == anx::device::kDeviceCom_Ultrasound) {
     if (device_com_ul_ != nullptr) {
       device_com_ul_->Close();
+      device_com_ul_->RemoveListener(this);
     }
   } else if (device_type == anx::device::kDeviceCom_StaticLoad) {
     if (device_com_sl_ != nullptr) {
       device_com_sl_->Close();
+      device_com_sl_->RemoveListener(this);
     }
   } else {
     assert(false && "Invalid device type");

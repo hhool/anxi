@@ -76,6 +76,12 @@ class WorkWindowSecondPageGraph : public DuiLib::CNotifyPump,
                       const uint8_t* data,
                       int32_t size) override;
 
+ protected:
+  void OnExpStart();
+  void OnExpStop();
+  void OnExpPause();
+  void OnExpResume();
+
  private:
   WorkWindow* pWorkWindow_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
