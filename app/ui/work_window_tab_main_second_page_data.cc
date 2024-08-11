@@ -365,6 +365,7 @@ void WorkWindowSecondPageData::OnExpStart() {
   UpdateUIWithExpStatus(1);
   list_data_->RemoveAll();
   exp_start_time_ms_ = anx::common::GetCurrentTimeMillis();
+  exp_start_date_time_ = time(nullptr);
   exp_data_incoming_num_ = 0;
   exp_sample_interval_ms_ = device_exp_data_settings_->sampling_interval_ * 100;
 }
@@ -376,7 +377,7 @@ void WorkWindowSecondPageData::OnExpStop() {
   // file path is execuatable path/recored/xxx.csv
   // file format is csv
   anx::expdata::SaveExperimentDataToCsvWithDefaultPath(exp_datas_,
-                                                       exp_start_time_ms_);
+                                                       exp_start_date_time_);
   // reset exp params;
   exp_start_time_ms_ = 0;
   exp_data_incoming_num_ = 0;

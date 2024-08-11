@@ -14,6 +14,7 @@
 
 #include <memory>
 #include <string>
+#include <time.h>
 #include <vector>
 
 #include "app/device/device_com.h"
@@ -113,6 +114,7 @@ class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
   /// 0 - stop, 1 - start, 2 - pause, <0 - unvalid
   int32_t is_exp_state_ = -1;
   int64_t exp_start_time_ms_ = 0;
+  int64_t exp_start_date_time_ = 0;
   uint64_t exp_data_incoming_num_ = 0;
   int64_t exp_time_interval_num_ = 0;
   uint32_t exp_data_table_no_ = 0;
