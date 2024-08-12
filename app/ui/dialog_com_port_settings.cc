@@ -54,6 +54,14 @@ void DialogComPortSettings::InitWindow() {
   UpdateControlFromComInfoAll();
 }
 
+void DialogComPortSettings::Notify(DuiLib::TNotifyUI& msg) {
+  if (msg.sType == kWindowInit) {
+    OnPrepare(msg);
+  } else if (msg.sType == kClick) {
+    OnClick(msg);
+  }
+}
+
 void DialogComPortSettings::OnFinalMessage(HWND hWnd) {
   WindowImplBase::OnFinalMessage(hWnd);
   delete this;
@@ -76,6 +84,12 @@ void DialogComPortSettings::OnClick(DuiLib::TNotifyUI& msg) {
   } else if (msg.pSender == btn_close_) {
     this->Close();
   }
+}
+
+void DialogComPortSettings::OnPrepare(const DuiLib::TNotifyUI& msg) {
+  ::SetWindowLong(
+      m_hWnd, GWL_STYLE,
+      ::GetWindowLong(m_hWnd, GWL_STYLE) & ~WS_MAXIMIZEBOX & ~WS_THICKFRAME);
 }
 
 void DialogComPortSettings::SaveComInfoFromControlAll() {

@@ -10,11 +10,12 @@
  */
 
 #include "app/ui/dialog_common.h"
-#include "app/ui/ui_constants.h"
 
 #include <string>
+
 #include "app/common/defines.h"
 #include "app/common/string_utils.h"
+#include "app/ui/ui_constants.h"
 
 DUI_BEGIN_MESSAGE_MAP(anx::ui::DialogCommon, DuiLib::WindowImplBase)
 DUI_ON_MSGTYPE(DUI_MSGTYPE_CLICK, OnClick)
@@ -69,7 +70,7 @@ void DialogCommon::OnFinalMessage(HWND hWnd) {
   delete this;
 }
 
-LRESULT anx::ui::DialogCommon::ResponseDefaultKeyEvent(WPARAM wParam) {
+LRESULT DialogCommon::ResponseDefaultKeyEvent(WPARAM wParam) {
   if (wParam == VK_RETURN) {
     this->Close();
     return TRUE;
@@ -79,5 +80,10 @@ LRESULT anx::ui::DialogCommon::ResponseDefaultKeyEvent(WPARAM wParam) {
   return FALSE;
 }
 
+void DialogCommon::OnPrepare(const DuiLib::TNotifyUI& msg) {
+  ::SetWindowLong(
+      m_hWnd, GWL_STYLE,
+      ::GetWindowLong(m_hWnd, GWL_STYLE) & ~WS_MAXIMIZEBOX & ~WS_THICKFRAME);
+}
 }  // namespace ui
 }  // namespace anx

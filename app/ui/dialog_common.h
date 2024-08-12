@@ -60,6 +60,9 @@ class DialogCommon : public DuiLib::WindowImplBase {
     return _T("dialog_common");
   }
 
+ protected:
+  void OnPrepare(const DuiLib::TNotifyUI& msg);
+
  private:
   std::string title_;
   std::string content_;

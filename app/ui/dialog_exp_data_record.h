@@ -1,16 +1,16 @@
 /**
- * @file dialog_amplitude_calibration_settings.h
+ * @file dialog_exp_data_record.h
  * @author hhool (hhool@outlook.com)
- * @brief amplitude calibration settings dialog class implementation
+ * @brief dialog about
  * @version 0.1
- * @date 2024-08-03
+ * @date 2024-07-26
  *
  * @copyright Copyright (c) 2024
  *
  */
 
-#ifndef APP_UI_DIALOG_AMPLITUDE_CALIBRATION_SETTINGS_H_
-#define APP_UI_DIALOG_AMPLITUDE_CALIBRATION_SETTINGS_H_
+#ifndef APP_UI_DIALOG_EXP_DATA_RECORD_H_
+#define APP_UI_DIALOG_EXP_DATA_RECORD_H_
 
 #include <memory>
 #include <string>
@@ -27,18 +27,17 @@ using DuiLib::INotifyUI;
 
 namespace anx {
 namespace ui {
-class DialogAmplitudeCalibrationSettings : public DuiLib::WindowImplBase {
+class DialogExpDataRecord : public DuiLib::WindowImplBase {
  public:
-  DialogAmplitudeCalibrationSettings();
-  ~DialogAmplitudeCalibrationSettings();
+  DialogExpDataRecord();
+  ~DialogExpDataRecord();
+
+  DUI_DECLARE_MESSAGE_MAP()
 
   void InitWindow() override;
   void Notify(DuiLib::TNotifyUI& msg) override;
   void OnFinalMessage(HWND hWnd) override;
   LRESULT ResponseDefaultKeyEvent(WPARAM wParam) override;
-
-  DUI_DECLARE_MESSAGE_MAP()
-  void OnClick(DuiLib::TNotifyUI& msg) override;
 
   DuiLib::CDuiString GetSkinFolder() override {
 #ifdef _DEBUG
@@ -48,7 +47,7 @@ class DialogAmplitudeCalibrationSettings : public DuiLib::WindowImplBase {
 #endif
   }
   DuiLib::CDuiString GetSkinFile() override {
-    return _T("dialog_amplitude_calibration_settings.xml");
+    return _T("dialog_experiment_data_record.xml");
   }
   DuiLib::UILIB_RESOURCETYPE GetResourceType() const override {
 #ifdef _DEBUG
@@ -58,24 +57,19 @@ class DialogAmplitudeCalibrationSettings : public DuiLib::WindowImplBase {
 #endif
   }
   LPCTSTR GetWindowClassName(void) const override {
-    return _T("dialog_amplitude_calibration_settings");
+    return _T("dialog_experiment_data_record");
   }
 
-  void OnPrepare(const DuiLib::TNotifyUI& msg);
-
-  void UpdateControlFromSettings();
-  void SaveSettingsFromControl();
+ protected:
+  void OnPrepare(const TNotifyUI& msg);
 
  private:
-  CButtonUI* btn_close_;
-  CButtonUI* btn_ok_;
-
-  CEditUI* edit_amp_level_one_;
-  CEditUI* edit_amp_level_two_;
-  CEditUI* edit_amp_level_third_;
-  CEditUI* edit_amp_level_fourth_;
+  DuiLib::CButtonUI* close_button_;
+  DuiLib::CButtonUI* refresh_button_;
+  DuiLib::CDateTimeUI* start_date_time_;
+  DuiLib::CDateTimeUI* end_date_time_;
 };
 }  // namespace ui
 }  // namespace anx
 
-#endif  // APP_UI_DIALOG_AMPLITUDE_CALIBRATION_SETTINGS_H_
+#endif  // APP_UI_DIALOG_EXP_DATA_RECORD_H_

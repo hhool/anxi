@@ -33,6 +33,7 @@ class DialogStaticLoadGuaranteedSettings : public DuiLib::WindowImplBase {
   ~DialogStaticLoadGuaranteedSettings();
 
   void InitWindow() override;
+  void Notify(DuiLib::TNotifyUI& msg) override;
   void OnFinalMessage(HWND hWnd) override;
   LRESULT ResponseDefaultKeyEvent(WPARAM wParam) override;
 
@@ -59,6 +60,9 @@ class DialogStaticLoadGuaranteedSettings : public DuiLib::WindowImplBase {
   LPCTSTR GetWindowClassName(void) const override {
     return _T("dialog_static_load_guaranteed_settings");
   }
+
+ protected:
+  void OnPrepare(const DuiLib::TNotifyUI& msg);
 
   void UpdateControlFromSettings();
   void SaveSettingsFromControl();

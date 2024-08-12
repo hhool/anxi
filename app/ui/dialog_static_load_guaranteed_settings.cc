@@ -54,6 +54,14 @@ void DialogStaticLoadGuaranteedSettings::InitWindow() {
   UpdateControlFromSettings();
 }
 
+void DialogStaticLoadGuaranteedSettings::Notify(DuiLib::TNotifyUI& msg) {
+  if (msg.sType == kWindowInit) {
+    OnPrepare(msg);
+  } else if (msg.sType == kClick) {
+    OnClick(msg);
+  }
+}
+
 void DialogStaticLoadGuaranteedSettings::OnFinalMessage(HWND hWnd) {
   WindowImplBase::OnFinalMessage(hWnd);
   delete this;
@@ -77,6 +85,13 @@ void DialogStaticLoadGuaranteedSettings::OnClick(DuiLib::TNotifyUI& msg) {
   } else if (msg.pSender == btn_close_) {
     this->Close();
   }
+}
+
+void DialogStaticLoadGuaranteedSettings::OnPrepare(
+    const DuiLib::TNotifyUI& msg) {
+  ::SetWindowLong(
+      m_hWnd, GWL_STYLE,
+      ::GetWindowLong(m_hWnd, GWL_STYLE) & ~WS_MAXIMIZEBOX & ~WS_THICKFRAME);
 }
 
 void DialogStaticLoadGuaranteedSettings::UpdateControlFromSettings() {

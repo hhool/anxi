@@ -23,6 +23,7 @@
 #include "app/esolution/solution_design_helper.h"
 #include "app/ui/dialog_about.h"
 #include "app/ui/dialog_com_port_settings.h"
+#include "app/ui/dialog_exp_data_record.h"
 #include "app/ui/ui_constants.h"
 #include "app/ui/work_window_menu_design.h"
 #include "app/ui/work_window_menu_store.h"
@@ -247,8 +248,13 @@ void WorkWindow::Notify(DuiLib::TNotifyUI& msg) {
   } else if (msg.sType == kMenu_Design_Exit) {
     // TODO(hhool): kMenu_Store_ExpRecord
   } else if (msg.sType == kMenu_Store_ExpRecord) {
-    // TODO(hhool):
-    MessageBox(*this, msg.sType, msg.sType, MB_OK);
+    DialogExpDataRecord* dialog_exp_data_record =
+        new DialogExpDataRecord();
+    dialog_exp_data_record->Create(*this, _T("dialog_exp_data_record"),
+                                   UI_WNDSTYLE_FRAME,
+                                   WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
+    dialog_exp_data_record->CenterWindow();
+    dialog_exp_data_record->ShowModal();
   } else if (msg.sType == kMenu_Store_ComRecord) {
     // TODO(hhool):
     MessageBox(*this, msg.sType, msg.sType, MB_OK);

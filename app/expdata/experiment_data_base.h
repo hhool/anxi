@@ -30,11 +30,32 @@ class ExperimentData {
   float MPa_;
   float um_;
 };
+////////////////////////////////////////////////////////////////////////////////
 /// helper function
-
+/// @brief Load the experiment data from the csv file
+/// @param file_path the file path of the csv file
+/// @return the experiment data vector
 int32_t SaveExperimentDataToCsvWithDefaultPath(
     const std::vector<anx::expdata::ExperimentData>& exp_data,
     int64_t start_time);
+
+class ExperimentFileSummary {
+ public:
+  ExperimentFileSummary();
+  virtual ~ExperimentFileSummary();
+
+ public:
+  std::string file_name_;
+  uint64_t start_time_;
+  uint64_t end_time_;
+};
+
+/// @brief Traverse the directory expdata folder and get all the csv files
+/// @param file_list the file list
+/// @return int32_t 0 if success, -1 if failed
+int32_t TraverseExpDataFolder(
+    std::vector<anx::expdata::ExperimentFileSummary>* exp_file_list);
+
 }  // namespace expdata
 }  // namespace anx
 

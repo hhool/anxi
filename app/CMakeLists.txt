@@ -20,9 +20,9 @@ message(STATUS "PROJECT_PATH: ${PROJECT_PATH}")
 include_directories(${PROJECT_PATH})
 
 set(COMMON_FILES
-    common/defines.h
     common/crc16.cc
     common/crc16.h
+    common/defines.h
     common/module_utils.cc
     common/module_utils.h
     common/string_utils.cc
@@ -64,7 +64,16 @@ list(APPEND APP_SOURCES ${DEVICE_FILES})
 
 set(EXPDATA_FILES
     expdata/experiment_data_base.cc
-    expdata/experiment_data_base.h)
+    expdata/experiment_data_base.h
+    expdata/LibOb_strptime.c
+    expdata/LibOb_strptime.h)
+
+if(WIN32)
+    list(APPEND EXPDATA_FILES
+        expdata/strptime.c
+        expdata/strptime.h)
+endif()
+
 source_group("expdata" FILES ${EXPDATA_FILES})
 list(APPEND APP_SOURCES ${EXPDATA_FILES})
 
@@ -105,6 +114,8 @@ if(WIN32)
         ui/dialog_com_port_settings.h
         ui/dialog_common.cc
         ui/dialog_common.h
+        ui/dialog_exp_data_record.cc
+        ui/dialog_exp_data_record.h
         ui/dialog_static_load_guaranteed_settings.cc
         ui/dialog_static_load_guaranteed_settings.h
         ui/main_window.cc

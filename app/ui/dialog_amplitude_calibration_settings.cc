@@ -50,6 +50,14 @@ void DialogAmplitudeCalibrationSettings::InitWindow() {
   UpdateControlFromSettings();
 }
 
+void DialogAmplitudeCalibrationSettings::Notify(DuiLib::TNotifyUI& msg) {
+  if (msg.sType == kWindowInit) {
+    OnPrepare(msg);
+  } else if (msg.sType == kClick) {
+    OnClick(msg);
+  }
+}
+
 void DialogAmplitudeCalibrationSettings::OnFinalMessage(HWND hWnd) {
   WindowImplBase::OnFinalMessage(hWnd);
   delete this;
@@ -73,6 +81,13 @@ void DialogAmplitudeCalibrationSettings::OnClick(DuiLib::TNotifyUI& msg) {
   } else if (msg.pSender == btn_close_) {
     this->Close();
   }
+}
+
+void DialogAmplitudeCalibrationSettings::OnPrepare(
+    const DuiLib::TNotifyUI& msg) {
+  ::SetWindowLong(
+      m_hWnd, GWL_STYLE,
+      ::GetWindowLong(m_hWnd, GWL_STYLE) & ~WS_MAXIMIZEBOX & ~WS_THICKFRAME);
 }
 
 void DialogAmplitudeCalibrationSettings::UpdateControlFromSettings() {

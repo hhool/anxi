@@ -56,6 +56,9 @@ class DialogAbout : public DuiLib::WindowImplBase {
   }
   LPCTSTR GetWindowClassName(void) const override { return _T("dialog_about"); }
 
+ protected:
+  void OnPrepare(const TNotifyUI& msg);
+
  private:
 };
 }  // namespace ui

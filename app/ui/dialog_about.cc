@@ -25,7 +25,9 @@ DialogAbout::~DialogAbout() {}
 void DialogAbout::InitWindow() {}
 
 void DialogAbout::Notify(DuiLib::TNotifyUI& msg) {
-  if (msg.sType == kClick) {
+  if (msg.sType == kWindowInit) {
+    OnPrepare(msg);
+  } else if (msg.sType == kClick) {
     if (msg.pSender->GetName() == kCloseButtonControlName) {
       this->Close();
       return;
@@ -38,7 +40,7 @@ void DialogAbout::OnFinalMessage(HWND hWnd) {
   delete this;
 }
 
-LRESULT anx::ui::DialogAbout::ResponseDefaultKeyEvent(WPARAM wParam) {
+LRESULT DialogAbout::ResponseDefaultKeyEvent(WPARAM wParam) {
   if (wParam == VK_RETURN) {
     this->Close();
     return TRUE;
@@ -47,6 +49,10 @@ LRESULT anx::ui::DialogAbout::ResponseDefaultKeyEvent(WPARAM wParam) {
   }
   return FALSE;
 }
-
+void DialogAbout::OnPrepare(const DuiLib::TNotifyUI& msg) {
+  ::SetWindowLong(
+      m_hWnd, GWL_STYLE,
+      ::GetWindowLong(m_hWnd, GWL_STYLE) & ~WS_MAXIMIZEBOX & ~WS_THICKFRAME);
+}
 }  // namespace ui
 }  // namespace anx

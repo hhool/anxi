@@ -39,6 +39,7 @@ class DialogComPortSettings : public DuiLib::WindowImplBase {
   ~DialogComPortSettings();
 
   void InitWindow() override;
+  void Notify(DuiLib::TNotifyUI& msg) override;
   void OnFinalMessage(HWND hWnd) override;
   LRESULT ResponseDefaultKeyEvent(WPARAM wParam) override;
 
@@ -65,6 +66,9 @@ class DialogComPortSettings : public DuiLib::WindowImplBase {
   LPCTSTR GetWindowClassName(void) const override {
     return _T("dialog_com_port_settings");
   }
+
+ protected:
+  void OnPrepare(const DuiLib::TNotifyUI& msg);
 
  protected:
   void SaveComInfoFromControlAll();
