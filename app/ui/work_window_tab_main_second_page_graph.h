@@ -17,7 +17,7 @@
 
 #include "app/device/device_com.h"
 #include "app/ui/ui_virtual_wnd_base.h"
-
+#include "app/ui/work_window_tab_main_second_page_graph_ctrl.h"
 #include "third_party\duilib\source\DuiLib\UIlib.h"
 
 // for DUI_DECLARE_MESSAGE_MAP
@@ -33,6 +33,7 @@ class SolutionDesign;
 }  // namespace esolution
 namespace ui {
 class WorkWindow;
+class WorkWindowSecondWorkWindowSecondPageGraphCtrl;
 }  // namespace ui
 }  // namespace anx
 
@@ -50,7 +51,12 @@ class WorkWindowSecondPageGraph : public DuiLib::CNotifyPump,
  public:
   DUI_DECLARE_MESSAGE_MAP()
   void OnClick(TNotifyUI& msg);  // NOLINT
-  void OnTimer(TNotifyUI& msg);  // NOLINT
+
+ protected:
+  bool OnOptGraphTimeModeChange(void* param);
+  bool OnChkGraphAlwaysShowNewChange(void* param);
+  bool OnOptGraphTimeRangeChange(void* param);
+  bool OnTimer(void* param);
 
  public:
   // implement the base class UIVirtualWndBase virtual function
@@ -59,7 +65,7 @@ class WorkWindowSecondPageGraph : public DuiLib::CNotifyPump,
 
  protected:
   void CheckDeviceComConnectedStatus();
-  void RefreshExpClipTimeControl();
+  void RefreshExpGraphTitelControl();
   void RefreshSampleTimeControl();
   void UpdateControlFromSettings();
   void SaveSettingsFromControl();
@@ -82,6 +88,8 @@ class WorkWindowSecondPageGraph : public DuiLib::CNotifyPump,
   void OnExpPause();
   void OnExpResume();
 
+  class PageGraphCtrl;
+
  private:
   WorkWindow* pWorkWindow_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
@@ -101,6 +109,20 @@ class WorkWindowSecondPageGraph : public DuiLib::CNotifyPump,
   DuiLib::COptionUI* opt_graph_time_range_10_mnitues_;
   DuiLib::COptionUI* opt_graph_time_range_30_mnitues_;
   DuiLib::COptionUI* opt_graph_time_range_60_mnitues_;
+  int32_t graphctrl_sample_total_minutes_;
+
+  /// @brief graph amplitude title and canvas
+  DuiLib::CButtonUI* btn_graph_amplitude_title_;
+  DuiLib::CButtonUI* btn_graph_amplitude_canvas_;
+
+  /// @brief graph stress title and canvas
+  DuiLib::CButtonUI* btn_graph_stress_title_;
+  DuiLib::CButtonUI* btn_graph_stress_canvas_;
+
+  std::unique_ptr<WorkWindowSecondWorkWindowSecondPageGraphCtrl>
+      page_graph_amplitude_ctrl_;
+  std::unique_ptr<WorkWindowSecondWorkWindowSecondPageGraphCtrl>
+      page_graph_stress_ctrl_;
 };
 
 }  // namespace ui

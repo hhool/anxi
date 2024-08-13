@@ -26,7 +26,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 DUI_BEGIN_MESSAGE_MAP(anx::ui::WorkWindowSecondPageData, DuiLib::CNotifyPump)
 DUI_ON_MSGTYPE(DUI_MSGTYPE_CLICK, OnClick)
-DUI_ON_MSGTYPE(DUI_MSGTYPE_TIMER, OnTimer)
 DUI_END_MESSAGE_MAP()
 
 namespace anx {
@@ -86,13 +85,22 @@ void WorkWindowSecondPageData::OnClick(TNotifyUI& msg) {
   }
 }
 
-void WorkWindowSecondPageData::OnTimer(TNotifyUI& msg) {
-  uint32_t id_timer = msg.wParam;
-  if (id_timer == kTimerIdRefreshControl) {
-    RefreshSampleTimeControl();
-  } else {
-    // TODO(hhool): do nothing
+bool WorkWindowSecondPageData::OnTimer(void* param) {
+  TNotifyUI* pMsg = reinterpret_cast<TNotifyUI*>(param);
+  if (pMsg == nullptr) {
+    return false;
   }
+  if (pMsg->pSender != text_sample_interval_) {
+    return false;
+  }
+  if (pMsg->wParam == kTimerIdRefreshControl) {
+    RefreshSampleTimeControl();
+    return true;
+  } else {
+    // TODO(hhool): do nothing;
+    return false;
+  }
+  return true;
 }
 
 LPCTSTR WorkWindowSecondPageData::GetItemText(CControlUI* pControl,
@@ -162,15 +170,17 @@ void WorkWindowSecondPageData::Bind() {
   list_data_->SetTextCallback(this);
   UpdateControlFromSettings();
 
-  paint_manager_ui_->SetTimer(edit_sample_start_pos_, kTimerIdRefreshControl,
+  paint_manager_ui_->SetTimer(text_sample_interval_, kTimerIdRefreshControl,
                               1000);
+  text_sample_interval_->OnNotify +=
+      ::MakeDelegate(this, &WorkWindowSecondPageData::OnTimer);
 }
 
 void WorkWindowSecondPageData::Unbind() {
   // save the settings from the control
   SaveSettingsFromControl();
 
-  paint_manager_ui_->KillTimer(edit_sample_start_pos_, kTimerIdRefreshControl);
+  paint_manager_ui_->KillTimer(text_sample_interval_, kTimerIdRefreshControl);
 
   // release the device com interface
   if (device_com_sl_ != nullptr) {
@@ -364,6 +374,7 @@ void WorkWindowSecondPageData::OnExpStart() {
   is_exp_state_ = 1;
   UpdateUIWithExpStatus(1);
   list_data_->RemoveAll();
+  exp_datas_.clear();
   exp_start_time_ms_ = anx::common::GetCurrentTimeMillis();
   exp_start_date_time_ = time(nullptr);
   exp_data_incoming_num_ = 0;
@@ -393,6 +404,16 @@ void WorkWindowSecondPageData::OnExpPause() {
 void WorkWindowSecondPageData::OnExpResume() {
   UpdateUIWithExpStatus(1);
   is_exp_state_ = 1;
+}
+
+void WorkWindowSecondPageData::ClearExpData() {
+  list_data_->RemoveAll();
+  exp_datas_.clear();
+  exp_start_time_ms_ = anx::common::GetCurrentTimeMillis();
+  exp_start_date_time_ = time(nullptr);
+  exp_data_incoming_num_ = 0;
+  exp_time_interval_num_ = 0;
+  exp_data_table_no_ = 0;
 }
 
 }  // namespace ui

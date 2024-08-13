@@ -34,6 +34,12 @@ void sleep_ms(int64_t ms);
 // @param dateTimeStr output parameter, the current date time string
 // @return void
 void GetCurrentDateTime(char dateTimeStr[256]);
+
+/// @brief get current time with struct tm filled with current time info.
+/// @param ltm output parameter, the current time struct tm filled with current
+/// time info.
+/// @return void
+void GetLocalTime(struct tm* ltm);
 }  // namespace common
 }  // namespace anx
 

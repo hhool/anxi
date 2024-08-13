@@ -126,6 +126,11 @@ void WorkWindowSecondPage::OnClick(TNotifyUI& msg) {
       dialog_static_load_guraranteed_settings->ShowModal();
     } else if (msg.pSender == this->btn_sa_reset_) {
       // TODO(hhool): add reset action
+      this->pWorkWindow_->ClearArgsFreqNum();
+      WorkWindowSecondPageData* data_page =
+          reinterpret_cast<WorkWindowSecondPageData*>(
+              work_window_second_page_data_notify_pump_.get());
+      data_page->ClearExpData();
     } else if (msg.pSender == this->btn_exp_start_) {
       exp_start();
     } else if (msg.pSender == this->btn_exp_stop_) {
@@ -443,13 +448,18 @@ void WorkWindowSecondPage::UpdateExpClipTimeFromControl() {
   exp_clip_time_duration_ = _ttoi(edit_exp_clip_time_duration_->GetText());
   exp_clip_time_paused_ = _ttoi(edit_exp_clip_time_paused_->GetText());
 
+  // exp_clip_time_duration_ append "S"
+  std::string value = ("=");
+  value += format_num(exp_clip_time_duration_ * 100);
+  value += "S";
   text_exp_clip_time_duration_->SetText(
-      anx::common::string2wstring(
-          std::to_string(exp_clip_time_duration_).c_str())
-          .c_str());
+      anx::common::string2wstring(value).c_str());
+  // exp_clip_time_paused_ append "S"
+  value = ("=");
+  value += format_num(exp_clip_time_paused_ * 100);
+  value += "S";
   text_exp_clip_time_paused_->SetText(
-      anx::common::string2wstring(std::to_string(exp_clip_time_paused_).c_str())
-          .c_str());
+      anx::common::string2wstring(value).c_str());
 }
 
 void WorkWindowSecondPage::UpdateUIWithExpStatus(int status) {
@@ -460,7 +470,7 @@ void WorkWindowSecondPage::UpdateUIWithExpStatus(int status) {
     btn_exp_pause_->SetEnabled(false);
     btn_exp_stop_->SetEnabled(false);
 
-	chk_exp_clip_set_->SetEnabled(true);
+    chk_exp_clip_set_->SetEnabled(true);
     edit_exp_clip_time_duration_->SetEnabled(true);
     edit_exp_clip_time_paused_->SetEnabled(true);
     edit_max_cycle_count_->SetEnabled(true);
@@ -478,8 +488,7 @@ void WorkWindowSecondPage::UpdateUIWithExpStatus(int status) {
     btn_exp_pause_->SetEnabled(true);
     btn_exp_stop_->SetEnabled(true);
 
-
-	chk_exp_clip_set_->SetEnabled(false);
+    chk_exp_clip_set_->SetEnabled(false);
     edit_exp_clip_time_duration_->SetEnabled(false);
     edit_exp_clip_time_paused_->SetEnabled(false);
     edit_max_cycle_count_->SetEnabled(false);
@@ -497,8 +506,7 @@ void WorkWindowSecondPage::UpdateUIWithExpStatus(int status) {
     btn_exp_pause_->SetEnabled(false);
     btn_exp_stop_->SetEnabled(true);
 
-
-	chk_exp_clip_set_->SetEnabled(true);
+    chk_exp_clip_set_->SetEnabled(true);
     edit_exp_clip_time_duration_->SetEnabled(true);
     edit_exp_clip_time_paused_->SetEnabled(true);
     edit_max_cycle_count_->SetEnabled(true);

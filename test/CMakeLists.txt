@@ -26,6 +26,8 @@ set(PROJECT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/..")
 message(STATUS "PROJECT_PATH: ${PROJECT_PATH}")
 include_directories(${PROJECT_PATH})
 
+set(PREFIX "anxi")
+
 # gtest library path
 include(ExternalProject)
 
@@ -46,24 +48,31 @@ FetchContent_MakeAvailable(googletest)
 
 # ###############
 # Define a test
-add_executable(json_unittest json_unittest.cc)
-target_include_directories(json_unittest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../third_party/jsoncpp/source/include)
+add_executable(${PREFIX}_json_unittest json_unittest.cc)
+target_include_directories(${PREFIX}_json_unittest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../third_party/jsoncpp/source/include)
 
 # Link gtest
-target_link_libraries(json_unittest gtest_main gtest jsoncpp_static)
+target_link_libraries(${PREFIX}_json_unittest gtest_main gtest jsoncpp_static)
 
 # ###############
 # Define a test
-add_executable(tinyxml2_unittest tinyxml2_unittest.cc)
-target_include_directories(tinyxml2_unittest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../third_party/tinyxml2/source)
+add_executable(${PREFIX}_tinyxml2_unittest tinyxml2_unittest.cc)
+target_include_directories(${PREFIX}_tinyxml2_unittest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../third_party/tinyxml2/source)
 
 # Link gtest
-target_link_libraries(tinyxml2_unittest gtest_main gtest tinyxml2)
+target_link_libraries(${PREFIX}_tinyxml2_unittest gtest_main gtest tinyxml2)
 
 # ###############
 # Define a test
-add_executable(cserialport_unittest cserialport_unittest.cc)
-target_include_directories(cserialport_unittest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../third_party/CSerialPort/source/include)
+add_executable(${PREFIX}_cserialport_unittest cserialport_unittest.cc)
+target_include_directories(${PREFIX}_cserialport_unittest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../third_party/CSerialPort/source/include)
 
 # Link gtest
-target_link_libraries(cserialport_unittest gtest_main gtest libcserialport)
+target_link_libraries(${PREFIX}_cserialport_unittest gtest_main gtest libcserialport)
+
+# ###############
+# Define a test
+if(WIN32)
+    add_executable(${PREFIX}_ole_vartime_unittest ole_vartime_unittest.cc)
+    target_link_libraries(${PREFIX}_ole_vartime_unittest gtest_main gtest comctl32 oleaut32)
+endif()

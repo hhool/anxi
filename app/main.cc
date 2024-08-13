@@ -33,12 +33,13 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 #endif
 #else
 int main() {
+  HINSTANCE hInstance = nullptr;
 #endif
 #if defined(_DEBUG) && defined(_MSC_VER) && defined(WIN32)
   int Flag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
   Flag |= _CRTDBG_LEAK_CHECK_DF;
   _CrtSetDbgFlag(Flag);
-  // _CrtSetBreakAlloc(2840);
+  // _CrtSetBreakAlloc(1940);
 #endif
   void* handle_app = anx::app::CreateApp(hInstance);
   if (handle_app == nullptr) {

@@ -35,6 +35,7 @@ class SolutionDesign;
 class PageSolutionDesignBase;
 }  // namespace esolution
 namespace ui {
+class ChartLabelUI;
 class CMenuDesignWnd;
 class CMenuStoreWnd;
 class WorkWindowStatusBar;
@@ -61,7 +62,6 @@ class WorkWindow : public DuiLib::WindowImplBase,
   DUI_DECLARE_MESSAGE_MAP()
   void OnClick(DuiLib::TNotifyUI& msg) override;
   virtual void OnSelectChanged(DuiLib::TNotifyUI& msg);  // NOLINT
-  virtual void OnTimer(DuiLib::TNotifyUI& msg);          // NOLINT
 
   DuiLib::CDuiString GetSkinFolder() override {
 #ifdef _DEBUG
@@ -84,6 +84,13 @@ class WorkWindow : public DuiLib::WindowImplBase,
                        WPARAM wParam,
                        LPARAM lParam,
                        BOOL& bHandled) override;
+
+  CControlUI* CreateControl(LPCTSTR pstrClass) override;
+
+  LRESULT OnDestroy(UINT /*uMsg*/,
+                    WPARAM /*wParam*/,
+                    LPARAM /*lParam*/,
+                    BOOL& bHandled) override;
 
  protected:
   void OnPrepare(DuiLib::TNotifyUI& msg);  // NOLINT
@@ -139,6 +146,15 @@ class WorkWindow : public DuiLib::WindowImplBase,
                       const uint8_t* data,
                       int32_t size) override;
 
+ protected:
+  void OnExpStart();
+  void OnExpStop();
+  void OnExpPause();
+  void OnExpResume();
+
+ protected:
+  void ClearArgsFreqNum();
+
  private:
   DuiLib::WindowImplBase* pOwner_;
   int32_t solution_type_;
@@ -150,6 +166,7 @@ class WorkWindow : public DuiLib::WindowImplBase,
   UIVirtualWndBase* work_window_status_bar_virtual_wnd_;
   std::shared_ptr<anx::device::DeviceComInterface> device_com_ul_;
   std::shared_ptr<anx::device::DeviceComInterface> device_com_sl_;
+  std::vector<ChartLabelUI*> label_chart_uis_;
 
   CButtonUI* btn_close_;
   CButtonUI* btn_max_;

@@ -80,5 +80,24 @@ void GetCurrentDateTime(char dateTimeStr[256]) {
           1 + ltm.tm_mon, ltm.tm_mday, ltm.tm_hour, ltm.tm_min, ltm.tm_sec,
           msec);
 }
+
+void GetLocalTime(struct tm* ltm) {
+#if defined(_WIN32)
+  FILETIME fileTime;
+  GetSystemTimeAsFileTime(&fileTime);
+
+  ULARGE_INTEGER uli;
+  uli.LowPart = fileTime.dwLowDateTime;
+  uli.HighPart = fileTime.dwHighDateTime;
+
+  time_t time = (uli.QuadPart - 116444736000000000) / 10000000;
+  localtime_s(ltm, &time);
+#else
+  struct timeval now;
+  gettimeofday(&now, NULL);
+  *ltm = *localtime(&now.tv_sec);
+#endif
+}
+
 }  // namespace common
 }  // namespace anx

@@ -12,9 +12,9 @@
 #ifndef APP_UI_WORK_WINDOW_TAB_MAIN_SECOND_PAGE_DATA_H_
 #define APP_UI_WORK_WINDOW_TAB_MAIN_SECOND_PAGE_DATA_H_
 
+#include <time.h>
 #include <memory>
 #include <string>
-#include <time.h>
 #include <vector>
 
 #include "app/device/device_com.h"
@@ -51,7 +51,9 @@ class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
  public:
   DUI_DECLARE_MESSAGE_MAP()
   void OnClick(TNotifyUI& msg);  // NOLINT
-  void OnTimer(TNotifyUI& msg);  // NOLINT
+
+ protected:
+  bool OnTimer(void* param);
 
   // Inherited via IListCallbackUI
   LPCTSTR GetItemText(CControlUI* pList, int iItem, int iSubItem) override;
@@ -85,6 +87,10 @@ class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
   void OnExpStop();
   void OnExpPause();
   void OnExpResume();
+
+ protected:
+  friend class WorkWindowSecondPage;
+  void ClearExpData();
 
  private:
   WorkWindow* pWorkWindow_;

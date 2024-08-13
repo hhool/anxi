@@ -24,6 +24,7 @@
 #include "app/ui/dialog_about.h"
 #include "app/ui/dialog_com_port_settings.h"
 #include "app/ui/dialog_exp_data_record.h"
+#include "app/ui/ui_chart_label.h"
 #include "app/ui/ui_constants.h"
 #include "app/ui/work_window_menu_design.h"
 #include "app/ui/work_window_menu_store.h"
@@ -35,7 +36,6 @@
 DUI_BEGIN_MESSAGE_MAP(anx::ui::WorkWindow, DuiLib::WindowImplBase)
 DUI_ON_MSGTYPE(DUI_MSGTYPE_CLICK, OnClick)
 DUI_ON_MSGTYPE(DUI_MSGTYPE_SELECTCHANGED, OnSelectChanged)
-DUI_ON_MSGTYPE(DUI_MSGTYPE_TIMER, OnTimer)
 DUI_END_MESSAGE_MAP()
 
 namespace anx {
@@ -58,9 +58,8 @@ WorkWindow::WorkWindow(DuiLib::WindowImplBase* pOwner, int32_t solution_type)
           anx::device::kDeviceCom_StaticLoad, this);
 
   if (solution_type == anx::esolution::kSolutionName_Axially_Symmetrical) {
-    anx::ui::WorkWindowFirstPageAxiallySymmetrical* page_axially =
-        new anx::ui::WorkWindowFirstPageAxiallySymmetrical(this,
-                                                           &m_PaintManager);
+    WorkWindowFirstPageAxiallySymmetrical* page_axially =
+        new WorkWindowFirstPageAxiallySymmetrical(this, &m_PaintManager);
     solution_design_base_ = page_axially;
     tab_main_pages_["WorkWindowFirstPageAxiallySymmetrical"].reset(
         page_axially);
@@ -68,24 +67,24 @@ WorkWindow::WorkWindow(DuiLib::WindowImplBase* pOwner, int32_t solution_type)
                         page_axially);
   } else if (solution_type ==
              anx::esolution::kSolutionName_Stresses_Adjustable) {
-    anx::ui::WorkWindownFirstPageStressAjustable* page_stress =
-        new anx::ui::WorkWindownFirstPageStressAjustable(this, &m_PaintManager);
+    WorkWindownFirstPageStressAjustable* page_stress =
+        new WorkWindownFirstPageStressAjustable(this, &m_PaintManager);
     solution_design_base_ = page_stress;
     tab_main_pages_["WorkWindowFirstPageStressesAdjustable"].reset(page_stress);
     this->AddVirtualWnd(
         _T("WorkWindowFirstPageStressesAdjustable"),
         tab_main_pages_["WorkWindowFirstPageStressesAdjustable"].get());
   } else if (solution_type == anx::esolution::kSolutionName_Th3point_Bending) {
-    anx::ui::WorkWindowFirstPageTh3pointBending* page_th3point =
-        new anx::ui::WorkWindowFirstPageTh3pointBending(this, &m_PaintManager);
+    WorkWindowFirstPageTh3pointBending* page_th3point =
+        new WorkWindowFirstPageTh3pointBending(this, &m_PaintManager);
     solution_design_base_ = page_th3point;
     tab_main_pages_["WorkWindowFirstPageTh3pointBending"].reset(page_th3point);
     this->AddVirtualWnd(
         _T("WorkWindowFirstPageTh3pointBending"),
         tab_main_pages_["WorkWindowFirstPageTh3pointBending"].get());
   } else if (solution_type == anx::esolution::kSolutionName_Vibration_Bending) {
-    anx::ui::WorkWindowFirstPageVibrationBending* page_vibration =
-        new anx::ui::WorkWindowFirstPageVibrationBending(this, &m_PaintManager);
+    WorkWindowFirstPageVibrationBending* page_vibration =
+        new WorkWindowFirstPageVibrationBending(this, &m_PaintManager);
     solution_design_base_ = page_vibration;
     tab_main_pages_["WorkWindowFirstPageVibrationBending"].reset(
         page_vibration);
@@ -95,22 +94,22 @@ WorkWindow::WorkWindow(DuiLib::WindowImplBase* pOwner, int32_t solution_type)
   } else {
     assert(false && "Invalid solution type");
   }
-  anx::ui::WorkWindowSecondPage* second_page =
-      new anx::ui::WorkWindowSecondPage(this, &m_PaintManager);
+  WorkWindowSecondPage* second_page =
+      new WorkWindowSecondPage(this, &m_PaintManager);
   work_window_second_page_virtual_wnd_ = second_page;
   tab_main_pages_["WorkWindowSecondPage"].reset(second_page);
   this->AddVirtualWnd(_T("WorkWindowSecondPage"),
                       tab_main_pages_["WorkWindowSecondPage"].get());
 
-  anx::ui::WorkWindowThirdPage* third_page =
-      new anx::ui::WorkWindowThirdPage(this, &m_PaintManager);
+  WorkWindowThirdPage* third_page =
+      new WorkWindowThirdPage(this, &m_PaintManager);
   work_window_third_page_virtual_wnd_ = third_page;
   tab_main_pages_["WorkWindowThirdPage"].reset(third_page);
   this->AddVirtualWnd(_T("WorkWindowThirdPage"),
                       tab_main_pages_["WorkWindowThirdPage"].get());
 
-  anx::ui::WorkWindowStatusBar* work_windows_status_bar =
-      new anx::ui::WorkWindowStatusBar(this, &m_PaintManager);
+  WorkWindowStatusBar* work_windows_status_bar =
+      new WorkWindowStatusBar(this, &m_PaintManager);
   work_window_status_bar_.reset(work_windows_status_bar);
   this->AddVirtualWnd(_T("WorkWindowStatusBar"), work_window_status_bar_.get());
   work_window_status_bar_virtual_wnd_ = work_windows_status_bar;
@@ -248,8 +247,7 @@ void WorkWindow::Notify(DuiLib::TNotifyUI& msg) {
   } else if (msg.sType == kMenu_Design_Exit) {
     // TODO(hhool): kMenu_Store_ExpRecord
   } else if (msg.sType == kMenu_Store_ExpRecord) {
-    DialogExpDataRecord* dialog_exp_data_record =
-        new DialogExpDataRecord();
+    DialogExpDataRecord* dialog_exp_data_record = new DialogExpDataRecord();
     dialog_exp_data_record->Create(*this, _T("dialog_exp_data_record"),
                                    UI_WNDSTYLE_FRAME,
                                    WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
@@ -339,8 +337,6 @@ void WorkWindow::OnSelectChanged(DuiLib::TNotifyUI& msg) {
   }
 }
 
-void WorkWindow::OnTimer(DuiLib::TNotifyUI& msg) {}
-
 LRESULT WorkWindow::OnSysCommand(UINT uMsg,
                                  WPARAM wParam,
                                  LPARAM lParam,
@@ -370,6 +366,39 @@ LRESULT WorkWindow::OnSysCommand(UINT uMsg,
   }
 
   return 0;
+}
+
+CControlUI* WorkWindow::CreateControl(LPCTSTR pstrClass) {
+  // compare pstrClass with the control class name
+  if (_tcscmp(pstrClass, _T("ChartLabel")) == 0) {
+    ChartLabelUI* chart_label_ui = new ChartLabelUI();
+    HWND hWnd = CreateWindow(_T("static"), _T("win32"),
+                             WS_VISIBLE | WS_CHILD | WS_BORDER, 0, 0, 0, 0,
+                             m_PaintManager.GetPaintWindow(), NULL, NULL, NULL);
+    chart_label_ui->AttachGraph(hWnd);
+    label_chart_uis_.push_back(chart_label_ui);
+    return chart_label_ui;
+  } else if (_tcscmp(pstrClass, _T("ChartLabel")) == 0) {
+    ChartLabelUI* chart_label_ui = new ChartLabelUI();
+    HWND hWnd = CreateWindow(_T("static"), _T("win32"),
+                             WS_VISIBLE | WS_CHILD | WS_BORDER, 0, 0, 0, 0,
+                             m_PaintManager.GetPaintWindow(), NULL, NULL, NULL);
+    chart_label_ui->AttachGraph(hWnd);
+    return chart_label_ui;
+  }
+  return __super::CreateControl(pstrClass);
+}
+
+LRESULT WorkWindow::OnDestroy(UINT, WPARAM, LPARAM, BOOL& bHandled) {
+  for (auto label_chart_ui : label_chart_uis_) {
+    HWND hwnd = label_chart_ui->DetachGraph();
+    if (hwnd != nullptr) {
+      ::DestroyWindow(hwnd);
+    }
+  }
+  label_chart_uis_.clear();
+  bHandled = FALSE;
+  return __super::OnDestroy(0, 0, 0, bHandled);
 }
 
 void WorkWindow::OnPrepare(DuiLib::TNotifyUI& msg) {
@@ -631,6 +660,32 @@ void WorkWindow::OnDataReceived(anx::device::DeviceComInterface* device,
 void WorkWindow::OnDataOutgoing(anx::device::DeviceComInterface* device,
                                 const uint8_t* data,
                                 int32_t size) {}
+
+void WorkWindow::OnExpStart() {
+  // 1. get solution design from control
+  // 2. start experiment
+  // 3. show status bar message
+}
+
+void WorkWindow::OnExpStop() {
+  // 1. stop experiment
+  // 2. show status bar message
+}
+
+void WorkWindow::OnExpPause() {
+  // 1. pause experiment
+  // 2. show status bar message
+}
+
+void WorkWindow::OnExpResume() {
+  // 1. resume experiment
+  // 2. show status bar message
+}
+
+void WorkWindow::ClearArgsFreqNum() {
+  // clear freq num
+  btn_args_area_value_freq_num_->SetText(_T("0"));
+}
 
 }  // namespace ui
 }  // namespace anx

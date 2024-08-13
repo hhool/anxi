@@ -120,6 +120,8 @@ if(WIN32)
         ui/dialog_static_load_guaranteed_settings.h
         ui/main_window.cc
         ui/main_window.h
+        ui/ui_chart_label.cc
+        ui/ui_chart_label.h
         ui/ui_constants.cc
         ui/ui_constants.h
         ui/ui_virtual_wnd_base.h
@@ -136,6 +138,8 @@ if(WIN32)
         ui/work_window_tab_main_first_page_solution_design.h
         ui/work_window_tab_main_second_page_data.cc
         ui/work_window_tab_main_second_page_data.h
+        ui/work_window_tab_main_second_page_graph_ctrl.cc
+        ui/work_window_tab_main_second_page_graph_ctrl.h
         ui/work_window_tab_main_second_page_graph.cc
         ui/work_window_tab_main_second_page_graph.h
         ui/work_window_tab_main_second_page.cc
