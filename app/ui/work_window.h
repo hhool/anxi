@@ -174,10 +174,11 @@ class WorkWindow : public DuiLib::WindowImplBase,
   CButtonUI* btn_min_;
   CButtonUI* btn_title_;
 
+  CControlUI* icon_menu_design_manager_;
   CButtonUI* btn_menu_design_manager_;
+  CControlUI* icon_menu_design_store_;
   CButtonUI* btn_menu_design_store_;
   CButtonUI* btn_menu_back_;
-  CButtonUI* btn_menu_about_;
 
   CButtonUI* btn_args_area_value_freq_;
   CButtonUI* btn_args_area_value_freq_num_;

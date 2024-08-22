@@ -21,7 +21,6 @@
 #include "app/esolution/solution_design.h"
 #include "app/esolution/solution_design_default.h"
 #include "app/esolution/solution_design_helper.h"
-#include "app/ui/dialog_about.h"
 #include "app/ui/dialog_com_port_settings.h"
 #include "app/ui/dialog_exp_data_record.h"
 #include "app/ui/ui_chart_label.h"
@@ -152,6 +151,7 @@ WorkWindow::~WorkWindow() {
 
 void WorkWindow::InitWindow() {
   __super::InitWindow();
+
   btn_close_ = static_cast<CButtonUI*>(
       m_PaintManager.FindControl(kCloseButtonControlName));
   btn_max_ = static_cast<CButtonUI*>(
@@ -160,18 +160,19 @@ void WorkWindow::InitWindow() {
       m_PaintManager.FindControl(kRestoreButtonControlName));
   btn_min_ = static_cast<CButtonUI*>(
       m_PaintManager.FindControl(kMinButtonControlName));
-
   btn_title_ = static_cast<CButtonUI*>(
       m_PaintManager.FindControl(kMenu_Button_ExpTitle));
 
+  icon_menu_design_manager_ =
+      m_PaintManager.FindControl(_T("menu_icon_design_manager"));
   btn_menu_design_manager_ = static_cast<CButtonUI*>(
       m_PaintManager.FindControl(_T("menu_btn_design_manager")));
+  icon_menu_design_store_ =
+      m_PaintManager.FindControl(_T("menu_icon_design_store"));
   btn_menu_design_store_ = static_cast<CButtonUI*>(
       m_PaintManager.FindControl(_T("menu_btn_design_store")));
   btn_menu_back_ =
       static_cast<CButtonUI*>(m_PaintManager.FindControl(_T("menu_btn_back")));
-  btn_menu_about_ =
-      static_cast<CButtonUI*>(m_PaintManager.FindControl(_T("menu_btn_about")));
 
   btn_args_area_value_freq_ = static_cast<CButtonUI*>(
       m_PaintManager.FindControl(_T("args_area_value_freq")));
@@ -279,7 +280,7 @@ void WorkWindow::OnClick(DuiLib::TNotifyUI& msg) {
   } else if (msg.pSender == btn_min_) {
     SendMessage(WM_SYSCOMMAND, SC_MINIMIZE, 0);
   } else if (msg.pSender == btn_menu_design_manager_) {
-    RECT rt = msg.pSender->GetClientPos();
+    RECT rt = icon_menu_design_manager_->GetClientPos();
     POINT pt = {0};
     pt.y = rt.bottom;
     pt.x = rt.left;
@@ -290,7 +291,7 @@ void WorkWindow::OnClick(DuiLib::TNotifyUI& msg) {
     }
     pMenu->Init(msg.pSender, pt);
   } else if (msg.pSender == btn_menu_design_store_) {
-    RECT rt = msg.pSender->GetClientPos();
+    RECT rt = icon_menu_design_store_->GetClientPos();
     POINT pt = {0};
     pt.y = rt.bottom;
     pt.x = rt.left;
@@ -302,17 +303,13 @@ void WorkWindow::OnClick(DuiLib::TNotifyUI& msg) {
     pMenu->Init(msg.pSender, pt);
   } else if (msg.pSender == btn_menu_back_) {
     if (pOwner_ != nullptr) {
+      CloseDeviceCom(anx::device::kDeviceCom_Ultrasound);
+      CloseDeviceCom(anx::device::kDeviceCom_StaticLoad);
       pOwner_->ShowWindow(true, true);
       this->Close();
     } else {
       PostQuitMessage(0);
     }
-  } else if (msg.pSender == btn_menu_about_) {
-    DialogAbout* about = new DialogAbout();
-    about->Create(*this, _T("dialog_about"), UI_WNDSTYLE_FRAME,
-                  WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
-    about->CenterWindow();
-    about->ShowModal();
   } else {
     // TODO(hhool):
   }
@@ -320,18 +317,35 @@ void WorkWindow::OnClick(DuiLib::TNotifyUI& msg) {
 
 void WorkWindow::OnSelectChanged(DuiLib::TNotifyUI& msg) {
   DuiLib::CDuiString name = msg.pSender->GetName();
-  DuiLib::CTabLayoutUI* pControl = static_cast<DuiLib::CTabLayoutUI*>(
+  DuiLib::CTabLayoutUI* pControl_tb_main = static_cast<DuiLib::CTabLayoutUI*>(
       m_PaintManager.FindControl(_T("tab_main")));
-  if (name == _T("body_tab_buton_specimen_design")) {
-    pControl->SelectItem(0);
-  } else if (name == _T("body_tab_buton_exp_exec")) {
-    pControl = static_cast<DuiLib::CTabLayoutUI*>(
-        m_PaintManager.FindControl(_T("tab_main")));
-    pControl->SelectItem(1);
+  CControlUI* pControl_design =
+      m_PaintManager.FindControl(_T("body_tab_button_specimen_design"));
+  CLabelUI* pLabel_design = static_cast<CLabelUI*>(
+      m_PaintManager.FindControl(_T("body_tab_label_specimen_design")));
+  CControlUI* pControl_exec =
+      m_PaintManager.FindControl(_T("body_tab_button_exp_exec"));
+  CLabelUI* pLabel_exec = static_cast<CLabelUI*>(
+      m_PaintManager.FindControl(_T("body_tab_label_exp_exec")));
+  CControlUI* pControl_static_carrier_aircraft =
+      m_PaintManager.FindControl(_T("body_tab_button_static_carrier_aircraft"));
+  CLabelUI* pLabel_static_carrier_aircraft = static_cast<CLabelUI*>(
+      m_PaintManager.FindControl(_T("body_tab_label_static_carrier_aircraft")));
+  if (name == _T("body_tab_button_specimen_design")) {
+    pControl_tb_main->SelectItem(0);
+    pLabel_design->SetVisible(true);
+    pLabel_exec->SetVisible(false);
+    pLabel_static_carrier_aircraft->SetVisible(false);
+  } else if (name == _T("body_tab_button_exp_exec")) {
+    pControl_tb_main->SelectItem(1);
+    pLabel_design->SetVisible(false);
+    pLabel_exec->SetVisible(true);
+    pLabel_static_carrier_aircraft->SetVisible(false);
   } else if (name == _T("body_tab_button_static_carrier_aircraft")) {
-    pControl = static_cast<DuiLib::CTabLayoutUI*>(
-        m_PaintManager.FindControl(_T("tab_main")));
-    pControl->SelectItem(2);
+    pControl_tb_main->SelectItem(2);
+    pLabel_design->SetVisible(false);
+    pLabel_exec->SetVisible(false);
+    pLabel_static_carrier_aircraft->SetVisible(true);
   } else {
     // do nothing;
   }
@@ -359,12 +373,12 @@ LRESULT WorkWindow::OnSysCommand(UINT uMsg,
     if (!bZoomed) {
       btn_max_->SetVisible(false);
       btn_restore_->SetVisible(true);
+
     } else {
       btn_max_->SetVisible(true);
       btn_restore_->SetVisible(false);
     }
   }
-
   return 0;
 }
 

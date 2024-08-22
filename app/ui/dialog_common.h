@@ -67,6 +67,10 @@ class DialogCommon : public DuiLib::WindowImplBase {
   std::string title_;
   std::string content_;
   int32_t& result_;
+
+  CButtonUI* btn_close_;
+  CButtonUI* btn_ok_;
+  CButtonUI* btn_cancel_;
 };
 }  // namespace ui
 }  // namespace anx

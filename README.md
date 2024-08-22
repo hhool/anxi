@@ -36,7 +36,7 @@ only need to run once,
 start cmd as administrator
 
 ```bash
-$ regsvr32 out/bin/Release/dmgraph.ocx
+$ regsvr32 out/bin/Release/dmgraph.dll
 ```
 
 ## run

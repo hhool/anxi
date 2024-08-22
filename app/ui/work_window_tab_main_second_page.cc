@@ -236,6 +236,7 @@ void WorkWindowSecondPage::Bind() {
       paint_manager_ui_->FindControl(_T("tab_graph")));
   btn_tab_data_ = static_cast<DuiLib::CButtonUI*>(
       paint_manager_ui_->FindControl(_T("tab_data")));
+  btn_tablayout_->SelectItem(0);
 
   /// @brief Static aircraft releated button
   btn_sa_clear_ = static_cast<DuiLib::CButtonUI*>(

@@ -53,18 +53,18 @@ void DialogExpDataRecord::InitWindow() {
       CContainerUI* new_container = new CContainerUI();
       CControlUI* new_control = new CControlUI();
       new_control->SetAttributeList(
-          _T("width=\"16\" height=\"16\" ")
+          _T("width=\"20\" height=\"20\" ")
           _T("padding=\"24,0,0,0\" ")
-          _T("bkimage=\"file='logo.png' dest='3,3,18,18'\""));
-	  new_container->SetAttributeList(
-		  _T("width=\"1\" ")
-		  _T("padding=\"2,0,2,0\" "));
+          _T("bkimage=\"icon_csv.png\""));
+      new_container->SetAttributeList(
+          _T("width=\"1\" ")
+          _T("padding=\"2,0,2,0\" "));
       DuiLib::CTextUI* pText = new DuiLib::CTextUI();
-      pText->SetAttributeList(_T("font=\"2\" algin=\"right\""));
+      pText->SetAttributeList(_T("font=\"11\" algin=\"right\""));
       pText->SetText(
           anx::common::string2wstring(summary.file_name_.c_str()).c_str());
       new_h_lay->Add(new_control);
-	  new_h_lay->Add(new_container);
+      new_h_lay->Add(new_container);
       new_h_lay->Add(pText);
       new_node->Add(new_h_lay);
       pList->Add(new_node);

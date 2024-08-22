@@ -16,6 +16,7 @@
 #include "app/common/defines.h"
 #include "app/common/string_utils.h"
 #include "app/common/time_utils.h"
+#include "app/ui/dialog_about.h"
 #include "app/ui/work_window.h"
 
 DUI_BEGIN_MESSAGE_MAP(anx::ui::WorkWindowStatusBar, DuiLib::CNotifyPump)
@@ -38,6 +39,13 @@ void WorkWindowStatusBar::Notify(TNotifyUI& msg) {}
 
 void WorkWindowStatusBar::OnClick(TNotifyUI& msg) {
   if (msg.pSender != nullptr) {
+    if (msg.pSender == btn_menu_about_) {
+      DialogAbout* about = new DialogAbout();
+      about->Create(*pWorkWindow_, _T("dialog_about"), UI_WNDSTYLE_FRAME,
+                    WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
+      about->CenterWindow();
+      about->ShowModal();
+    }
   } else {
   }
 }
@@ -52,10 +60,19 @@ void WorkWindowStatusBar::OnTimer(TNotifyUI& msg) {
 
   DuiLib::CTextUI* ui_text_connected = static_cast<DuiLib::CTextUI*>(
       paint_manager_ui_->FindControl(_T("status_bar_connected")));
+  CControlUI* ui_unconnected =
+      paint_manager_ui_->FindControl(_T("status_device_unlinked"));
+  CControlUI* ui_connected =
+      paint_manager_ui_->FindControl(_T("status_device_linked"));
+
   if (pWorkWindow_->IsDeviceComInterfaceConnected()) {
     ui_text_connected->SetText(_T("联机"));
+    ui_unconnected->SetVisible(false);
+    ui_connected->SetVisible(true);
   } else {
     ui_text_connected->SetText(_T("脱机"));
+    ui_unconnected->SetVisible(true);
+    ui_connected->SetVisible(false);
   }
 
   int32_t connected_device_num = 0;
@@ -68,15 +85,17 @@ void WorkWindowStatusBar::OnTimer(TNotifyUI& msg) {
 
   DuiLib::CTextUI* ui_text_device = static_cast<DuiLib::CTextUI*>(
       paint_manager_ui_->FindControl(_T("status_bar_num_of_device")));
-  std::wstring text = _T("设备数量:");
-  text += anx::common::string2wstring(std::to_string(connected_device_num));
-  text += _T("台");
+  std::wstring text =
+      anx::common::string2wstring(std::to_string(connected_device_num));
   ui_text_device->SetText(text.c_str());
 }
 
 void WorkWindowStatusBar::Bind() {
   DuiLib::CTextUI* ui_text = static_cast<DuiLib::CTextUI*>(
       paint_manager_ui_->FindControl(_T("status_bar_current_time")));
+
+  btn_menu_about_ = static_cast<CButtonUI*>(
+      paint_manager_ui_->FindControl(_T("status_bar_menu_about")));
   paint_manager_ui_->SetTimer(ui_text, 1, 1000);
 }
 

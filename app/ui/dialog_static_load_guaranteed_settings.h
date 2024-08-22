@@ -70,6 +70,7 @@ class DialogStaticLoadGuaranteedSettings : public DuiLib::WindowImplBase {
  private:
   CButtonUI* btn_close_;
   CButtonUI* btn_ok_;
+  CButtonUI* btn_cancel_;
 
   COptionUI* opt_direct_up_;
   COptionUI* opt_direct_down_;

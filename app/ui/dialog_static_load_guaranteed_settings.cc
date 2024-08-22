@@ -33,7 +33,9 @@ void DialogStaticLoadGuaranteedSettings::InitWindow() {
   __super::InitWindow();
   btn_close_ = static_cast<CButtonUI*>(
       m_PaintManager.FindControl(kCloseButtonControlName));
-  btn_ok_ = static_cast<CButtonUI*>(m_PaintManager.FindControl(_T("btn_ok")));
+  btn_ok_ = static_cast<CButtonUI*>(m_PaintManager.FindControl(_T("okbtn")));
+  btn_cancel_ =
+      static_cast<CButtonUI*>(m_PaintManager.FindControl(_T("cancelbtn")));
 
   opt_direct_up_ = static_cast<COptionUI*>(
       m_PaintManager.FindControl(_T("tab_page_three_left_move_up")));
@@ -83,6 +85,8 @@ void DialogStaticLoadGuaranteedSettings::OnClick(DuiLib::TNotifyUI& msg) {
     SaveSettingsFromControl();
     this->Close();
   } else if (msg.pSender == btn_close_) {
+    this->Close();
+  } else if (msg.pSender == btn_cancel_) {
     this->Close();
   }
 }

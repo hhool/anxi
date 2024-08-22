@@ -53,6 +53,8 @@ class WorkWindowStatusBar : public DuiLib::CNotifyPump,
  private:
   WorkWindow* pWorkWindow_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
+
+  CButtonUI* btn_menu_about_;
 };
 }  // namespace ui
 }  // namespace anx

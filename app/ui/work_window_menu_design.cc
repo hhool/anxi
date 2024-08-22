@@ -138,7 +138,15 @@ LRESULT CMenuDesignWnd::OnCreate(UINT uMsg,
     if (pControl != NULL) {
       pControl->SetEnabled(false);
     }
+    pControl = m_pm.FindControl(_T("label_design_item_connect"));
+    if (pControl != NULL) {
+      pControl->SetEnabled(false);
+    }
     pControl = m_pm.FindControl(_T("menu_design_item_disconnect"));
+    if (pControl != NULL) {
+      pControl->SetEnabled(true);
+    }
+    pControl = m_pm.FindControl(_T("label_design_item_disconnect"));
     if (pControl != NULL) {
       pControl->SetEnabled(true);
     }
@@ -147,7 +155,15 @@ LRESULT CMenuDesignWnd::OnCreate(UINT uMsg,
     if (pControl != NULL) {
       pControl->SetEnabled(true);
     }
+    pControl = m_pm.FindControl(_T("label_design_item_connect"));
+    if (pControl != NULL) {
+      pControl->SetEnabled(true);
+    }
     pControl = m_pm.FindControl(_T("menu_design_item_disconnect"));
+    if (pControl != NULL) {
+      pControl->SetEnabled(false);
+    }
+    pControl = m_pm.FindControl(_T("label_design_item_disconnect"));
     if (pControl != NULL) {
       pControl->SetEnabled(false);
     }

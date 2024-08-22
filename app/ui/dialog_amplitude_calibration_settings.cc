@@ -35,8 +35,9 @@ void DialogAmplitudeCalibrationSettings::InitWindow() {
   __super::InitWindow();
   btn_close_ = static_cast<CButtonUI*>(
       m_PaintManager.FindControl(kCloseButtonControlName));
-  btn_ok_ = static_cast<CButtonUI*>(
-      m_PaintManager.FindControl(_T("btn_amplitude_calibration_ok")));
+  btn_ok_ = static_cast<CButtonUI*>(m_PaintManager.FindControl(_T("okbtn")));
+  btn_cancel_ =
+      static_cast<CButtonUI*>(m_PaintManager.FindControl(_T("cancelbtn")));
 
   edit_amp_level_one_ = static_cast<CEditUI*>(
       m_PaintManager.FindControl(_T("tab_page_three_left_amp_level_one")));
@@ -79,6 +80,8 @@ void DialogAmplitudeCalibrationSettings::OnClick(DuiLib::TNotifyUI& msg) {
     SaveSettingsFromControl();
     this->Close();
   } else if (msg.pSender == btn_close_) {
+    this->Close();
+  } else if (msg.pSender == btn_cancel_) {
     this->Close();
   }
 }

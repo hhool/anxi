@@ -69,6 +69,7 @@ class DialogAmplitudeCalibrationSettings : public DuiLib::WindowImplBase {
  private:
   CButtonUI* btn_close_;
   CButtonUI* btn_ok_;
+  CButtonUI* btn_cancel_;
 
   CEditUI* edit_amp_level_one_;
   CEditUI* edit_amp_level_two_;

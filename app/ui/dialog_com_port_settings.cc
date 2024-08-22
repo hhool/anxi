@@ -50,7 +50,9 @@ void DialogComPortSettings::InitWindow() {
   __super::InitWindow();
   btn_close_ = static_cast<CButtonUI*>(
       m_PaintManager.FindControl(kCloseButtonControlName));
-  btn_ok_ = static_cast<CButtonUI*>(m_PaintManager.FindControl(_T("btn_ok")));
+  btn_ok_ = static_cast<CButtonUI*>(m_PaintManager.FindControl(_T("okbtn")));
+  btn_cancel_ =
+      static_cast<CButtonUI*>(m_PaintManager.FindControl(_T("cancelbtn")));
   UpdateControlFromComInfoAll();
 }
 
@@ -82,6 +84,8 @@ void DialogComPortSettings::OnClick(DuiLib::TNotifyUI& msg) {
     SaveComInfoFromControlAll();
     this->Close();
   } else if (msg.pSender == btn_close_) {
+    this->Close();
+  } else if (msg.pSender == btn_cancel_) {
     this->Close();
   }
 }

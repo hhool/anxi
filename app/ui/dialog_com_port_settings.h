@@ -93,6 +93,7 @@ class DialogComPortSettings : public DuiLib::WindowImplBase {
  private:
   CButtonUI* btn_close_;
   CButtonUI* btn_ok_;
+  CButtonUI* btn_cancel_;
 };
 }  // namespace ui
 }  // namespace anx
