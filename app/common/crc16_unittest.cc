@@ -15,13 +15,13 @@
 
 #include "gtest/gtest.h"
 
-#include "crc/crc16.h"
+#include "app/common/crc16.h"
 
 class CRC16Test : public testing::Test {
  protected:
-  virtual void SetUp() {}
+  void SetUp() override {}
 
-  virtual void TearDown() {}
+  void TearDown() override {}
 };
 
 TEST_F(CRC16Test, CheckCRC16) {

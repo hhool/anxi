@@ -106,6 +106,7 @@ bool WorkWindowSecondPageData::OnTimer(void* param) {
 LPCTSTR WorkWindowSecondPageData::GetItemText(CControlUI* pControl,
                                               int iItem,
                                               int iSubItem) {
+  std::cout << "GetItemText iItem:" << iItem << std::endl;
   if (iSubItem == 0) {
     pControl->SetUserData(
         anx::common::string2wstring(std::to_string(exp_datas_[iItem].id_))
@@ -337,13 +338,21 @@ void WorkWindowSecondPageData::OnDataReceived(
     if (time_interval_num > exp_time_interval_num_) {
       exp_time_interval_num_ = time_interval_num;
       exp_data_table_no_++;
+      // update the data to the database table amp, stress, um
+      uint64_t cycle_count = exp_data_table_no_ * 500;
+      float KHz = 208.230f;
+      float MPa = 102.080f;
+      float um = 1023.230f;
+      /*anx::common::DatabaseHelper::InsertExpData(
+          exp_data_table_no_, KHz, Mpa, um,
+         anx::common::GetCurrrentDateTime());*/
       // update the data to the data table
       DuiLib::CListTextElementUI* item_no = new DuiLib::CListTextElementUI();
       item_no->SetTag(exp_data_table_no_);
       list_data_->Add(item_no);
       anx::expdata::ExperimentData exp_data;
       exp_data.id_ = exp_data_table_no_;
-      exp_data.cycle_count_ = exp_data_table_no_ * 500;
+      exp_data.cycle_count_ = cycle_count;
       exp_data.KHz_ = 208.230f;
       exp_data.MPa_ = 102.080f;
       exp_data.um_ = 1023.230f;

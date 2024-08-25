@@ -76,3 +76,11 @@ if(WIN32)
     add_executable(${PREFIX}_ole_vartime_unittest ole_vartime_unittest.cc)
     target_link_libraries(${PREFIX}_ole_vartime_unittest gtest_main gtest comctl32 oleaut32)
 endif()
+
+# ###############
+# Define a test
+add_executable(${PREFIX}_sqlite_unittest sqlite_unittest.cc)
+target_include_directories(${PREFIX}_sqlite_unittest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../third_party/sqlite/source/source)
+
+# Link gtest
+target_link_libraries(${PREFIX}_sqlite_unittest gtest_main gtest SQLite::SQLite3)

@@ -55,6 +55,24 @@ void sleep_ms(int64_t ms) {
 #endif
 }
 
+void GetLocalTime(struct tm* ltm) {
+#if defined(_WIN32)
+  FILETIME fileTime;
+  GetSystemTimeAsFileTime(&fileTime);
+
+  ULARGE_INTEGER uli;
+  uli.LowPart = fileTime.dwLowDateTime;
+  uli.HighPart = fileTime.dwHighDateTime;
+
+  time_t time = (uli.QuadPart - 116444736000000000) / 10000000;
+  localtime_s(ltm, &time);
+#else
+  struct timeval now;
+  gettimeofday(&now, NULL);
+  *ltm = *localtime(&now.tv_sec);
+#endif
+}
+
 void GetCurrentDateTime(char dateTimeStr[256]) {
   struct tm ltm;
   int msec = 0;
@@ -81,22 +99,21 @@ void GetCurrentDateTime(char dateTimeStr[256]) {
           msec);
 }
 
-void GetLocalTime(struct tm* ltm) {
-#if defined(_WIN32)
-  FILETIME fileTime;
-  GetSystemTimeAsFileTime(&fileTime);
+double GetCurrrentDateTime() {
+  SYSTEMTIME st;
+  GetLocalTime(&st);
+  /// @note use SystemTimeToVariantTime to convert the time to double
+  /// @note only the time part is used, the date part is ignored.
+  DATE dt;
+  st.wYear = 1899;
+  st.wMonth = 12;
+  st.wDay = 30;
+  st.wHour = 0;
+  st.wMilliseconds = 0;
+  st.wDayOfWeek = 0;
 
-  ULARGE_INTEGER uli;
-  uli.LowPart = fileTime.dwLowDateTime;
-  uli.HighPart = fileTime.dwHighDateTime;
-
-  time_t time = (uli.QuadPart - 116444736000000000) / 10000000;
-  localtime_s(ltm, &time);
-#else
-  struct timeval now;
-  gettimeofday(&now, NULL);
-  *ltm = *localtime(&now.tv_sec);
-#endif
+  SystemTimeToVariantTime(&st, &dt);
+  return dt;
 }
 
 }  // namespace common

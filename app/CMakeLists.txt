@@ -32,6 +32,14 @@ set(COMMON_FILES
 source_group("common" FILES ${COMMON_FILES})
 list(APPEND APP_SOURCES ${COMMON_FILES})
 
+set(DB_FILES
+    db/database_helper.cc
+    db/database_helper.h
+    db/database.cc
+    db/database.h)
+source_group("db" FILES ${DB_FILES})
+list(APPEND APP_SOURCES ${DB_FILES})
+
 set(DOCUMENT_FILES
     document/document_interface.h)
 source_group("document" FILES ${DOCUMENT_FILES})
@@ -182,6 +190,11 @@ target_include_directories(app_ui PRIVATE ${PROJECT_PATH}/third_party/CSerialPor
 target_link_libraries(app_ui libcserialport)
 add_dependencies(app_ui libcserialport)
 
+# add library sqlite3 library dependencie
+target_include_directories(app_ui PRIVATE ${PROJECT_PATH}/third_party/sqlite/source)
+target_link_libraries(app_ui SQLite::SQLite3)
+add_dependencies(app_ui SQLite::SQLite3)
+
 # ##############################################################################
 # add executable
 add_executable(app_exe main.cc)
@@ -195,6 +208,17 @@ endif()
 
 # rename the output file to product name
 set_target_properties(app_exe PROPERTIES OUTPUT_NAME ${PRODUCT_NAME})
+
+# unittest files
+if(ANXI_BUILD_UNITTEST)
+    set(APP_UNITTEST_FILES
+        common/crc16_unittest.cc
+        db/database_unittest.cc)
+    source_group("common_unittest" FILES ${APP_UNITTEST_FILES})
+    list(APPEND APP_UNITTEST_SOURCES ${APP_UNITTEST_FILES})
+    add_executable(app_unittest ${APP_UNITTEST_FILES})
+    target_link_libraries(app_unittest app_ui gtest_main gtest)
+endif()
 
 # ##############################################################################
 # copy folder resource/skin resource/default to the target directory

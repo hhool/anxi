@@ -126,10 +126,15 @@ class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
   uint32_t exp_data_table_no_ = 0;
   int64_t exp_sample_interval_ms_ = 0;
 
-  /// @brief experiment data
+  /// @brief experiment data  for the data table view
   std::vector<anx::expdata::ExperimentData> exp_datas_;
+  /// @brief start row no for the data table view
+  int32_t exp_data_table_start_row_no_ = 0;
+  /// @brief limit row no for the data table view
+  int32_t exp_data_table_limit_row_no_ = 100;
+  /// @brief data table count for the data table view
+  int32_t exp_data_table_count_ = 0;
 };
-
 }  // namespace ui
 }  // namespace anx
 

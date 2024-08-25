@@ -29,17 +29,21 @@ int64_t GetCurrentTimeSeconds();
 // sleep for milliseconds
 void sleep_ms(int64_t ms);
 
+/// @brief get current time with struct tm filled with current time info.
+/// @param ltm output parameter, the current time struct tm filled with current
+/// time info.
+/// @return void
+void GetLocalTime(struct tm* ltm);
+
 // @brief get current date time string with format like "2024-08-04
 // 12:00:00.000"
 // @param dateTimeStr output parameter, the current date time string
 // @return void
 void GetCurrentDateTime(char dateTimeStr[256]);
 
-/// @brief get current time with struct tm filled with current time info.
-/// @param ltm output parameter, the current time struct tm filled with current
-/// time info.
-/// @return void
-void GetLocalTime(struct tm* ltm);
+/// @brief get current date time in double format with the date part ignored.
+/// @return the current date time in double format.
+double GetCurrrentDateTime();
 }  // namespace common
 }  // namespace anx
 
