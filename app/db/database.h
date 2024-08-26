@@ -13,43 +13,38 @@
 #ifndef APP_DB_DATABASE_H_
 #define APP_DB_DATABASE_H_
 
+#include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
 namespace anx {
 namespace db {
+
+extern const char* kDefaultDatabaseName;
+
 /// @brief sqlite3 database helper class
-class Database {
+class DatabaseInterface {
  public:
-  /// @brief Constructor
-  Database();
-
-  /// @brief Destructor
-  ~Database();
-
   /// @brief Open the database
   /// @param db_name the database name
   /// @return true if open success
-  bool Open(const std::string& db_name);
+  virtual bool Open(const std::string& db_name) = 0;
 
   /// @brief Close the database
-  void Close();
+  virtual void Close() = 0;
 
   /// @brief Execute the sql
   /// @param sql the sql
   /// @return true if execute success
-  bool Execute(const std::string& sql);
+  virtual bool Execute(const std::string& sql) = 0;
 
   /// @brief Query the sql
   /// @param sql the sql
   /// @param result the result
   /// @return true if query success
-  bool Query(const std::string& sql,
-             std::vector<std::vector<std::string>>* result);
-
- private:
-  /// @brief the sqlite3 database
-  void* db_;
+  virtual bool Query(const std::string& sql,
+                     std::vector<std::vector<std::string>>* result) = 0;
 };
 }  // namespace db
 }  // namespace anx

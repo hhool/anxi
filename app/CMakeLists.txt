@@ -23,6 +23,8 @@ set(COMMON_FILES
     common/crc16.cc
     common/crc16.h
     common/defines.h
+    common/logger.cc
+    common/logger.h
     common/module_utils.cc
     common/module_utils.h
     common/string_utils.cc
@@ -33,8 +35,10 @@ source_group("common" FILES ${COMMON_FILES})
 list(APPEND APP_SOURCES ${COMMON_FILES})
 
 set(DB_FILES
-    db/database_helper.cc
-    db/database_helper.h
+    db/database_factory.cc
+    db/database_factory.h
+    db/database_impl.cc
+    db/database_impl.h
     db/database.cc
     db/database.h)
 source_group("db" FILES ${DB_FILES})
@@ -213,6 +217,7 @@ set_target_properties(app_exe PROPERTIES OUTPUT_NAME ${PRODUCT_NAME})
 if(ANXI_BUILD_UNITTEST)
     set(APP_UNITTEST_FILES
         common/crc16_unittest.cc
+        common/logger_unittest.cc
         db/database_unittest.cc)
     source_group("common_unittest" FILES ${APP_UNITTEST_FILES})
     list(APPEND APP_UNITTEST_SOURCES ${APP_UNITTEST_FILES})

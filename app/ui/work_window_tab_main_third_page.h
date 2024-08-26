@@ -72,8 +72,11 @@ class WorkWindowThirdPage : public DuiLib::CNotifyPump,
   std::shared_ptr<anx::device::DeviceComInterface> device_com_ul_;
   std::shared_ptr<anx::device::DeviceComInterface> device_com_sl_;
   std::vector<std::string> send_data_items_;
+  uint32_t send_table_no_ = 0;
   std::vector<std::string> recv_data_items_;
+  uint32_t recv_table_no_ = 0;
   std::vector<std::string> recv_notify_data_items_;
+  uint32_t recv_notify_table_no_ = 0;
 
   COptionUI* opt_direct_up_;
   COptionUI* opt_direct_down_;

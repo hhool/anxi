@@ -14,6 +14,7 @@
 #include <string>
 #include <utility>
 
+#include "app/common/logger.h"
 #include "app/common/string_utils.h"
 #include "app/device/device_com_factory.h"
 #include "app/device/device_com_settings.h"
@@ -68,17 +69,42 @@ class WorkWindowThirdPage::ListSendGetter : public DuiLib::IListCallbackUI {
   LPCTSTR GetItemText(DuiLib::CControlUI* pControl,
                       int iItem,
                       int iSubItem) override {
-    if (iItem < 0 || static_cast<size_t>(iItem) >= items_->size()) {
+    if (iItem < 0 || iSubItem < 0) {
       pControl->SetUserData(_T(""));
       return pControl->GetUserData();
     }
+    if (iItem < exp_data_table_start_row_no_ ||
+        static_cast<size_t>(iItem) >=
+            (exp_data_table_start_row_no_ + items_->size())) {
+      // clear the data itmes and request the data from the database again
+      items_->clear();
+      exp_data_table_start_row_no_ = iItem;
+      /*anx::common::RequestDataFromDatabase(iItem,
+         exp_data_table_limit_row_no_, items_);*/
+#if 1
+      for (int i = 0; i < exp_data_table_limit_row_no_; i++) {
+        items_->push_back("data" +
+                          std::to_string(i + 1 + exp_data_table_start_row_no_));
+      }
+#endif
+    }
+    if (iItem >=
+        static_cast<int32_t>(items_->size()) + exp_data_table_start_row_no_) {
+      pControl->SetUserData(_T(""));
+      return pControl->GetUserData();
+    }
+
+    int iItemIndex = iItem - exp_data_table_start_row_no_;
     pControl->SetUserData(
-        anx::common::string2wstring(items_->at(iItem).c_str()).c_str());
+        anx::common::string2wstring(items_->at(iItemIndex).c_str()).c_str());
     return pControl->GetUserData();
   }
 
  private:
   std::vector<std::string>* items_;
+  int32_t exp_data_table_start_row_no_ = 0;
+  int32_t exp_data_table_limit_row_no_ = 100;
+  int32_t exp_data_table_no_ = 0;
 };
 
 class WorkWindowThirdPage::ListRecvGetter : public DuiLib::IListCallbackUI {
@@ -89,17 +115,41 @@ class WorkWindowThirdPage::ListRecvGetter : public DuiLib::IListCallbackUI {
   LPCTSTR GetItemText(DuiLib::CControlUI* pControl,
                       int iItem,
                       int iSubItem) override {
-    if (iItem < 0 || static_cast<size_t>(iItem) >= items_->size()) {
+    if (iItem < 0 || iSubItem < 0) {
       pControl->SetUserData(_T(""));
       return pControl->GetUserData();
     }
+    if (iItem < exp_data_table_start_row_no_ ||
+        static_cast<size_t>(iItem) >=
+            (exp_data_table_start_row_no_ + items_->size())) {
+      // clear the data itmes and request the data from the database again
+      items_->clear();
+      exp_data_table_start_row_no_ = iItem;
+      /*anx::common::RequestDataFromDatabase(iItem,
+         exp_data_table_limit_row_no_, items_);*/
+#if 1
+      for (int i = 0; i < exp_data_table_limit_row_no_; i++) {
+        items_->push_back("data" +
+                          std::to_string(i + 1 + exp_data_table_start_row_no_));
+      }
+#endif
+    }
+    if (iItem >=
+        static_cast<int32_t>(items_->size()) + exp_data_table_start_row_no_) {
+      pControl->SetUserData(_T(""));
+      return pControl->GetUserData();
+    }
+    int iItemIndex = iItem - exp_data_table_start_row_no_;
     pControl->SetUserData(
-        anx::common::string2wstring(items_->at(iItem).c_str()).c_str());
+        anx::common::string2wstring(items_->at(iItemIndex).c_str()).c_str());
     return pControl->GetUserData();
   }
 
  private:
   std::vector<std::string>* items_;
+  int32_t exp_data_table_start_row_no_ = 0;
+  int32_t exp_data_table_limit_row_no_ = 100;
+  int32_t exp_data_table_no_ = 0;
 };
 
 class WorkWindowThirdPage::ListRecvNotifyGetter
@@ -112,17 +162,42 @@ class WorkWindowThirdPage::ListRecvNotifyGetter
   LPCTSTR GetItemText(DuiLib::CControlUI* pControl,
                       int iItem,
                       int iSubItem) override {
-    if (iItem < 0 || static_cast<size_t>(iItem) >= items_->size()) {
+    if (iItem < 0 || iSubItem < 0) {
       pControl->SetUserData(_T(""));
       return pControl->GetUserData();
     }
+    if (iItem < exp_data_table_start_row_no_ ||
+        static_cast<size_t>(iItem) >=
+            (exp_data_table_start_row_no_ + items_->size())) {
+      // clear the data itmes and request the data from the database again
+      items_->clear();
+      exp_data_table_start_row_no_ = iItem;
+      /*anx::common::RequestDataFromDatabase(iItem,
+         exp_data_table_limit_row_no_, items_);*/
+#if 1
+      for (int i = 0; i < exp_data_table_limit_row_no_; i++) {
+        items_->push_back("data" +
+                          std::to_string(i + 1 + exp_data_table_start_row_no_));
+      }
+#endif
+    }
+    if (iItem >=
+        static_cast<int32_t>(items_->size()) + exp_data_table_start_row_no_) {
+      pControl->SetUserData(_T(""));
+      return pControl->GetUserData();
+    }
+
+    int iItemIndex = iItem - exp_data_table_start_row_no_;
     pControl->SetUserData(
-        anx::common::string2wstring(items_->at(iItem).c_str()).c_str());
+        anx::common::string2wstring(items_->at(iItemIndex).c_str()).c_str());
     return pControl->GetUserData();
   }
 
  private:
   std::vector<std::string>* items_;
+  int32_t exp_data_table_start_row_no_ = 0;
+  int32_t exp_data_table_limit_row_no_ = 100;
+  int32_t exp_data_table_no_ = 0;
 };
 
 WorkWindowThirdPage::WorkWindowThirdPage(
@@ -273,14 +348,16 @@ void WorkWindowThirdPage::OnDataReceived(
     std::string hex_str;
     hex_str = anx::common::ByteArrayToHexString(data, size);
     DuiLib::CListTextElementUI* item = new DuiLib::CListTextElementUI();
-    recv_notify_data_items_.push_back(hex_str);
+    recv_notify_table_no_++;
+    // recv_notify_data_items_.push_back(hex_str);
     list_recv_notify_->Add(item);
   }
   if (check_box_display_send_->IsSelected()) {
     std::string hex_str;
     hex_str = anx::common::ByteArrayToHexString(data, size);
     DuiLib::CListTextElementUI* item = new DuiLib::CListTextElementUI();
-    recv_data_items_.push_back(hex_str);
+    //recv_data_items_.push_back(hex_str);
+	recv_table_no_++;
     list_recv_->Add(item);
   }
   // update the label_displacement_ with random value
@@ -309,7 +386,8 @@ void WorkWindowThirdPage::OnDataOutgoing(
     std::string hex_str;
     hex_str = anx::common::ByteArrayToHexString(data, size);
     DuiLib::CListTextElementUI* item = new DuiLib::CListTextElementUI();
-    send_data_items_.push_back(hex_str);
+   // send_data_items_.push_back(hex_str);
+	send_table_no_++;
     list_send_->Add(item);
   }
 }

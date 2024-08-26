@@ -15,6 +15,7 @@
 #include <utility>
 
 #include "app/common/defines.h"
+#include "app/common/logger.h"
 #include "app/common/string_utils.h"
 #include "app/common/time_utils.h"
 #include "app/device/device_com_factory.h"
@@ -106,29 +107,56 @@ bool WorkWindowSecondPageData::OnTimer(void* param) {
 LPCTSTR WorkWindowSecondPageData::GetItemText(CControlUI* pControl,
                                               int iItem,
                                               int iSubItem) {
-  std::cout << "GetItemText iItem:" << iItem << std::endl;
+  LOG_F(LG_INFO) << "GetItemText iItem:" << iItem;
+  if (iItem < 0 || iSubItem < 0) {
+    pControl->SetUserData(_T(""));
+    return pControl->GetUserData();
+  }
+  /// check the item index with exp_data_table_start_row_no_
+  if (iItem < exp_data_table_start_row_no_ ||
+      iItem >= (exp_data_table_start_row_no_ +
+                static_cast<int32_t>(exp_datas_.size()))) {
+    /// clear the data exp_datas_ and request the data from the database again
+    ClearExpData();
+    exp_data_table_start_row_no_ = iItem;
+    /*anx::common::RequestDataFromDatabase(iItem, exp_data_table_limit_row_no_,
+                                         exp_datas_);*/
+#if 1
+    for (int i = 0; i < exp_data_table_limit_row_no_; i++) {
+      anx::expdata::ExperimentData data;
+      data.id_ = i + 1 + exp_data_table_start_row_no_;
+      data.cycle_count_ = (exp_data_table_no_ + i) * 500;
+      data.KHz_ = 208.230f;
+      data.MPa_ = 102.080f;
+      data.um_ = 1023.230f;
+      exp_datas_.push_back(data);
+    }
+#endif
+  }
+  int iItemIndex = iItem - exp_data_table_start_row_no_;
   if (iSubItem == 0) {
     pControl->SetUserData(
-        anx::common::string2wstring(std::to_string(exp_datas_[iItem].id_))
+        anx::common::string2wstring(std::to_string(exp_datas_[iItemIndex].id_))
             .c_str());
     return pControl->GetUserData();
   } else if (iSubItem == 1) {
-    pControl->SetUserData(anx::common::string2wstring(
-                              std::to_string(exp_datas_[iItem].cycle_count_))
-                              .c_str());
+    pControl->SetUserData(
+        anx::common::string2wstring(
+            std::to_string(exp_datas_[iItemIndex].cycle_count_))
+            .c_str());
     return pControl->GetUserData();
   } else if (iSubItem == 2) {
-    int64_t KHz = static_cast<int64_t>(exp_datas_[iItem].KHz_ * 1000);
+    int64_t KHz = static_cast<int64_t>(exp_datas_[iItemIndex].KHz_ * 1000);
     std::wstring KHz_str = anx::common::string2wstring(format_num(KHz));
     pControl->SetUserData(KHz_str.c_str());
     return pControl->GetUserData();
   } else if (iSubItem == 3) {
-    int64_t MPa = static_cast<int64_t>(exp_datas_[iItem].MPa_ * 1000);
+    int64_t MPa = static_cast<int64_t>(exp_datas_[iItemIndex].MPa_ * 1000);
     std::wstring MPa_str = anx::common::string2wstring(format_num(MPa));
     pControl->SetUserData(MPa_str.c_str());
     return pControl->GetUserData();
   } else if (iSubItem == 4) {
-    int64_t um = static_cast<int64_t>(exp_datas_[iItem].um_ * 1000);
+    int64_t um = static_cast<int64_t>(exp_datas_[iItemIndex].um_ * 1000);
     std::wstring um_str = anx::common::string2wstring(format_num(um));
     pControl->SetUserData(um_str.c_str());
     return pControl->GetUserData();
@@ -351,12 +379,12 @@ void WorkWindowSecondPageData::OnDataReceived(
       item_no->SetTag(exp_data_table_no_);
       list_data_->Add(item_no);
       anx::expdata::ExperimentData exp_data;
-      exp_data.id_ = exp_data_table_no_;
+      /*exp_data.id_ = exp_data_table_no_;
       exp_data.cycle_count_ = cycle_count;
       exp_data.KHz_ = 208.230f;
       exp_data.MPa_ = 102.080f;
       exp_data.um_ = 1023.230f;
-      exp_datas_.push_back(exp_data);
+      exp_datas_.push_back(exp_data);*/
     }
   }
 }
