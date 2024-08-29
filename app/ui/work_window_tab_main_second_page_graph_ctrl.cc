@@ -13,8 +13,11 @@
 
 #include <string>
 
+#include "app/common/logger.h"
 #include "app/common/string_utils.h"
+#include "app/common/time_utils.h"
 #include "app/ui/ui_constants.h"
+#include "app/ui/work_window_tab_main_second_page_base.h"
 
 namespace anx {
 namespace ui {
@@ -44,7 +47,12 @@ namespace ui {
     p = nullptr;        \
   }
 
-////////////////////////////////////////////////////////////////////////////////、
+////////////////////////////////////////////////////////////////////////////////
+const double kVarTimeDuration5min = 5.0 / (24.0 * 60.0);
+const double kVarTimeDuration10min = 10.0 / (24.0 * 60.0);
+const double kVarTimeDuration30min = 30.0 / (24.0 * 60.0);
+const double kVarTimeDuration60min = 60.0 / (24.0 * 60.0);
+
 namespace {
 /// @brief data sampling interval value 12 second is one data sample.
 /// @note 12 second is one data sample for the graph control. used for the
@@ -69,13 +77,13 @@ WorkWindowSecondWorkWindowSecondPageGraphCtrl::
       y_grid_step_(y_grid_step),
       x_grid_step_(x_grid_step) {
   if (sampling_total_minutes_ == 5) {
-    x_duration_ = 5.0 / (24.0 * 60.0);
+    x_duration_ = kVarTimeDuration5min;
   } else if (sampling_total_minutes_ == 10) {
-    x_duration_ = 10.0 / (24.0 * 60.0);
+    x_duration_ = kVarTimeDuration10min;
   } else if (sampling_total_minutes_ == 30) {
-    x_duration_ = 30.0 / (24.0 * 60.0);
+    x_duration_ = kVarTimeDuration30min;
   } else if (sampling_total_minutes_ == 60) {
-    x_duration_ = 60.0 / (24.0 * 60.0);
+    x_duration_ = kVarTimeDuration60min;
   }
   y_min_ = 0.0f;
   y_max_ = y_grid_step * 1.0f;
@@ -233,12 +241,14 @@ void WorkWindowSecondWorkWindowSecondPageGraphCtrl::ProcessDataSampleIncoming(
   /// and put it to the graph.
   /// TODO(hhool): will be removed after the real data incoming.
 #if !defined(_DEBUG)
-  if (data_incomming_count_ % 120 == 0) {
+  if (data_incomming_count_ % 6 == 0)
 #else
-  if (data_incomming_count_ % 10 == 0) {
 #endif
-    int32_t average = static_cast<int32_t>(
-        static_cast<double>(data_incomming_total_) / data_incomming_count_);
+  {
+    int32_t average =
+        static_cast<int32_t>(static_cast<double>(data_incomming_total_) /
+                             (kMultiFactor * data_incomming_count_));
+    LOG_F(LG_INFO) << "um:" << average;
     average %= y_grid_step_;
 
     int32_t plot_data_sample_index =
@@ -285,21 +295,17 @@ void WorkWindowSecondWorkWindowSecondPageGraphCtrl::Release() {
   SAFE_RELEASE(graph_ctrl_);
 }
 
-void WorkWindowSecondWorkWindowSecondPageGraphCtrl::UpateXTimeValue() {
-  SYSTEMTIME st;
-  GetLocalTime(&st);
-  /// @note use SystemTimeToVariantTime to convert the time to double
-  /// @note only the time part is used, the date part is ignored.
-  DATE dt;
-  st.wYear = 1899;
-  st.wMonth = 12;
-  st.wDay = 30;
-  st.wHour = 0;
-  st.wMilliseconds = 0;
-  st.wDayOfWeek = 0;
+double WorkWindowSecondWorkWindowSecondPageGraphCtrl::GetCurrentXMin() const {
+  return x_min_;
+}
 
-  SystemTimeToVariantTime(&st, &dt);
-  x_min_ = dt;
+double WorkWindowSecondWorkWindowSecondPageGraphCtrl::GetCurrentXDuration()
+    const {
+  return x_duration_;
+}
+
+void WorkWindowSecondWorkWindowSecondPageGraphCtrl::UpateXTimeValue() {
+  x_min_ = anx::common::GetCurrrentDateTime();
 }
 
 }  // namespace ui

@@ -12,6 +12,8 @@
 #ifndef APP_UI_WORK_WINDOW_TAB_MAIN_SECOND_PAGE_H_
 #define APP_UI_WORK_WINDOW_TAB_MAIN_SECOND_PAGE_H_
 
+#include "app/ui/work_window_tab_main_second_page_base.h"
+
 #include <map>
 #include <memory>
 #include <string>
@@ -28,6 +30,7 @@ namespace anx {
 namespace device {
 class DeviceComInterface;
 class DeviceComListener;
+class DeviceExpDataSampleSettings;
 }  // namespace device
 namespace ui {
 class WorkWindow;
@@ -101,6 +104,8 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   int64_t exp_clip_time_paused_;
   int64_t exp_cycle_count_;
   int64_t exp_freq_fluctuations_range_;
+
+  ExpDataInfo exp_data_info_;
 
   DuiLib::CTabLayoutUI* btn_tablayout_;
   DuiLib::CButtonUI* btn_tab_graph_;

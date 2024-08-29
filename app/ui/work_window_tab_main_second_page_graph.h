@@ -12,6 +12,8 @@
 #ifndef APP_UI_WORK_WINDOW_TAB_MAIN_SECOND_PAGE_GRAPH_H_
 #define APP_UI_WORK_WINDOW_TAB_MAIN_SECOND_PAGE_GRAPH_H_
 
+#include "app/ui/work_window_tab_main_second_page_base.h"
+
 #include <memory>
 #include <string>
 
@@ -41,12 +43,16 @@ namespace anx {
 namespace ui {
 
 class WorkWindowSecondPageGraph : public DuiLib::CNotifyPump,
+                                  public DuiLib::INotifyUI,
                                   public UIVirtualWndBase,
                                   public anx::device::DeviceComListener {
  public:
   WorkWindowSecondPageGraph(WorkWindow* pWorkWindow,
-                            DuiLib::CPaintManagerUI* paint_manager_ui);
+                            DuiLib::CPaintManagerUI* paint_manager_ui, ExpDataInfo* exp_base);
   ~WorkWindowSecondPageGraph();
+
+ public:
+  void Notify(TNotifyUI& msg) override;
 
  public:
   DUI_DECLARE_MESSAGE_MAP()
@@ -56,6 +62,8 @@ class WorkWindowSecondPageGraph : public DuiLib::CNotifyPump,
   bool OnOptGraphTimeModeChange(void* param);
   bool OnChkGraphAlwaysShowNewChange(void* param);
   bool OnOptGraphTimeRangeChange(void* param);
+  bool OnPrePage(void* param);
+  bool OnNextPage(void* param);
   bool OnTimer(void* param);
 
  public:
@@ -66,7 +74,7 @@ class WorkWindowSecondPageGraph : public DuiLib::CNotifyPump,
  protected:
   void CheckDeviceComConnectedStatus();
   void RefreshExpGraphTitelControl();
-  void RefreshSampleTimeControl();
+  void RefreshPreNextControl();
   void UpdateControlFromSettings();
   void SaveSettingsFromControl();
 
@@ -93,8 +101,13 @@ class WorkWindowSecondPageGraph : public DuiLib::CNotifyPump,
  private:
   WorkWindow* pWorkWindow_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
+  ExpDataInfo* exp_data_info_;
+  int64_t exp_time_interval_num_;
   std::shared_ptr<anx::device::DeviceComInterface> device_com_ul_;
   std::shared_ptr<anx::device::DeviceComInterface> device_com_sl_;
+  /// @brief amp start time, stress start time.
+  double amp_start_time_ = 0;
+  double stress_start_time_ = 0;
 
   /// @brief graph time mode pre hour
   DuiLib::COptionUI* opt_graph_time_mode_pre_hour_;
@@ -119,10 +132,17 @@ class WorkWindowSecondPageGraph : public DuiLib::CNotifyPump,
   DuiLib::CButtonUI* btn_graph_stress_title_;
   DuiLib::CButtonUI* btn_graph_stress_canvas_;
 
+  /// @brief graph amplitude control for the page
   std::unique_ptr<WorkWindowSecondWorkWindowSecondPageGraphCtrl>
       page_graph_amplitude_ctrl_;
   std::unique_ptr<WorkWindowSecondWorkWindowSecondPageGraphCtrl>
       page_graph_stress_ctrl_;
+
+  /// pre and next page button
+  /// @brief pre page button
+  DuiLib::CButtonUI* btn_pre_page_;
+  /// @brief next page button
+  DuiLib::CButtonUI* btn_next_page_;
 };
 
 }  // namespace ui

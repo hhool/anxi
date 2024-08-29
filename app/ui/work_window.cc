@@ -11,16 +11,19 @@
 
 #include "app/ui/work_window.h"
 
+#include <iostream>
 #include <utility>
 #include <vector>
 
 #include "app/common/defines.h"
 #include "app/common/file_utils.h"
 #include "app/common/string_utils.h"
+#include "app/common/time_utils.h"
 #include "app/db/database_helper.h"
 #include "app/device/device_com_factory.h"
 #include "app/device/device_com_settings.h"
 #include "app/device/device_com_settings_helper.h"
+#include "app/device/device_exp_data_sample_settings.h"
 #include "app/esolution/solution_design.h"
 #include "app/esolution/solution_design_default.h"
 #include "app/esolution/solution_design_helper.h"
@@ -222,6 +225,15 @@ void WorkWindow::Notify(DuiLib::TNotifyUI& msg) {
   if (msg.sType == kWindowInit) {
     OnPrepare(msg);
   } else if (msg.sType == kClick || msg.sType == kSelectChanged) {
+    if (msg.pSender->GetName() == _T("btn_exp_start")) {
+      OnExpStart();
+    } else if (msg.pSender->GetName() == _T("btn_exp_stop")) {
+      OnExpStop();
+    } else if (msg.pSender->GetName() == _T("btn_exp_pause")) {
+      OnExpPause();
+    } else if (msg.pSender->GetName() == _T("btn_exp_resume")) {
+      OnExpResume();
+    }
     return DuiLib::WindowImplBase::Notify(msg);
   } else if (msg.sType == kTimer) {
     return DuiLib::WindowImplBase::Notify(msg);
@@ -686,31 +698,46 @@ void WorkWindow::CloseDeviceCom(int32_t device_type) {
 
 void WorkWindow::OnDataReceived(anx::device::DeviceComInterface* device,
                                 const uint8_t* data,
-                                int32_t size) {}
+                                int32_t size) {
+  if (is_exp_state_) {
+    // TODO(hhool):
+  }
+}
 
 void WorkWindow::OnDataOutgoing(anx::device::DeviceComInterface* device,
                                 const uint8_t* data,
-                                int32_t size) {}
+                                int32_t size) {
+  // TODO(hhool):
+}
 
 void WorkWindow::OnExpStart() {
+  // TODO(hhool):
   // 1. get solution design from control
   // 2. start experiment
   // 3. show status bar message
+  is_exp_state_ = 1;
 }
 
 void WorkWindow::OnExpStop() {
+  // TODO(hhool):
   // 1. stop experiment
   // 2. show status bar message
+  is_exp_state_ = 0;
 }
 
 void WorkWindow::OnExpPause() {
+  // TODO(hhool):
   // 1. pause experiment
   // 2. show status bar message
+
+  is_exp_state_ = 2;
 }
 
 void WorkWindow::OnExpResume() {
+  // TODO(hhool):
   // 1. resume experiment
   // 2. show status bar message
+  is_exp_state_ = 1;
 }
 
 void WorkWindow::ClearArgsFreqNum() {

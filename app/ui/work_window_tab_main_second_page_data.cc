@@ -12,6 +12,7 @@
 #include "app/ui/work_window_tab_main_second_page_data.h"
 
 #include <iostream>
+#include <map>
 #include <utility>
 
 #include "app/common/defines.h"
@@ -140,20 +141,27 @@ class WorkWindowSecondPageData::ListVirtalDataView
           pHBox->GetItemAt(1)->GetInterface(DUI_CTR_LABEL));
       pText->SetText(dui_string);
 
-      dui_string = anx::common::string2wstring(result[0]["kHz"]).c_str();
+      float kHz = atof(result[0]["kHz"].c_str()) / kMultiFactor;
+      dui_string = std::to_wstring(kHz).c_str();
       pText = static_cast<DuiLib::CLabelUI*>(
           pHBox->GetItemAt(2)->GetInterface(DUI_CTR_LABEL));
       pText->SetText(dui_string);
 
-      dui_string = anx::common::string2wstring(result[0]["MPa"]).c_str();
+      float Mpa = atof(result[0]["MPa"].c_str()) / kMultiFactor;
+      dui_string = std::to_wstring(Mpa).c_str();
       pText = static_cast<DuiLib::CLabelUI*>(
           pHBox->GetItemAt(3)->GetInterface(DUI_CTR_LABEL));
       pText->SetText(dui_string);
 
-      dui_string = anx::common::string2wstring(result[0]["um"]).c_str();
+      float um = atof(result[0]["um"].c_str()) / kMultiFactor;
+      dui_string = std::to_wstring(um).c_str();
       pText = static_cast<DuiLib::CLabelUI*>(
           pHBox->GetItemAt(4)->GetInterface(DUI_CTR_LABEL));
       pText->SetText(dui_string);
+
+      LOG_F(LG_INFO) << "no:" << (nRow + 1) << " cycle:" << result[0]["cycle"]
+                     << " kHz:" << result[0]["kHz"] << " MPa:" << Mpa
+                     << " um:" << um;
     }
   }
 
@@ -166,8 +174,11 @@ class WorkWindowSecondPageData::ListVirtalDataView
 
 WorkWindowSecondPageData::WorkWindowSecondPageData(
     WorkWindow* pWorkWindow,
-    DuiLib::CPaintManagerUI* paint_manager_ui)
-    : pWorkWindow_(pWorkWindow), paint_manager_ui_(paint_manager_ui) {
+    DuiLib::CPaintManagerUI* paint_manager_ui,
+    ExpDataInfo* exp_data)
+    : pWorkWindow_(pWorkWindow),
+      paint_manager_ui_(paint_manager_ui),
+      exp_data_info_(exp_data) {
   paint_manager_ui_->AddNotifier(this);
   device_exp_data_settings_.reset(
       new anx::device::DeviceExpDataSampleSettings());
@@ -421,41 +432,12 @@ void WorkWindowSecondPageData::OnDataReceived(
     hex_str = anx::common::ByteArrayToHexString(data, size);
     std::cout << hex_str << std::endl;
   }
-  if (is_exp_state_ == 1) {
-    int64_t current_time_ms = anx::common::GetCurrentTimeMillis();
-    int64_t time_diff = current_time_ms - exp_start_time_ms_;
-    int64_t time_interval_num = time_diff / exp_sample_interval_ms_;
-    // TODO(hhool): update the data to the data table
-    if (time_interval_num > exp_time_interval_num_) {
-      exp_time_interval_num_ = time_interval_num;
-      exp_data_table_no_++;
-      // update the data to the database table amp, stress, um
-      uint64_t cycle_count = exp_data_table_no_ * 500;
-      float KHz = 208.230f;
-      float MPa = 102.080f;
-      float um = 1023.230f;
-      // TODO(hhool): save to database
-      // format cycle_count, KHz, MPa, um to the sql string and insert to the
-      // database
-      std::string sql_str = ("INSERT INTO ");
-      sql_str.append(anx::db::helper::kTableExpData);
-      sql_str.append((" (cycle, KHz, MPa, um, date) VALUES ("));
-      sql_str.append(std::to_string(cycle_count));
-      sql_str.append(", ");
-      sql_str.append(std::to_string(KHz));
-      sql_str.append(", ");
-      sql_str.append(std::to_string(MPa));
-      sql_str.append(", ");
-      sql_str.append(std::to_string(um));
-      sql_str.append(", ");
-      sql_str.append(std::to_string(anx::common::GetCurrrentDateTime()));
-      sql_str.append(");");
-      anx::db::helper::InsertDataTable(
-          anx::db::helper::kDefaultDatabasePathname,
-          anx::db::helper::kTableExpData, sql_str);
-      list_data_->SetVirtualItemCount(exp_data_table_no_);
-    }
+  if (exp_data_info_->exp_time_interval_num_ <= exp_time_interval_num_) {
+    return;
   }
+  LOG_F(LG_INFO) << "exp_data_table_no_:" << exp_data_info_->exp_data_table_no_;
+  exp_time_interval_num_ = exp_data_info_->exp_time_interval_num_;
+  list_data_->SetVirtualItemCount(exp_data_info_->exp_data_table_no_);
 }
 
 void WorkWindowSecondPageData::OnDataOutgoing(
@@ -478,13 +460,11 @@ void WorkWindowSecondPageData::OnDataOutgoing(
 
 void WorkWindowSecondPageData::OnExpStart() {
   is_exp_state_ = 1;
+  exp_time_interval_num_ = 0;
+
   UpdateUIWithExpStatus(1);
   list_data_->RemoveAll();
   exp_datas_.clear();
-  exp_start_time_ms_ = anx::common::GetCurrentTimeMillis();
-  exp_start_date_time_ = time(nullptr);
-  exp_data_incoming_num_ = 0;
-  exp_sample_interval_ms_ = device_exp_data_settings_->sampling_interval_ * 100;
 }
 
 void WorkWindowSecondPageData::OnExpStop() {
@@ -493,13 +473,10 @@ void WorkWindowSecondPageData::OnExpStop() {
   // TODO(hhool): auto save the data to the file
   // file path is execuatable path/recored/xxx.csv
   // file format is csv
-  anx::expdata::SaveExperimentDataToCsvWithDefaultPath(exp_datas_,
-                                                       exp_start_date_time_);
+  anx::expdata::SaveExperimentDataToCsvWithDefaultPath(
+      exp_datas_, exp_data_info_->exp_start_time_ms_);
   // reset exp params;
-  exp_start_time_ms_ = 0;
-  exp_data_incoming_num_ = 0;
   exp_time_interval_num_ = 0;
-  exp_data_table_no_ = 0;
 }
 
 void WorkWindowSecondPageData::OnExpPause() {
@@ -515,11 +492,6 @@ void WorkWindowSecondPageData::OnExpResume() {
 void WorkWindowSecondPageData::ClearExpData() {
   list_data_->RemoveAll();
   exp_datas_.clear();
-  exp_start_time_ms_ = anx::common::GetCurrentTimeMillis();
-  exp_start_date_time_ = time(nullptr);
-  exp_data_incoming_num_ = 0;
-  exp_time_interval_num_ = 0;
-  exp_data_table_no_ = 0;
 }
 
 }  // namespace ui

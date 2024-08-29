@@ -158,6 +158,7 @@ if(WIN32)
         ui/work_window_tab_main_second_page_graph_ctrl.h
         ui/work_window_tab_main_second_page_graph.cc
         ui/work_window_tab_main_second_page_graph.h
+        ui/work_window_tab_main_second_page_base.h
         ui/work_window_tab_main_second_page.cc
         ui/work_window_tab_main_second_page.h
         ui/work_window_tab_main_third_page.cc

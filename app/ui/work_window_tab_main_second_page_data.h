@@ -12,6 +12,8 @@
 #ifndef APP_UI_WORK_WINDOW_TAB_MAIN_SECOND_PAGE_DATA_H_
 #define APP_UI_WORK_WINDOW_TAB_MAIN_SECOND_PAGE_DATA_H_
 
+#include "app/ui/work_window_tab_main_second_page_base.h"
+
 #include <time.h>
 #include <memory>
 #include <string>
@@ -45,7 +47,8 @@ class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
                                  public anx::device::DeviceComListener {
  public:
   WorkWindowSecondPageData(WorkWindow* pWorkWindow,
-                           DuiLib::CPaintManagerUI* paint_manager_ui);
+                           DuiLib::CPaintManagerUI* paint_manager_ui,
+                           ExpDataInfo* exp_data);
   ~WorkWindowSecondPageData();
 
  public:
@@ -102,6 +105,8 @@ class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
   std::shared_ptr<anx::device::DeviceComInterface> device_com_sl_;
   std::unique_ptr<anx::device::DeviceExpDataSampleSettings>
       device_exp_data_settings_;
+  ExpDataInfo* exp_data_info_;
+  int64_t exp_time_interval_num_;
 
   /// @brief sample mode option button
   DuiLib::COptionUI* option_sample_mode_exp_;
@@ -123,12 +128,6 @@ class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
   /// @brief exp status
   /// 0 - stop, 1 - start, 2 - pause, <0 - unvalid
   int32_t is_exp_state_ = -1;
-  int64_t exp_start_time_ms_ = 0;
-  int64_t exp_start_date_time_ = 0;
-  uint64_t exp_data_incoming_num_ = 0;
-  int64_t exp_time_interval_num_ = 0;
-  uint32_t exp_data_table_no_ = 0;
-  int64_t exp_sample_interval_ms_ = 0;
 
   /// @brief experiment data  for the data table view
   std::vector<anx::expdata::ExperimentData> exp_datas_;

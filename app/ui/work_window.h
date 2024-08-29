@@ -29,6 +29,7 @@ namespace anx {
 namespace device {
 class DeviceComInterface;
 class DeviceComListener;
+class DeviceExpDataSampleSettings;
 }  // namespace device
 namespace esolution {
 class SolutionDesign;
@@ -167,6 +168,10 @@ class WorkWindow : public DuiLib::WindowImplBase,
   std::shared_ptr<anx::device::DeviceComInterface> device_com_ul_;
   std::shared_ptr<anx::device::DeviceComInterface> device_com_sl_;
   std::vector<ChartLabelUI*> label_chart_uis_;
+  /// @brief experiment related data
+  /// @brief exp status
+  /// 0 - stop, 1 - start, 2 - pause, <0 - unvalid
+  int32_t is_exp_state_ = -1;
 
   CButtonUI* btn_close_;
   CButtonUI* btn_max_;

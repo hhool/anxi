@@ -38,6 +38,13 @@ class Element2DPoint {
   double y_ = 0;
 };
 
+extern const double kVarTimeDuration5min;
+extern const double kVarTimeDuration10min;
+extern const double kVarTimeDuration15min;
+extern const double kVarTimeDuration30min;
+extern const double kVarTimeDuration60min;
+
+////////////////////////////////////////////////////////////////////////////////
 class WorkWindowSecondWorkWindowSecondPageGraphCtrl {
  public:
   WorkWindowSecondWorkWindowSecondPageGraphCtrl();
@@ -60,9 +67,26 @@ class WorkWindowSecondWorkWindowSecondPageGraphCtrl {
   std::vector<Element2DPoint> GetGraphDataList();
 
  public:
+  ////////////////////////////////////////////////////////////////////////////
+  /// @brief  init the graph data list to the graph control element list
+  ///         for the graph control, used for graph total duration change
+  //          copy old duration data to the new duration data.
+  /// @param element_list the element list for the graph control
   void Init(std::vector<Element2DPoint> element_list);
+  /// @brief  update the graph plot point to the graph control element list
+  /// @param element_list the element list for the graph control
   void ProcessDataSampleIncoming(int32_t sample);
+  /// @brief  Release the graph control element list
   void Release();
+  ////////////////////////////////////////////////////////////////////////////
+  /// @brief  get current x min value for the graph control, x min value is
+  ///         the start time for the graph control.
+  /// @return  the current x min value for the graph control
+  double GetCurrentXMin() const;
+  /// @brief  get current x duration value for the graph control, x duration
+  ///         value is the total duration for the graph control.
+  /// @return  the current x duration value for the graph control
+  double GetCurrentXDuration() const;
 
  protected:
   void UpateXTimeValue();

@@ -15,9 +15,14 @@
 #include <utility>
 
 #include "app/common/defines.h"
+#include "app/common/logger.h"
 #include "app/common/string_utils.h"
+#include "app/common/time_utils.h"
+#include "app/db/database_helper.h"
 #include "app/device/device_com_factory.h"
 #include "app/device/device_com_settings.h"
+#include "app/device/device_com_settings_helper.h"
+#include "app/device/device_exp_data_sample_settings.h"
 #include "app/device/device_exp_graph_settings.h"
 #include "app/device/device_exp_ultrasound_settings.h"
 #include "app/esolution/solution_design.h"
@@ -85,15 +90,15 @@ WorkWindowSecondPage::WorkWindowSecondPage(
       exp_clip_time_paused_(0),
       exp_cycle_count_(0),
       exp_freq_fluctuations_range_(0) {
-  WorkWindowSecondPageGraph* graph_page =
-      new WorkWindowSecondPageGraph(pWorkWindow, paint_manager_ui);
+  WorkWindowSecondPageGraph* graph_page = new WorkWindowSecondPageGraph(
+      pWorkWindow, paint_manager_ui, &exp_data_info_);
   work_window_second_page_graph_virtual_wnd_ = graph_page;
   work_window_second_page_graph_notify_pump_.reset(graph_page);
   this->AddVirtualWnd(_T("WorkWindowSecondPageGraph"),
                       work_window_second_page_graph_notify_pump_.get());
 
-  WorkWindowSecondPageData* data_page =
-      new WorkWindowSecondPageData(pWorkWindow, paint_manager_ui);
+  WorkWindowSecondPageData* data_page = new WorkWindowSecondPageData(
+      pWorkWindow, paint_manager_ui, &exp_data_info_);
   work_window_second_page_data_virtual_wnd_ = data_page;
   work_window_second_page_data_notify_pump_.reset(data_page);
   this->AddVirtualWnd(_T("WorkWindowSecondPageData"),
@@ -307,6 +312,13 @@ void WorkWindowSecondPage::Bind() {
   UpdateControlFromSettings();
   paint_manager_ui_->SetTimer(btn_exp_start_, kTimerIdRefresh, 1000);
 
+  // create or get ultrasound device.
+  device_com_ul_ =
+      anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
+          anx::device::kDeviceCom_Ultrasound, this);
+  device_com_sl_ =
+      anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
+          anx::device::kDeviceCom_StaticLoad, this);
   work_window_second_page_graph_virtual_wnd_->Bind();
   work_window_second_page_data_virtual_wnd_->Bind();
 }
@@ -527,24 +539,17 @@ int32_t WorkWindowSecondPage::exp_start() {
   if (is_exp_state_) {
     return 0;
   }
-  if (device_com_ul_ != nullptr) {
-    return 1;
-  }
-  if (device_com_sl_ != nullptr) {
-    return 2;
-  }
 
   UpdateUIWithExpStatus(1);
 
   UpdateExpClipTimeFromControl();
-  // create or get ultrasound device.
-  device_com_ul_ =
-      anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
-          anx::device::kDeviceCom_Ultrasound, this);
-  device_com_sl_ =
-      anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
-          anx::device::kDeviceCom_StaticLoad, this);
   is_exp_state_ = 1;
+
+  std::unique_ptr<anx::device::DeviceExpDataSampleSettings> dedss =
+      anx::device::LoadDeviceExpDataSampleSettingsDefaultResource();
+  exp_data_info_.exp_start_time_ms_ = anx::common::GetCurrentTimeMillis();
+  exp_data_info_.exp_sample_interval_ms_ = dedss->sampling_interval_ * 100;
+
   // TODO(hhool): sample interval
   paint_manager_ui_->SetTimer(btn_exp_start_, 1, kSamplingInterval);
   DuiLib::TNotifyUI msg;
@@ -586,6 +591,12 @@ void WorkWindowSecondPage::exp_stop() {
 
   is_exp_state_ = 0;
 
+  /////////////////////////
+  // exp_data_info reset
+  exp_data_info_.exp_start_time_ms_ = 0;
+  exp_data_info_.exp_time_interval_num_ = 0;
+  exp_data_info_.exp_data_table_no_ = 0;
+
   // notify the exp stop
   DuiLib::TNotifyUI msg;
   msg.pSender = btn_exp_stop_;
@@ -595,16 +606,6 @@ void WorkWindowSecondPage::exp_stop() {
 
   // stop the timer
   paint_manager_ui_->KillTimer(btn_exp_start_, kTimerIdSampling);
-
-  // release the device com
-  if (device_com_sl_ != nullptr) {
-    device_com_sl_->RemoveListener(this);
-    device_com_sl_ = nullptr;
-  }
-  if (device_com_ul_ != nullptr) {
-    device_com_ul_->RemoveListener(this);
-    device_com_ul_ = nullptr;
-  }
 }
 
 void WorkWindowSecondPage::OnDataReceived(
@@ -612,22 +613,64 @@ void WorkWindowSecondPage::OnDataReceived(
     const uint8_t* data,
     int32_t size) {
   // TODO(hhool): process data
-  std::string hex_str;
-  if (device == device_com_ul_.get()) {
-    // process the data from ultrasound device
-    // 1. parse the data
-    // 2. update the data to the graph
-    // 3. update the data to the data table
-    // output the data as hex to the std::string
-    hex_str = anx::common::ByteArrayToHexString(data, size);
-    std::cout << hex_str << std::endl;
-  } else if (device == device_com_sl_.get()) {
-    // process the data from static load device
-    // 1. parse the data
-    // 2. update the data to the graph
-    // 3. update the data to the data table
-    hex_str = anx::common::ByteArrayToHexString(data, size);
-    std::cout << hex_str << std::endl;
+  if (is_exp_state_) {
+    std::string hex_str;
+    if (device == device_com_ul_.get()) {
+      // process the data from ultrasound device
+      // 1. parse the data
+      // 2. update the data to the graph
+      // 3. update the data to the data table
+      // output the data as hex to the std::string
+      hex_str = anx::common::ByteArrayToHexString(data, size);
+      std::cout << hex_str << std::endl;
+    } else if (device == device_com_sl_.get()) {
+      // process the data from static load device
+      // 1. parse the data
+      // 2. update the data to the graph
+      // 3. update the data to the data table
+      hex_str = anx::common::ByteArrayToHexString(data, size);
+      std::cout << hex_str << std::endl;
+    }
+    int64_t current_time_ms = anx::common::GetCurrentTimeMillis();
+    int64_t time_diff = current_time_ms - exp_data_info_.exp_start_time_ms_;
+    int64_t time_interval_num =
+        time_diff / exp_data_info_.exp_sample_interval_ms_;
+    if (time_interval_num > exp_data_info_.exp_time_interval_num_) {
+      exp_data_info_.exp_time_interval_num_ = time_interval_num;
+      exp_data_info_.exp_data_table_no_++;
+      // update the data to the database table amp, stress, um
+      // TODO(hhool):
+      int64_t cycle_count = exp_data_info_.exp_data_table_no_ * 500;
+      float KHz = 208.230f * kMultiFactor;
+      // TODO(hhool): random KHz, um, MPa
+      float um = (rand() % 15) * kMultiFactor;
+      float MPa = (rand() % 2) * kMultiFactor;
+      exp_data_info_.amp_freq_ = KHz;
+      exp_data_info_.amp_um_ = um;
+      exp_data_info_.stress_value_ = MPa;
+      LOG_F(LG_INFO) << "no:" << exp_data_info_.exp_data_table_no_ << " "
+                     << "cycle:" << cycle_count << " " << "um:" << um << " "
+                     << "MPa:" << MPa;
+      // TODO(hhool): save to database
+      // format cycle_count, KHz, MPa, um to the sql string and insert to the
+      // database
+      std::string sql_str = ("INSERT INTO ");
+      sql_str.append(anx::db::helper::kTableExpData);
+      sql_str.append((" (cycle, KHz, MPa, um, date) VALUES ("));
+      sql_str.append(std::to_string(cycle_count));
+      sql_str.append(", ");
+      sql_str.append(std::to_string(KHz));
+      sql_str.append(", ");
+      sql_str.append(std::to_string(MPa));
+      sql_str.append(", ");
+      sql_str.append(std::to_string(um));
+      sql_str.append(", ");
+      sql_str.append(std::to_string(anx::common::GetCurrrentDateTime()));
+      sql_str.append(");");
+      anx::db::helper::InsertDataTable(
+          anx::db::helper::kDefaultDatabasePathname,
+          anx::db::helper::kTableExpData, sql_str);
+    }
   }
 }
 

@@ -11,12 +11,15 @@
 #include "app/ui/work_window_tab_main_second_page_graph.h"
 
 #include <iostream>
+#include <map>
 #include <utility>
 #include <vector>
 
 #include "app/common/defines.h"
+#include "app/common/logger.h"
 #include "app/common/string_utils.h"
 #include "app/common/time_utils.h"
+#include "app/db/database_helper.h"
 #include "app/device/device_com_factory.h"
 #include "app/device/device_com_settings.h"
 #include "app/device/device_exp_graph_settings.h"
@@ -70,18 +73,48 @@ const int32_t kGraphCtrlSampleTotalMinutesFive = 5;
 const int32_t kGraphCtrlSampleTotalMinutesTen = 10;
 const int32_t kGraphCtrlSampleTotalMinutesThirty = 30;
 const int32_t kGraphCtrlSampleTotalMinutesSixty = 60;
+
+double minutes_to_var_time_duration(int32_t minutes) {
+  if (minutes == 5) {
+    return kVarTimeDuration5min;
+  } else if (minutes == 10) {
+    return kVarTimeDuration10min;
+  } else if (minutes == 30) {
+    return kVarTimeDuration30min;
+  } else if (minutes == 60) {
+    return kVarTimeDuration60min;
+  } else {
+    return kVarTimeDuration5min;
+  }
+}
 }  // namespace
 
 ////////////////////////////////////////////////////////////////////////////////
 WorkWindowSecondPageGraph::WorkWindowSecondPageGraph(
     WorkWindow* pWorkWindow,
-    DuiLib::CPaintManagerUI* paint_manager_ui)
-    : pWorkWindow_(pWorkWindow), paint_manager_ui_(paint_manager_ui) {}
+    DuiLib::CPaintManagerUI* paint_manager_ui,
+    ExpDataInfo* exp_data_info)
+    : pWorkWindow_(pWorkWindow),
+      paint_manager_ui_(paint_manager_ui),
+      exp_data_info_(exp_data_info) {
+  paint_manager_ui_->AddNotifier(this);
+}
 
 WorkWindowSecondPageGraph::~WorkWindowSecondPageGraph() {
   paint_manager_ui_->KillTimer(btn_graph_amplitude_title_, kTimerGraphId);
   device_com_sl_.reset();
   device_com_ul_.reset();
+}
+
+void WorkWindowSecondPageGraph::Notify(DuiLib::TNotifyUI& msg) {
+  if (msg.sType == kWindowInit) {
+  } else if (msg.sType == kClick) {
+    if (msg.pSender->GetName() == _T("graph_settings_pre_page")) {
+      OnPrePage(&msg);
+    } else if (msg.pSender->GetName() == _T("graph_settings_next_page")) {
+      OnNextPage(&msg);
+    }
+  }
 }
 
 void WorkWindowSecondPageGraph::OnClick(TNotifyUI& msg) {
@@ -107,7 +140,7 @@ bool WorkWindowSecondPageGraph::OnOptGraphTimeModeChange(void* param) {
   if (pMsg == nullptr) {
     return false;
   }
-  return false;
+  return true;
 }
 
 bool WorkWindowSecondPageGraph::OnChkGraphAlwaysShowNewChange(void* param) {
@@ -116,7 +149,7 @@ bool WorkWindowSecondPageGraph::OnChkGraphAlwaysShowNewChange(void* param) {
   if (pMsg == nullptr) {
     return false;
   }
-  return false;
+  return true;
 }
 
 bool WorkWindowSecondPageGraph::OnOptGraphTimeRangeChange(void* param) {
@@ -126,12 +159,16 @@ bool WorkWindowSecondPageGraph::OnOptGraphTimeRangeChange(void* param) {
   }
   int32_t graphctrl_sample_total_minutes = -1;
   if (pMsg->pSender == opt_graph_time_range_5_mnitues_) {
+    LOG_F(LG_INFO) << "opt_graph_time_range_5_mnitues_";
     graphctrl_sample_total_minutes = kGraphCtrlSampleTotalMinutesFive;
   } else if (pMsg->pSender == opt_graph_time_range_10_mnitues_) {
+    LOG_F(LG_INFO) << "opt_graph_time_range_10_mnitues_";
     graphctrl_sample_total_minutes = kGraphCtrlSampleTotalMinutesTen;
   } else if (pMsg->pSender == opt_graph_time_range_30_mnitues_) {
+    LOG_F(LG_INFO) << "opt_graph_time_range_30_mnitues_";
     graphctrl_sample_total_minutes = kGraphCtrlSampleTotalMinutesThirty;
   } else if (pMsg->pSender == opt_graph_time_range_60_mnitues_) {
+    LOG_F(LG_INFO) << "opt_graph_time_range_30_mnitues_";
     graphctrl_sample_total_minutes = kGraphCtrlSampleTotalMinutesSixty;
   } else {
     return false;
@@ -174,6 +211,102 @@ bool WorkWindowSecondPageGraph::OnOptGraphTimeRangeChange(void* param) {
   return true;
 }
 
+bool WorkWindowSecondPageGraph::OnPrePage(void* param) {
+  TNotifyUI* pMsg = reinterpret_cast<TNotifyUI*>(param);
+  if (pMsg == nullptr || pMsg->pSender != btn_pre_page_) {
+    return false;
+  }
+  chk_graph_always_show_new_->Selected(false);
+  // TODO(hhool): update the graph
+  double cur_x_min = page_graph_amplitude_ctrl_->GetCurrentXMin();
+  double cur_durtion = page_graph_stress_ctrl_->GetCurrentXDuration();
+  double new_x_min = cur_x_min - cur_durtion;
+  if (new_x_min < 0) {
+    new_x_min = 0;
+  }
+  if (new_x_min < amp_start_time_) {
+    new_x_min = amp_start_time_;
+  }
+  /////////////////////////////////////////////////////////////////////////////
+  /// @note clear current graph data and update the graph data from the exp_data
+  /// of the database. and update the graph control.
+  {
+    page_graph_amplitude_ctrl_->Release();
+    page_graph_amplitude_ctrl_.reset();
+    CActiveXUI* activex = static_cast<CActiveXUI*>(
+        paint_manager_ui_->FindControl(_T("graph_amplitude_canvas")));
+    page_graph_amplitude_ctrl_.reset(
+        new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
+            activex, "amp", graphctrl_sample_total_minutes_, 15, 5));
+    /// @note query the data from the exp_data of the database and update the
+    /// graph control.
+    std::string sql_str = " SELECT* FROM ";
+    sql_str += anx::db::helper::kTableExpData;
+    sql_str += " WHERE ";
+    sql_str += " date >= ";
+    sql_str += std::to_string(new_x_min);
+    sql_str += " AND date <= ";
+    sql_str += std::to_string(cur_x_min);
+    sql_str += " ORDER BY date ASC;";
+    std::vector<std::map<std::string, std::string>> result;
+    anx::db::helper::QueryDataBase(anx::db::helper::kDefaultDatabasePathname,
+                                   anx::db::helper::kTableExpData, sql_str,
+                                   &result);
+    std::vector<Element2DPoint> element_list;
+    for (auto& item : result) {
+      double x = std::stod(item["date"]);
+      double y = std::stod(item["um"]);
+      element_list.push_back(Element2DPoint(x, y));
+    }
+    page_graph_amplitude_ctrl_->Init(element_list);
+  }
+  /////////////////////////////////////////////////////////////////////////////
+  /// @note clear current graph data and update the graph data from the exp_data
+  /// of the database. and update the graph control.
+
+  {
+    page_graph_stress_ctrl_->Release();
+    page_graph_stress_ctrl_.reset();
+    CActiveXUI* activex_stress = static_cast<CActiveXUI*>(
+        paint_manager_ui_->FindControl(_T("graph_stress_canvas")));
+    page_graph_stress_ctrl_.reset(
+        new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
+            activex_stress, "stress", graphctrl_sample_total_minutes_, 2, 5));
+    /// @note query the data from the exp_data of the database and update the
+    /// graph control.
+    std::string sql_str = " SELECT* FROM ";
+    sql_str += anx::db::helper::kTableExpData;
+    sql_str += " WHERE ";
+    sql_str += " date >= ";
+    sql_str += std::to_string(new_x_min);
+    sql_str += " AND date <= ";
+    sql_str += std::to_string(cur_x_min);
+    sql_str += " ORDER BY date ASC;";
+    std::vector<std::map<std::string, std::string>> result;
+    anx::db::helper::QueryDataBase(anx::db::helper::kDefaultDatabasePathname,
+                                   anx::db::helper::kTableExpData, sql_str,
+                                   &result);
+    std::vector<Element2DPoint> element_list;
+    for (auto& item : result) {
+      double x = std::stod(item["date"]);
+      double y = std::stod(item["MPa"]);
+      element_list.push_back(Element2DPoint(x, y));
+    }
+    page_graph_stress_ctrl_->Init(element_list);
+  }
+  return true;
+}
+
+bool WorkWindowSecondPageGraph::OnNextPage(void* param) {
+  TNotifyUI* pMsg = reinterpret_cast<TNotifyUI*>(param);
+  if (pMsg == nullptr || pMsg->pSender != btn_next_page_) {
+    return false;
+  }
+  chk_graph_always_show_new_->Selected(false);
+  // TODO(hhool): update the graph
+  return true;
+}
+
 bool WorkWindowSecondPageGraph::OnTimer(void* param) {
   TNotifyUI* pMsg = reinterpret_cast<TNotifyUI*>(param);
   if (pMsg == nullptr) {
@@ -185,6 +318,7 @@ bool WorkWindowSecondPageGraph::OnTimer(void* param) {
   if (pMsg->wParam == kTimerGraphId) {
     // update the graph
     RefreshExpGraphTitelControl();
+    RefreshPreNextControl();
     return true;
   } else {
     // TODO(hhool): do nothing;
@@ -259,6 +393,13 @@ void WorkWindowSecondPageGraph::Bind() {
   btn_graph_stress_canvas_ = static_cast<DuiLib::CButtonUI*>(
       paint_manager_ui_->FindControl(_T("graph_stress_canvas")));
   btn_graph_stress_canvas_->SetEnabled(false);
+
+  btn_pre_page_ = static_cast<DuiLib::CButtonUI*>(
+      paint_manager_ui_->FindControl(_T("graph_settings_pre_page")));
+  btn_pre_page_->SetEnabled(false);
+  btn_next_page_ = static_cast<DuiLib::CButtonUI*>(
+      paint_manager_ui_->FindControl(_T("graph_settings_next_page")));
+  btn_next_page_->SetEnabled(false);
 
   UpdateControlFromSettings();
   {
@@ -336,7 +477,18 @@ void WorkWindowSecondPageGraph::RefreshExpGraphTitelControl() {
   // minute
 }
 
-void WorkWindowSecondPageGraph::RefreshSampleTimeControl() {}
+void WorkWindowSecondPageGraph::RefreshPreNextControl() {
+  if (page_graph_amplitude_ctrl_ != nullptr) {
+    double var_time_amp_current_x_min =
+        page_graph_amplitude_ctrl_->GetCurrentXMin();
+    double diff = var_time_amp_current_x_min - amp_start_time_;
+    if (diff > 0) {
+      btn_pre_page_->SetEnabled(true);
+    } else {
+      btn_pre_page_->SetEnabled(false);
+    }
+  }
+}
 
 void WorkWindowSecondPageGraph::UpdateExpClipTimeFromControl() {}
 
@@ -362,10 +514,18 @@ void WorkWindowSecondPageGraph::OnDataReceived(
     hex_str = anx::common::ByteArrayToHexString(data, size);
     std::cout << hex_str << std::endl;
   }
+  if (!chk_graph_always_show_new_->IsSelected()) {
+    return;
+  }
+  if (exp_data_info_->exp_time_interval_num_ <= exp_time_interval_num_) {
+    return;
+  }
+  exp_time_interval_num_ = exp_data_info_->exp_time_interval_num_;
   // TODO(hhool): update the data to graph
-  page_graph_amplitude_ctrl_->ProcessDataSampleIncoming(rand() %     // NOLINT
-                                                        200);        // NOLINT
-  page_graph_stress_ctrl_->ProcessDataSampleIncoming(rand() % 200);  // NOLINT
+  page_graph_amplitude_ctrl_->ProcessDataSampleIncoming(
+      exp_data_info_->amp_um_);  // NOLINT
+  page_graph_stress_ctrl_->ProcessDataSampleIncoming(
+      exp_data_info_->stress_value_);  // NOLINT
 
   RefreshExpGraphTitelControl();
 }
@@ -463,6 +623,8 @@ void WorkWindowSecondPageGraph::SaveSettingsFromControl() {
 
 void WorkWindowSecondPageGraph::OnExpStart() {
   RefreshExpGraphTitelControl();
+  exp_time_interval_num_ = 0;
+
   paint_manager_ui_->SetTimer(btn_graph_amplitude_title_, kTimerGraphId,
                               kTimerGraphIdPeriod);
   {
@@ -472,6 +634,7 @@ void WorkWindowSecondPageGraph::OnExpStart() {
         new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
             activex, "amp", graphctrl_sample_total_minutes_, 15, 5));
     page_graph_amplitude_ctrl_->Init(std::vector<Element2DPoint>());
+    amp_start_time_ = page_graph_amplitude_ctrl_->GetCurrentXMin();
   }
   {
     CActiveXUI* activex = static_cast<CActiveXUI*>(
@@ -480,11 +643,13 @@ void WorkWindowSecondPageGraph::OnExpStart() {
         new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
             activex, "stress", graphctrl_sample_total_minutes_, 2, 5));
     page_graph_stress_ctrl_->Init(std::vector<Element2DPoint>());
+    stress_start_time_ = page_graph_stress_ctrl_->GetCurrentXMin();
   }
 }
 
 void WorkWindowSecondPageGraph::OnExpStop() {
   paint_manager_ui_->KillTimer(btn_graph_amplitude_title_, kTimerGraphId);
+  exp_time_interval_num_ = 0;
 }
 
 void WorkWindowSecondPageGraph::OnExpPause() {
