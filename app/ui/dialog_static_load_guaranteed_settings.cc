@@ -70,7 +70,8 @@ void DialogStaticLoadGuaranteedSettings::OnFinalMessage(HWND hWnd) {
 }
 
 LRESULT DialogStaticLoadGuaranteedSettings::ResponseDefaultKeyEvent(
-    WPARAM wParam) {
+    WPARAM wParam,
+    bool& bHandled) {
   if (wParam == VK_RETURN) {
     this->Close();
     return TRUE;

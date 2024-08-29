@@ -17,6 +17,8 @@
 
 #include "app/device/device_com_factory.h"
 
+#include "app/db/database_factory.h"
+
 namespace anx {
 namespace app {
 
@@ -71,11 +73,13 @@ Application::Application(HANDLE hinst) : main_window_(nullptr) {
     // TODO(hhool): process error
     return;
   }
+  anx::db::DatabaseFactory::Instance();
   anx::device::DeviceComFactory::Instance();
 }
 
 Application::~Application() {
   anx::device::DeviceComFactory::ReleaseInstance();
+  anx::db::DatabaseFactory::ReleaseInstance();
   ::CoUninitialize();
 }
 
@@ -85,7 +89,8 @@ int32_t Application::Run() {
                        WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
   main_window_->CenterWindow();
   main_window_->ShowWindow(true, true);
-  return DuiLib::CPaintManagerUI::MessageLoop();
+  DuiLib::CPaintManagerUI::MessageLoop();
+  return 0;
 }
 
 void Application::Exit() {

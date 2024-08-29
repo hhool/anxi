@@ -12,9 +12,12 @@
 #include "app/ui/work_window.h"
 
 #include <utility>
+#include <vector>
 
 #include "app/common/defines.h"
+#include "app/common/file_utils.h"
 #include "app/common/string_utils.h"
+#include "app/db/database_helper.h"
 #include "app/device/device_com_factory.h"
 #include "app/device/device_com_settings.h"
 #include "app/device/device_com_settings_helper.h"
@@ -56,6 +59,19 @@ WorkWindow::WorkWindow(DuiLib::WindowImplBase* pOwner, int32_t solution_type)
       anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
           anx::device::kDeviceCom_StaticLoad, this);
 
+  // database initial
+  // remove database
+  anx::db::helper::ClearDatabaseFile(anx::db::helper::kDefaultDatabasePathname);
+  // initial database
+  std::vector<std::string> sqls;
+  sqls.push_back(anx::db::helper::sql::kCreateTableAmpSqlFormat);
+  sqls.push_back(anx::db::helper::sql::kCreateTableSendDataSqlFormat);
+  sqls.push_back(anx::db::helper::sql::kCreateTableNotificationSqlFormat);
+  sqls.push_back(anx::db::helper::sql::kCreateTableSendNotifySqlFormat);
+
+  anx::db::helper::InitializeDataBase(anx::db::helper::kDefaultDatabasePathname,
+                                      sqls);
+  // initial solution design
   if (solution_type == anx::esolution::kSolutionName_Axially_Symmetrical) {
     WorkWindowFirstPageAxiallySymmetrical* page_axially =
         new WorkWindowFirstPageAxiallySymmetrical(this, &m_PaintManager);
@@ -193,7 +209,7 @@ void WorkWindow::OnFinalMessage(HWND hWnd) {
   delete this;
 }
 
-LRESULT WorkWindow::ResponseDefaultKeyEvent(WPARAM wParam) {
+LRESULT WorkWindow::ResponseDefaultKeyEvent(WPARAM wParam, bool& bHandled) {
   if (wParam == VK_RETURN) {
     return FALSE;
   } else if (wParam == VK_ESCAPE) {
@@ -258,7 +274,8 @@ void WorkWindow::Notify(DuiLib::TNotifyUI& msg) {
     // TODO(hhool):
     MessageBox(*this, msg.sType, msg.sType, MB_OK);
   } else {
-    // TODO(hhool):
+    // DuiLib::WindowImplBase::Notify(msg);
+    __super::Notify(msg);
   }
 }
 

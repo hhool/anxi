@@ -27,6 +27,11 @@ std::string GetModuleDir();
 /// @brief Get the module name
 /// @return the module name
 std::string GetModuleName();
+
+/// @brief Make sure the directory exists
+/// @param dir the directory
+/// @return true if success, otherwise false
+bool MakeSureFolderPathExist(const std::string& dir);
 }  // namespace common
 }  // namespace anx
 

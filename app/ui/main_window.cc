@@ -48,7 +48,7 @@ void MainWindow::OnFinalMessage(HWND hWnd) {
   delete this;
 }
 
-LRESULT MainWindow::ResponseDefaultKeyEvent(WPARAM wParam) {
+LRESULT MainWindow::ResponseDefaultKeyEvent(WPARAM wParam, bool& bHandled) {
   if (wParam == VK_RETURN) {
     return FALSE;
   } else if (wParam == VK_ESCAPE) {

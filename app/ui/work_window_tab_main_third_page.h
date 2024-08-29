@@ -37,12 +37,16 @@ class WorkWindow;
 namespace anx {
 namespace ui {
 class WorkWindowThirdPage : public DuiLib::CNotifyPump,
-                            public UIVirtualWndBase,
+                            public DuiLib::INotifyUI,
+                            public anx::ui::UIVirtualWndBase,
                             public anx::device::DeviceComListener {
  public:
   WorkWindowThirdPage(WorkWindow* pOwner,
                       DuiLib::CPaintManagerUI* paint_manager_ui);
   ~WorkWindowThirdPage();
+
+ public:
+  void Notify(TNotifyUI& msg) override;
 
  public:
   DUI_DECLARE_MESSAGE_MAP()
@@ -71,11 +75,8 @@ class WorkWindowThirdPage : public DuiLib::CNotifyPump,
   DuiLib::CPaintManagerUI* paint_manager_ui_;
   std::shared_ptr<anx::device::DeviceComInterface> device_com_ul_;
   std::shared_ptr<anx::device::DeviceComInterface> device_com_sl_;
-  std::vector<std::string> send_data_items_;
   uint32_t send_table_no_ = 0;
-  std::vector<std::string> recv_data_items_;
   uint32_t recv_table_no_ = 0;
-  std::vector<std::string> recv_notify_data_items_;
   uint32_t recv_notify_table_no_ = 0;
 
   COptionUI* opt_direct_up_;
@@ -99,9 +100,9 @@ class WorkWindowThirdPage : public DuiLib::CNotifyPump,
   class ListRecvGetter;
   class ListRecvNotifyGetter;
 
-  std::unique_ptr<DuiLib::IListCallbackUI> list_send_getter_;
-  std::unique_ptr<DuiLib::IListCallbackUI> list_recv_getter_;
-  std::unique_ptr<DuiLib::IListCallbackUI> list_recv_notify_getter_;
+  std::unique_ptr<DuiLib::IListVirtalCallbackUI> list_send_getter_;
+  std::unique_ptr<DuiLib::IListVirtalCallbackUI> list_recv_getter_;
+  std::unique_ptr<DuiLib::IListVirtalCallbackUI> list_recv_notify_getter_;
 };
 }  // namespace ui
 }  // namespace anx

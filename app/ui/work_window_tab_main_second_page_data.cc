@@ -18,6 +18,7 @@
 #include "app/common/logger.h"
 #include "app/common/string_utils.h"
 #include "app/common/time_utils.h"
+#include "app/db/database_helper.h"
 #include "app/device/device_com_factory.h"
 #include "app/device/device_com_settings.h"
 #include "app/device/device_exp_data_sample_settings.h"
@@ -57,16 +58,136 @@ std::string format_num(int64_t num) {
 /// @brief timer id for refresh control
 const uint32_t kTimerIdRefreshControl = 1;
 }  // namespace
+
+class WorkWindowSecondPageData::ListVirtalDataView
+    : public DuiLib::IListVirtalCallbackUI {
+ public:
+  explicit ListVirtalDataView(DuiLib::CListUI* list_ui) : list_ui_(list_ui) {}
+  ~ListVirtalDataView() {}
+
+  CControlUI* CreateVirtualItem() override {
+    CListHBoxElementUI* pHBox = new CListHBoxElementUI;
+    //> 设置行高
+    pHBox->SetFixedHeight(28);
+    ///> No
+    DuiLib::CLabelUI* pText = new DuiLib::CLabelUI();
+    pText->SetAttributeList(_T("font=\"11\" algin=\"center\""));
+    pText->SetFixedHeight(28);
+    pText->SetFixedWidth(40);
+    pText->SetName(_T("No"));
+    pHBox->Add(pText);
+    ///> cycle count
+    pText = new DuiLib::CLabelUI();
+    pText->SetAttributeList(_T("font=\"11\" algin=\"center\""));
+    pText->SetFixedHeight(28);
+    pText->SetFixedWidth(40);
+    pText->SetName(_T("cycle"));
+    pHBox->Add(pText);
+    ///> frequency value
+    pText = new DuiLib::CLabelUI();
+    pText->SetAttributeList(_T("font=\"11\" algin=\"center\""));
+    pText->SetFixedHeight(28);
+    pText->SetFixedWidth(40);
+    pText->SetName(_T("frequency"));
+    pHBox->Add(pText);
+    ///> displacement value
+    pText = new DuiLib::CLabelUI();
+    pText->SetAttributeList(_T("font=\"11\" algin=\"center\""));
+    pText->SetFixedHeight(28);
+    pText->SetFixedWidth(40);
+    pText->SetName(_T("displacement"));
+    pHBox->Add(pText);
+    ///> strength value
+    pText = new DuiLib::CLabelUI();
+    pText->SetAttributeList(_T("font=\"11\" algin=\"center\""));
+    pText->SetFixedHeight(28);
+    pText->SetFixedWidth(40);
+    pText->SetName(_T("strength"));
+    pHBox->Add(pText);
+
+    return pHBox;
+  }
+
+  void DrawItem(CControlUI* pControl, int nRow) {
+    if (pControl == nullptr) {
+      return;
+    }
+    if (nRow < 0) {
+      return;
+    }
+    std::string sql_str = "SELECT * FROM ";
+    sql_str += anx::db::helper::kTableExpData;
+    sql_str += " WHERE id=";
+    sql_str += std::to_string(nRow + 1);
+    std::vector<std::map<std::string, std::string>> result;
+    anx::db::helper::QueryDataBase(anx::db::helper::kDefaultDatabasePathname,
+                                   anx::db::helper::kTableExpData, sql_str,
+                                   &result);
+    if (result.size() == 0) {
+      return;
+    }
+    CListHBoxElementUI* pHBox = static_cast<CListHBoxElementUI*>(
+        pControl->GetInterface(DUI_CTR_LISTCONTAINERELEMENT));
+    if (pHBox) {
+      CDuiString dui_string =
+          anx::common::string2wstring(result[0]["id"]).c_str();
+      DuiLib::CLabelUI* pText = static_cast<DuiLib::CLabelUI*>(
+          pHBox->GetItemAt(0)->GetInterface(DUI_CTR_LABEL));
+      pText->SetText(dui_string);
+
+      dui_string = anx::common::string2wstring(result[0]["cycle"]).c_str();
+      pText = static_cast<DuiLib::CLabelUI*>(
+          pHBox->GetItemAt(1)->GetInterface(DUI_CTR_LABEL));
+      pText->SetText(dui_string);
+
+      dui_string = anx::common::string2wstring(result[0]["kHz"]).c_str();
+      pText = static_cast<DuiLib::CLabelUI*>(
+          pHBox->GetItemAt(2)->GetInterface(DUI_CTR_LABEL));
+      pText->SetText(dui_string);
+
+      dui_string = anx::common::string2wstring(result[0]["MPa"]).c_str();
+      pText = static_cast<DuiLib::CLabelUI*>(
+          pHBox->GetItemAt(3)->GetInterface(DUI_CTR_LABEL));
+      pText->SetText(dui_string);
+
+      dui_string = anx::common::string2wstring(result[0]["um"]).c_str();
+      pText = static_cast<DuiLib::CLabelUI*>(
+          pHBox->GetItemAt(4)->GetInterface(DUI_CTR_LABEL));
+      pText->SetText(dui_string);
+    }
+  }
+
+ private:
+  DuiLib::CListUI* list_ui_;
+  int32_t exp_data_table_start_row_no_ = 0;
+  int32_t exp_data_table_limit_row_no_ = 100;
+  int32_t exp_data_table_no_ = 0;
+};
+
 WorkWindowSecondPageData::WorkWindowSecondPageData(
     WorkWindow* pWorkWindow,
     DuiLib::CPaintManagerUI* paint_manager_ui)
     : pWorkWindow_(pWorkWindow), paint_manager_ui_(paint_manager_ui) {
+  paint_manager_ui_->AddNotifier(this);
   device_exp_data_settings_.reset(
       new anx::device::DeviceExpDataSampleSettings());
 }
 
 WorkWindowSecondPageData::~WorkWindowSecondPageData() {
   device_exp_data_settings_.reset();
+}
+
+void WorkWindowSecondPageData::Notify(TNotifyUI& msg) {
+  if (msg.sType == kWindowInit) {
+  } else if (msg.sType == DUI_MSGTYPE_DRAWITEM) {
+    if (msg.pSender == list_data_) {
+      ListVirtalDataView* lsg =
+          reinterpret_cast<ListVirtalDataView*>(list_data_view_.get());
+      lsg->DrawItem(reinterpret_cast<CControlUI*>(msg.wParam), msg.lParam);
+    } else {
+      // do nothing
+    }
+  }
 }
 
 void WorkWindowSecondPageData::OnClick(TNotifyUI& msg) {
@@ -104,69 +225,6 @@ bool WorkWindowSecondPageData::OnTimer(void* param) {
   return true;
 }
 
-LPCTSTR WorkWindowSecondPageData::GetItemText(CControlUI* pControl,
-                                              int iItem,
-                                              int iSubItem) {
-  LOG_F(LG_INFO) << "GetItemText iItem:" << iItem;
-  if (iItem < 0 || iSubItem < 0) {
-    pControl->SetUserData(_T(""));
-    return pControl->GetUserData();
-  }
-  /// check the item index with exp_data_table_start_row_no_
-  if (iItem < exp_data_table_start_row_no_ ||
-      iItem >= (exp_data_table_start_row_no_ +
-                static_cast<int32_t>(exp_datas_.size()))) {
-    /// clear the data exp_datas_ and request the data from the database again
-    ClearExpData();
-    exp_data_table_start_row_no_ = iItem;
-    /*anx::common::RequestDataFromDatabase(iItem, exp_data_table_limit_row_no_,
-                                         exp_datas_);*/
-#if 1
-    for (int i = 0; i < exp_data_table_limit_row_no_; i++) {
-      anx::expdata::ExperimentData data;
-      data.id_ = i + 1 + exp_data_table_start_row_no_;
-      data.cycle_count_ = (exp_data_table_no_ + i) * 500;
-      data.KHz_ = 208.230f;
-      data.MPa_ = 102.080f;
-      data.um_ = 1023.230f;
-      exp_datas_.push_back(data);
-    }
-#endif
-  }
-  int iItemIndex = iItem - exp_data_table_start_row_no_;
-  if (iSubItem == 0) {
-    pControl->SetUserData(
-        anx::common::string2wstring(std::to_string(exp_datas_[iItemIndex].id_))
-            .c_str());
-    return pControl->GetUserData();
-  } else if (iSubItem == 1) {
-    pControl->SetUserData(
-        anx::common::string2wstring(
-            std::to_string(exp_datas_[iItemIndex].cycle_count_))
-            .c_str());
-    return pControl->GetUserData();
-  } else if (iSubItem == 2) {
-    int64_t KHz = static_cast<int64_t>(exp_datas_[iItemIndex].KHz_ * 1000);
-    std::wstring KHz_str = anx::common::string2wstring(format_num(KHz));
-    pControl->SetUserData(KHz_str.c_str());
-    return pControl->GetUserData();
-  } else if (iSubItem == 3) {
-    int64_t MPa = static_cast<int64_t>(exp_datas_[iItemIndex].MPa_ * 1000);
-    std::wstring MPa_str = anx::common::string2wstring(format_num(MPa));
-    pControl->SetUserData(MPa_str.c_str());
-    return pControl->GetUserData();
-  } else if (iSubItem == 4) {
-    int64_t um = static_cast<int64_t>(exp_datas_[iItemIndex].um_ * 1000);
-    std::wstring um_str = anx::common::string2wstring(format_num(um));
-    pControl->SetUserData(um_str.c_str());
-    return pControl->GetUserData();
-  } else {
-    assert(false);
-    pControl->SetUserData(_T(""));
-    return pControl->GetUserData();
-  }
-}
-
 void WorkWindowSecondPageData::Bind() {
   /// @brief device com interface initialization
   device_com_ul_ =
@@ -196,7 +254,12 @@ void WorkWindowSecondPageData::Bind() {
   list_data_ = static_cast<DuiLib::CListUI*>(
       paint_manager_ui_->FindControl(_T("tab_graph_data_list_data")));
 
-  list_data_->SetTextCallback(this);
+  list_data_view_.reset(new ListVirtalDataView(list_data_));
+  list_data_->SetVirtual(true);
+  list_data_->SetVirtualItemFormat(
+      static_cast<DuiLib::IListVirtalCallbackUI*>(list_data_view_.get()));
+  list_data_->SetVirtualItemCount(0);
+
   UpdateControlFromSettings();
 
   paint_manager_ui_->SetTimer(text_sample_interval_, kTimerIdRefreshControl,
@@ -371,20 +434,26 @@ void WorkWindowSecondPageData::OnDataReceived(
       float KHz = 208.230f;
       float MPa = 102.080f;
       float um = 1023.230f;
-      /*anx::common::DatabaseHelper::InsertExpData(
-          exp_data_table_no_, KHz, Mpa, um,
-         anx::common::GetCurrrentDateTime());*/
-      // update the data to the data table
-      DuiLib::CListTextElementUI* item_no = new DuiLib::CListTextElementUI();
-      item_no->SetTag(exp_data_table_no_);
-      list_data_->Add(item_no);
-      anx::expdata::ExperimentData exp_data;
-      /*exp_data.id_ = exp_data_table_no_;
-      exp_data.cycle_count_ = cycle_count;
-      exp_data.KHz_ = 208.230f;
-      exp_data.MPa_ = 102.080f;
-      exp_data.um_ = 1023.230f;
-      exp_datas_.push_back(exp_data);*/
+      // TODO(hhool): save to database
+      // format cycle_count, KHz, MPa, um to the sql string and insert to the
+      // database
+      std::string sql_str = ("INSERT INTO ");
+      sql_str.append(anx::db::helper::kTableExpData);
+      sql_str.append((" (cycle, KHz, MPa, um, date) VALUES ("));
+      sql_str.append(std::to_string(cycle_count));
+      sql_str.append(", ");
+      sql_str.append(std::to_string(KHz));
+      sql_str.append(", ");
+      sql_str.append(std::to_string(MPa));
+      sql_str.append(", ");
+      sql_str.append(std::to_string(um));
+      sql_str.append(", ");
+      sql_str.append(std::to_string(anx::common::GetCurrrentDateTime()));
+      sql_str.append(");");
+      anx::db::helper::InsertDataTable(
+          anx::db::helper::kDefaultDatabasePathname,
+          anx::db::helper::kTableExpData, sql_str);
+      list_data_->SetVirtualItemCount(exp_data_table_no_);
     }
   }
 }

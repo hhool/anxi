@@ -11,11 +11,14 @@
 
 #include "app/ui/work_window_tab_main_third_page.h"
 
+#include <map>
+#include <memory>
 #include <string>
 #include <utility>
 
 #include "app/common/logger.h"
 #include "app/common/string_utils.h"
+#include "app/db/database_helper.h"
 #include "app/device/device_com_factory.h"
 #include "app/device/device_com_settings.h"
 #include "app/device/device_exp_load_static_settings.h"
@@ -61,162 +64,195 @@ const int32_t kTimerID = 0x1;
 const int32_t kTimerElapse = 1000;
 }  // namespace
 
-class WorkWindowThirdPage::ListSendGetter : public DuiLib::IListCallbackUI {
+class WorkWindowThirdPage::ListSendGetter
+    : public DuiLib::IListVirtalCallbackUI {
  public:
-  explicit ListSendGetter(std::vector<std::string>* items) : items_(items) {}
+  explicit ListSendGetter(DuiLib::CListUI* list_ui) : list_ui_(list_ui) {}
   ~ListSendGetter() {}
 
-  LPCTSTR GetItemText(DuiLib::CControlUI* pControl,
-                      int iItem,
-                      int iSubItem) override {
-    if (iItem < 0 || iSubItem < 0) {
-      pControl->SetUserData(_T(""));
-      return pControl->GetUserData();
+  CControlUI* CreateVirtualItem() override {
+    CListHBoxElementUI* pHBox = new CListHBoxElementUI;
+    //> 设置行高
+    pHBox->SetFixedHeight(28);
+    ///> 操作区域
+    CLabelUI* pLabel = new CLabelUI;
+    pLabel->SetAttributeList(_T("font=\"11\" algin=\"center\""));
+    pLabel->SetFixedHeight(28);
+    pLabel->SetFixedWidth(30);
+    pHBox->Add(pLabel);
+
+    return pHBox;
+  }
+
+  void DrawItem(CControlUI* pControl, int nRow) {
+    if (pControl == nullptr) {
+      return;
     }
-    if (iItem < exp_data_table_start_row_no_ ||
-        static_cast<size_t>(iItem) >=
-            (exp_data_table_start_row_no_ + items_->size())) {
-      // clear the data itmes and request the data from the database again
-      items_->clear();
-      exp_data_table_start_row_no_ = iItem;
-      /*anx::common::RequestDataFromDatabase(iItem,
-         exp_data_table_limit_row_no_, items_);*/
-#if 1
-      for (int i = 0; i < exp_data_table_limit_row_no_; i++) {
-        items_->push_back("data" +
-                          std::to_string(i + 1 + exp_data_table_start_row_no_));
-      }
-#endif
-    }
-    if (iItem >=
-        static_cast<int32_t>(items_->size()) + exp_data_table_start_row_no_) {
-      pControl->SetUserData(_T(""));
-      return pControl->GetUserData();
+    if (nRow < 0) {
+      return;
     }
 
-    int iItemIndex = iItem - exp_data_table_start_row_no_;
-    pControl->SetUserData(
-        anx::common::string2wstring(items_->at(iItemIndex).c_str()).c_str());
-    return pControl->GetUserData();
+    std::string sql_str = "SELECT * FROM ";
+    sql_str += anx::db::helper::kTableSendData;
+    sql_str += " WHERE id=";
+    sql_str += std::to_string(nRow + 1);
+    std::vector<std::map<std::string, std::string>> result;
+    anx::db::helper::QueryDataBase(anx::db::helper::kDefaultDatabasePathname,
+                                   anx::db::helper::kTableSendData, sql_str,
+                                   &result);
+    if (result.size() == 0) {
+      return;
+    }
+
+    CListHBoxElementUI* pHBox = static_cast<CListHBoxElementUI*>(
+        pControl->GetInterface(DUI_CTR_LISTHBOXELEMENT));
+    if (pHBox) {
+      CDuiString strFormat =
+          anx::common::string2wstring(result[0]["content"].c_str()).c_str();
+      pHBox->GetItemAt(0)->SetText(strFormat);
+    }
   }
 
  private:
-  std::vector<std::string>* items_;
-  int32_t exp_data_table_start_row_no_ = 0;
-  int32_t exp_data_table_limit_row_no_ = 100;
-  int32_t exp_data_table_no_ = 0;
+  DuiLib::CListUI* list_ui_;
 };
 
-class WorkWindowThirdPage::ListRecvGetter : public DuiLib::IListCallbackUI {
+class WorkWindowThirdPage::ListRecvGetter
+    : public DuiLib::IListVirtalCallbackUI {
  public:
-  explicit ListRecvGetter(std::vector<std::string>* items) : items_(items) {}
+  explicit ListRecvGetter(DuiLib::CListUI* list_ui) : list_ui_(list_ui) {}
   ~ListRecvGetter() {}
 
-  LPCTSTR GetItemText(DuiLib::CControlUI* pControl,
-                      int iItem,
-                      int iSubItem) override {
-    if (iItem < 0 || iSubItem < 0) {
-      pControl->SetUserData(_T(""));
-      return pControl->GetUserData();
+  CControlUI* CreateVirtualItem() override {
+    CListHBoxElementUI* pHBox = new CListHBoxElementUI;
+    //> 设置行高
+    pHBox->SetFixedHeight(28);
+    ///> 操作区域
+    CLabelUI* pLabel = new CLabelUI;
+    pLabel->SetAttributeList(_T("font=\"11\" algin=\"center\""));
+    pLabel->SetFixedHeight(28);
+    pLabel->SetFixedWidth(30);
+    pHBox->Add(pLabel);
+
+    return pHBox;
+  }
+
+  void DrawItem(CControlUI* pControl, int nRow) {
+    if (pControl == nullptr) {
+      return;
     }
-    if (iItem < exp_data_table_start_row_no_ ||
-        static_cast<size_t>(iItem) >=
-            (exp_data_table_start_row_no_ + items_->size())) {
-      // clear the data itmes and request the data from the database again
-      items_->clear();
-      exp_data_table_start_row_no_ = iItem;
-      /*anx::common::RequestDataFromDatabase(iItem,
-         exp_data_table_limit_row_no_, items_);*/
-#if 1
-      for (int i = 0; i < exp_data_table_limit_row_no_; i++) {
-        items_->push_back("data" +
-                          std::to_string(i + 1 + exp_data_table_start_row_no_));
-      }
-#endif
+    if (nRow < 0) {
+      return;
     }
-    if (iItem >=
-        static_cast<int32_t>(items_->size()) + exp_data_table_start_row_no_) {
-      pControl->SetUserData(_T(""));
-      return pControl->GetUserData();
+    std::string sql_str = "SELECT * FROM ";
+    sql_str += anx::db::helper::kTableSendNotify;
+    sql_str += " WHERE id=";
+    sql_str += std::to_string(nRow + 1);
+    std::vector<std::map<std::string, std::string>> result;
+    anx::db::helper::QueryDataBase(anx::db::helper::kDefaultDatabasePathname,
+                                   anx::db::helper::kTableSendNotify, sql_str,
+                                   &result);
+    if (result.size() == 0) {
+      return;
     }
-    int iItemIndex = iItem - exp_data_table_start_row_no_;
-    pControl->SetUserData(
-        anx::common::string2wstring(items_->at(iItemIndex).c_str()).c_str());
-    return pControl->GetUserData();
+
+    CListHBoxElementUI* pHBox = static_cast<CListHBoxElementUI*>(
+        pControl->GetInterface(DUI_CTR_LISTHBOXELEMENT));
+    if (pHBox) {
+      CDuiString strFormat =
+          anx::common::string2wstring(result[0]["content"].c_str()).c_str();
+      pHBox->GetItemAt(0)->SetText(strFormat);
+    }
   }
 
  private:
-  std::vector<std::string>* items_;
-  int32_t exp_data_table_start_row_no_ = 0;
-  int32_t exp_data_table_limit_row_no_ = 100;
-  int32_t exp_data_table_no_ = 0;
+  DuiLib::CListUI* list_ui_;
 };
 
 class WorkWindowThirdPage::ListRecvNotifyGetter
-    : public DuiLib::IListCallbackUI {
+    : public DuiLib::IListVirtalCallbackUI {
  public:
-  explicit ListRecvNotifyGetter(std::vector<std::string>* items)
-      : items_(items) {}
+  explicit ListRecvNotifyGetter(DuiLib::CListUI* list_ui) : list_ui_(list_ui) {}
   ~ListRecvNotifyGetter() {}
 
-  LPCTSTR GetItemText(DuiLib::CControlUI* pControl,
-                      int iItem,
-                      int iSubItem) override {
-    if (iItem < 0 || iSubItem < 0) {
-      pControl->SetUserData(_T(""));
-      return pControl->GetUserData();
+  CControlUI* CreateVirtualItem() override {
+    CListHBoxElementUI* pHBox = new CListHBoxElementUI;
+    //> 设置行高
+    pHBox->SetFixedHeight(28);
+    ///> 操作区域
+    CLabelUI* pLabel = new CLabelUI;
+    pLabel->SetAttributeList(_T("font=\"11\" algin=\"center\""));
+    pLabel->SetFixedHeight(28);
+    pLabel->SetFixedWidth(30);
+    pHBox->Add(pLabel);
+
+    return pHBox;
+  }
+
+  void DrawItem(CControlUI* pControl, int nRow) {
+    if (pControl == nullptr) {
+      return;
     }
-    if (iItem < exp_data_table_start_row_no_ ||
-        static_cast<size_t>(iItem) >=
-            (exp_data_table_start_row_no_ + items_->size())) {
-      // clear the data itmes and request the data from the database again
-      items_->clear();
-      exp_data_table_start_row_no_ = iItem;
-      /*anx::common::RequestDataFromDatabase(iItem,
-         exp_data_table_limit_row_no_, items_);*/
-#if 1
-      for (int i = 0; i < exp_data_table_limit_row_no_; i++) {
-        items_->push_back("data" +
-                          std::to_string(i + 1 + exp_data_table_start_row_no_));
-      }
-#endif
+    if (nRow < 0) {
+      return;
     }
-    if (iItem >=
-        static_cast<int32_t>(items_->size()) + exp_data_table_start_row_no_) {
-      pControl->SetUserData(_T(""));
-      return pControl->GetUserData();
+    std::string sql_str = "SELECT * FROM ";
+    sql_str += anx::db::helper::kTableNotification;
+    sql_str += " WHERE id=";
+    sql_str += std::to_string(nRow + 1);
+    std::vector<std::map<std::string, std::string>> result;
+    anx::db::helper::QueryDataBase(anx::db::helper::kDefaultDatabasePathname,
+                                   anx::db::helper::kTableNotification, sql_str,
+                                   &result);
+    if (result.size() == 0) {
+      return;
     }
 
-    int iItemIndex = iItem - exp_data_table_start_row_no_;
-    pControl->SetUserData(
-        anx::common::string2wstring(items_->at(iItemIndex).c_str()).c_str());
-    return pControl->GetUserData();
+    CListHBoxElementUI* pHBox = static_cast<CListHBoxElementUI*>(
+        pControl->GetInterface(DUI_CTR_LISTHBOXELEMENT));
+    if (pHBox) {
+      CDuiString strFormat =
+          anx::common::string2wstring(result[0]["content"].c_str()).c_str();
+      pHBox->GetItemAt(0)->SetText(strFormat);
+    }
   }
 
  private:
-  std::vector<std::string>* items_;
-  int32_t exp_data_table_start_row_no_ = 0;
-  int32_t exp_data_table_limit_row_no_ = 100;
-  int32_t exp_data_table_no_ = 0;
+  DuiLib::CListUI* list_ui_;
 };
 
 WorkWindowThirdPage::WorkWindowThirdPage(
     WorkWindow* pWorkWindow,
     DuiLib::CPaintManagerUI* paint_manager_ui)
     : pWorkWindow_(pWorkWindow), paint_manager_ui_(paint_manager_ui) {
-  send_data_items_.clear();
-  recv_data_items_.clear();
-  recv_notify_data_items_.clear();
-  list_send_getter_.reset(new ListSendGetter(&send_data_items_));
-  list_recv_getter_.reset(new ListRecvGetter(&recv_data_items_));
-  list_recv_notify_getter_.reset(
-      new ListRecvNotifyGetter(&recv_notify_data_items_));
+  paint_manager_ui_->AddNotifier(this);
 }
 
 WorkWindowThirdPage::~WorkWindowThirdPage() {
   list_recv_notify_getter_.reset();
   list_recv_getter_.reset();
   list_send_getter_.reset();
+}
+
+void WorkWindowThirdPage::Notify(TNotifyUI& msg) {
+  if (msg.sType == kWindowInit) {
+  } else if (msg.sType == DUI_MSGTYPE_DRAWITEM) {
+    if (msg.pSender == list_recv_notify_) {
+      ListRecvNotifyGetter* lrng = reinterpret_cast<ListRecvNotifyGetter*>(
+          list_recv_notify_getter_.get());
+      lrng->DrawItem(reinterpret_cast<CControlUI*>(msg.wParam), msg.lParam);
+    } else if (msg.pSender == list_send_) {
+      ListSendGetter* lsg =
+          reinterpret_cast<ListSendGetter*>(list_send_getter_.get());
+      lsg->DrawItem(reinterpret_cast<CControlUI*>(msg.wParam), msg.lParam);
+    } else if (msg.pSender == list_recv_) {
+      ListRecvGetter* lrg =
+          reinterpret_cast<ListRecvGetter*>(list_recv_getter_.get());
+      lrg->DrawItem(reinterpret_cast<CControlUI*>(msg.wParam), msg.lParam);
+    } else {
+      // do nothing
+    }
+  }
 }
 
 void WorkWindowThirdPage::OnClick(TNotifyUI& msg) {
@@ -293,9 +329,27 @@ void WorkWindowThirdPage::Bind() {
   list_recv_notify_ = static_cast<CListUI*>(
       paint_manager_ui_->FindControl(_T("tab_page_three_list_recv_notify")));
 
-  list_send_->SetTextCallback(list_send_getter_.get());
-  list_recv_->SetTextCallback(list_recv_getter_.get());
-  list_recv_notify_->SetTextCallback(list_recv_notify_getter_.get());
+  list_send_->SetVirtual(true);
+  list_send_->SetVirtualItemCount(0);
+  list_send_getter_.reset(new ListSendGetter(list_send_));
+  ListSendGetter* lsg = static_cast<ListSendGetter*>(list_send_getter_.get());
+  list_send_->SetVirtualItemFormat(
+      static_cast<DuiLib::IListVirtalCallbackUI*>(lsg));
+
+  list_recv_->SetVirtual(true);
+  list_recv_->SetVirtualItemCount(0);
+  list_recv_getter_.reset(new ListRecvGetter(list_recv_));
+  ListRecvGetter* lrg = static_cast<ListRecvGetter*>(list_recv_getter_.get());
+  list_recv_->SetVirtualItemFormat(
+      static_cast<DuiLib::IListVirtalCallbackUI*>(lrg));
+
+  list_recv_notify_->SetVirtual(true);
+  list_recv_notify_->SetVirtualItemCount(0);
+  list_recv_notify_getter_.reset(new ListRecvNotifyGetter(list_recv_notify_));
+  ListRecvNotifyGetter* lrng =
+      static_cast<ListRecvNotifyGetter*>(list_recv_notify_getter_.get());
+  list_recv_notify_->SetVirtualItemFormat(
+      static_cast<DuiLib::IListVirtalCallbackUI*>(lrng));
 
   UpdateControlFromSettings();
 }
@@ -347,18 +401,43 @@ void WorkWindowThirdPage::OnDataReceived(
   if (!check_box_display_stop_recv_notify_->IsSelected()) {
     std::string hex_str;
     hex_str = anx::common::ByteArrayToHexString(data, size);
-    DuiLib::CListTextElementUI* item = new DuiLib::CListTextElementUI();
     recv_notify_table_no_++;
-    // recv_notify_data_items_.push_back(hex_str);
-    list_recv_notify_->Add(item);
+    // insert the data into the database
+    std::string sql_str = "INSERT INTO ";
+    sql_str += anx::db::helper::kTableNotification;
+    sql_str += " (content, date) VALUES (";
+    sql_str += "\'";
+    sql_str += hex_str;
+    sql_str += "\'";
+    sql_str += ", ";
+    sql_str += std::to_string(anx::common::GetCurrrentDateTime());
+    sql_str += ")";
+    anx::db::helper::InsertDataTable(anx::db::helper::kDefaultDatabasePathname,
+                                     anx::db::helper::kTableNotification,
+                                     sql_str);
+
+    list_recv_notify_->SetVirtualItemCount(recv_notify_table_no_);
   }
   if (check_box_display_send_->IsSelected()) {
     std::string hex_str;
     hex_str = anx::common::ByteArrayToHexString(data, size);
-    DuiLib::CListTextElementUI* item = new DuiLib::CListTextElementUI();
-    //recv_data_items_.push_back(hex_str);
-	recv_table_no_++;
-    list_recv_->Add(item);
+    recv_table_no_++;
+    // insert the data into the database
+    // INSERT INTO send_data (content, date) VALUES ('0x123456', 123456)
+    std::string sql_str = "INSERT INTO ";
+    sql_str += anx::db::helper::kTableSendNotify;
+    sql_str += " (content, date) VALUES (";
+    sql_str += "\'";
+    sql_str += hex_str;
+    sql_str += "\'";
+    sql_str += ", ";
+    sql_str += std::to_string(anx::common::GetCurrrentDateTime());
+    sql_str += ")";
+    anx::db::helper::InsertDataTable(anx::db::helper::kDefaultDatabasePathname,
+                                     anx::db::helper::kTableSendNotify,
+                                     sql_str);
+
+    list_recv_->SetVirtualItemCount(recv_table_no_);
   }
   // update the label_displacement_ with random value
   float displacement = 0.0f;
@@ -385,10 +464,21 @@ void WorkWindowThirdPage::OnDataOutgoing(
   if (check_box_display_send_->IsSelected()) {
     std::string hex_str;
     hex_str = anx::common::ByteArrayToHexString(data, size);
-    DuiLib::CListTextElementUI* item = new DuiLib::CListTextElementUI();
-   // send_data_items_.push_back(hex_str);
-	send_table_no_++;
-    list_send_->Add(item);
+    send_table_no_++;
+
+    // insert the data into the database
+    std::string sql_str = "INSERT INTO ";
+    sql_str += anx::db::helper::kTableSendData;
+    sql_str += " (content, date) VALUES (";
+    sql_str += "\'";
+    sql_str += hex_str;
+    sql_str += "\'";
+    sql_str += ", ";
+    sql_str += std::to_string(anx::common::GetCurrrentDateTime());
+    sql_str += ")";
+    anx::db::helper::InsertDataTable(anx::db::helper::kDefaultDatabasePathname,
+                                     anx::db::helper::kTableSendData, sql_str);
+    list_send_->SetVirtualItemCount(send_table_no_);
   }
 }
 

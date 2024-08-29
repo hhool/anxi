@@ -39,7 +39,7 @@ class DialogCommon : public DuiLib::WindowImplBase {
   void InitWindow() override;
   void Notify(DuiLib::TNotifyUI& msg) override;
   void OnFinalMessage(HWND hWnd) override;
-  LRESULT ResponseDefaultKeyEvent(WPARAM wParam) override;
+  LRESULT ResponseDefaultKeyEvent(WPARAM wParam, bool& bHandled) override;
 
   DuiLib::CDuiString GetSkinFolder() override {
 #ifdef _DEBUG

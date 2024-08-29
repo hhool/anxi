@@ -23,6 +23,8 @@ set(COMMON_FILES
     common/crc16.cc
     common/crc16.h
     common/defines.h
+    common/file_utils.cc
+    common/file_utils.h
     common/logger.cc
     common/logger.h
     common/module_utils.cc
@@ -37,6 +39,8 @@ list(APPEND APP_SOURCES ${COMMON_FILES})
 set(DB_FILES
     db/database_factory.cc
     db/database_factory.h
+    db/database_helper.cc
+    db/database_helper.h
     db/database_impl.cc
     db/database_impl.h
     db/database.cc

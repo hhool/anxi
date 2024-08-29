@@ -21,8 +21,6 @@
 namespace anx {
 namespace db {
 
-extern const char* kDefaultDatabaseName;
-
 /// @brief sqlite3 database helper class
 class DatabaseInterface {
  public:
@@ -43,8 +41,9 @@ class DatabaseInterface {
   /// @param sql the sql
   /// @param result the result
   /// @return true if query success
-  virtual bool Query(const std::string& sql,
-                     std::vector<std::vector<std::string>>* result) = 0;
+  virtual bool Query(
+      const std::string& sql,
+      std::vector<std::map<std::string, std::string>>* result) = 0;
 };
 }  // namespace db
 }  // namespace anx

@@ -17,21 +17,6 @@
 namespace anx {
 namespace db {
 
-namespace amp_sql {
-const char* kCreateTableAmpSqlFormat =
-    "CREATE TABLE %s (id INTEGER PRIMARY KEY AUTOINCREMENT, cycle INTEGER, "
-    "kHz REAL, MPa REAL, um REAL, date REAL)";
-
-const char* kInsertTableAmpSqlFormat =
-    "INSERT INTO %s (cycle, kHz, MPa, um, date) VALUES (%d, %f, %f, %f, %f)";
-
-const char* kQueryTableAmpSqlByIdFormat =
-    "SELECT * FROM amp WHERE id >= %d AND id <= %d";
-
-const char* kQueryTableAmpSqlByTimeFormat =
-    "SELECT * FROM amp WHERE date >= %f AND date <= %f";
-}  // namespace amp_sql
-
 Database::Database() : db_(nullptr) {}
 
 Database::~Database() {
@@ -71,7 +56,7 @@ bool Database::Execute(const std::string& sql) {
 }
 
 bool Database::Query(const std::string& sql,
-                     std::vector<std::vector<std::string>>* result) {
+                     std::vector<std::map<std::string, std::string>>* result) {
   if (db_ == nullptr) {
     return false;
   }
@@ -79,10 +64,12 @@ bool Database::Query(const std::string& sql,
   int ret = sqlite3_exec(
       reinterpret_cast<sqlite3*>(db_), sql.c_str(),
       [](void* data, int col_count, char** col_values, char** col_names) {
-        auto result = static_cast<std::vector<std::vector<std::string>>*>(data);
-        std::vector<std::string> row;
+        auto result =
+            reinterpret_cast<std::vector<std::map<std::string, std::string>>*>(
+                data);
+        std::map<std::string, std::string> row;
         for (int i = 0; i < col_count; ++i) {
-          row.push_back(col_values[i]);
+          row[col_names[i]] = col_values[i];
         }
         result->push_back(row);
         return 0;

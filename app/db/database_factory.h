@@ -31,18 +31,35 @@ class DatabaseFactory {
   ~DatabaseFactory();
 
  public:
+  static DatabaseFactory* Instance();
+  static void ReleaseInstance();
+
+  DatabaseFactory(const DatabaseFactory&) = delete;
+  DatabaseFactory& operator=(const DatabaseFactory&) = delete;
+
+  DatabaseFactory(DatabaseFactory&&) = delete;
+  DatabaseFactory& operator=(DatabaseFactory&&) = delete;
+
+ public:
   /// @brief Create the database
   /// @param db_name the database name
   /// @return the database
   std::shared_ptr<DatabaseInterface> CreateOrGetDatabase(
       const std::string& db_name);
 
+  /// @brief Close the database
+  /// @param db_name the database name
+  void CloseDatabase(const std::string& db_name);
+
+  /// @brief Close all database
+  void CloseAllDatabase();
+
  private:
   /// @brief the databases
   std::map<std::string, std::shared_ptr<DatabaseInterface>> databases_;
+
+  static DatabaseFactory* instance_;
 };
-
-
 }  // namespace db
 }  // namespace anx
 

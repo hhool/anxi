@@ -21,6 +21,24 @@
 
 namespace anx {
 namespace db {
+
+DatabaseFactory* DatabaseFactory::instance_ = nullptr;
+
+DatabaseFactory* DatabaseFactory::Instance() {
+  if (instance_ == nullptr) {
+    instance_ = new DatabaseFactory();
+  }
+  return instance_;
+}
+
+void DatabaseFactory::ReleaseInstance() {
+  if (instance_) {
+    delete instance_;
+    instance_ = nullptr;
+  }
+}
+///////////////////////////////////////////////
+/// @brief Constructor
 DatabaseFactory::DatabaseFactory() {}
 
 DatabaseFactory::~DatabaseFactory() {}
@@ -41,5 +59,21 @@ std::shared_ptr<DatabaseInterface> DatabaseFactory::CreateOrGetDatabase(
   return nullptr;
 }
 
+void DatabaseFactory::CloseDatabase(const std::string& db_name) {
+  auto iter = databases_.find(db_name);
+  if (iter != databases_.end()) {
+    iter->second->Close();
+    databases_.erase(iter);
+  }
+}
+
+void DatabaseFactory::CloseAllDatabase() {
+  for (auto& iter : databases_) {
+    iter.second->Close();
+  }
+  databases_.clear();
+}
+
+namespace Helper {}  // namespace Helper
 }  // namespace db
 }  // namespace anx

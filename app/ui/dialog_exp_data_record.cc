@@ -97,7 +97,8 @@ void DialogExpDataRecord::OnFinalMessage(HWND hWnd) {
   delete this;
 }
 
-LRESULT DialogExpDataRecord::ResponseDefaultKeyEvent(WPARAM wParam) {
+LRESULT DialogExpDataRecord::ResponseDefaultKeyEvent(WPARAM wParam,
+                                                     bool& bHandled) {
   if (wParam == VK_RETURN) {
     this->Close();
     return TRUE;

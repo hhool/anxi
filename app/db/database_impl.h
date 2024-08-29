@@ -22,14 +22,6 @@
 namespace anx {
 namespace db {
 
-namespace amp_sql {
-extern const char* kCreateTableAmpSqlFormat;
-extern const char* kInsertTableAmpSqlFormat;
-extern const char* kQueryTableAmpSqlByIdFormat;
-extern const char* kQueryTableAmpSqlByTimeFormat;
-extern const char* kCreateTableStaticLoadSqlFormat;
-}  // namespace amp_sql
-
 /// @brief sqlite3 database helper class
 class Database : public DatabaseInterface {
  public:
@@ -57,7 +49,7 @@ class Database : public DatabaseInterface {
   /// @param result the result
   /// @return true if query success
   bool Query(const std::string& sql,
-             std::vector<std::vector<std::string>>* result) override;
+             std::vector<std::map<std::string, std::string>>* result) override;
 
  private:
   /// @brief the sqlite3 database

@@ -65,7 +65,7 @@ void DialogAmplitudeCalibrationSettings::OnFinalMessage(HWND hWnd) {
 }
 
 LRESULT DialogAmplitudeCalibrationSettings::ResponseDefaultKeyEvent(
-    WPARAM wParam) {
+    WPARAM wParam, bool& bHandled) {
   if (wParam == VK_RETURN) {
     this->Close();
     return TRUE;

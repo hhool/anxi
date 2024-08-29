@@ -40,7 +40,7 @@ class WorkWindow;
 namespace anx {
 namespace ui {
 class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
-                                 public DuiLib::IListCallbackUI,
+                                 public DuiLib::INotifyUI,
                                  public UIVirtualWndBase,
                                  public anx::device::DeviceComListener {
  public:
@@ -49,14 +49,14 @@ class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
   ~WorkWindowSecondPageData();
 
  public:
+  void Notify(TNotifyUI& msg) override;
+
+ public:
   DUI_DECLARE_MESSAGE_MAP()
   void OnClick(TNotifyUI& msg);  // NOLINT
 
  protected:
   bool OnTimer(void* param);
-
-  // Inherited via IListCallbackUI
-  LPCTSTR GetItemText(CControlUI* pList, int iItem, int iSubItem) override;
 
  public:
   // implement the base class UIVirtualWndBase virtual function
@@ -92,6 +92,9 @@ class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
   friend class WorkWindowSecondPage;
   void ClearExpData();
 
+ protected:
+  class ListVirtalDataView;
+
  private:
   WorkWindow* pWorkWindow_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
@@ -114,6 +117,7 @@ class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
 
   /// @brief data list control
   DuiLib::CListUI* list_data_;
+  std::unique_ptr<DuiLib::IListVirtalCallbackUI> list_data_view_;
 
   /// @brief experiment related data
   /// @brief exp status

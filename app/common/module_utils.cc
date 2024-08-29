@@ -63,5 +63,27 @@ std::string GetModuleName() {
   return path;
 }
 
+bool MakeSureFolderPathExist(const std::string& path) {
+  std::string dir = path;
+  if (dir.empty()) {
+    return false;
+  }
+  // find the last '/' or '\'
+  size_t pos = dir.find_last_of("/\\");
+  if (pos == std::string::npos) {
+    return false;
+  }
+  dir = dir.substr(0, pos);
+  bool ret = false;
+#if defined(_WIN32) || defined(_WIN64)
+  CreateDirectoryA(dir.c_str(), NULL);
+  // TODO(hhool):
+  ret = true;
+#else
+  ret = mkdir(dir.c_str(), 0777) == 0;
+#endif
+  return ret;
+}
+
 }  // namespace common
 }  // namespace anx

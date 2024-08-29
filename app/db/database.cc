@@ -13,9 +13,5 @@
 #include "app/db/database.h"
 
 namespace anx {
-namespace db {
-
-const char* kDefaultDatabaseName = "default.db";
-
-}  // namespace db
+namespace db {}  // namespace db
 }  // namespace anx
