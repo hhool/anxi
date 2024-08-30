@@ -108,7 +108,7 @@ double GetCurrrentDateTime() {
   st.wYear = 1899;
   st.wMonth = 12;
   st.wDay = 30;
-  st.wHour = 0;
+  st.wHour = st.wHour;
   st.wMilliseconds = 0;
   st.wDayOfWeek = 0;
 

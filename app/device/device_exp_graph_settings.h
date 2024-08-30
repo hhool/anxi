@@ -28,8 +28,7 @@ class DeviceExpGraph {
  public:
   /// @brief  exp graph type 0: current, 1: pre hour.
   int32_t exp_graph_show_time_type_;
-  /// @brief  exp graph always new.
-  bool exp_graph_always_new_;
+
   /// @brief  exp graph range minitues.
   /// @note  0: 5, 1: 10, 2: 30, 3: 60.
   int32_t exp_graph_range_minitues_;

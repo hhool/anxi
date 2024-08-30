@@ -46,6 +46,12 @@ class ExpDataInfo {
   ~ExpDataInfo() = default;
 
  public:
+  /// @brief current mode, 0: real time, 1: history
+  int32_t mode_ = 0;
+  /// @brief exp data table no of history view start position.
+  /// 0: is not initialized: !0: is initialized and valid.
+  /// exp_data_current_no_ % 10 must be 1
+  int32_t exp_data_current_no_ = 0;
   /// @brief exp start time. in miliseconds
   int64_t exp_start_time_ms_ = 0;
   /// @brief exp data sample interval in miliseconds, 2000ms default
@@ -64,6 +70,21 @@ class ExpDataInfo {
   /// @brief real value multiply by kMultiFactor,
   ///  store in database REAL
   double stress_value_ = 0.0f;
+
+ public:
+  std::string ToString() const {
+    return "mode: " + std::to_string(mode_) +
+           ", exp_data_current_no_: " + std::to_string(exp_data_current_no_) +
+           ", exp_start_time_ms_: " + std::to_string(exp_start_time_ms_) +
+           ", exp_sample_interval_ms_: " +
+           std::to_string(exp_sample_interval_ms_) +
+           ", exp_time_interval_num_: " +
+           std::to_string(exp_time_interval_num_) +
+           ", exp_data_table_no_: " + std::to_string(exp_data_table_no_) +
+           ", amp_freq_: " + std::to_string(amp_freq_) +
+           ", amp_um_: " + std::to_string(amp_um_) +
+           ", stress_value_: " + std::to_string(stress_value_);
+  }
 };
 
 }  // namespace ui

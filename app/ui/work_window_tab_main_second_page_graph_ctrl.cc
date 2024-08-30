@@ -48,43 +48,81 @@ namespace ui {
   }
 
 ////////////////////////////////////////////////////////////////////////////////
-const double kVarTimeDuration5min = 5.0 / (24.0 * 60.0);
-const double kVarTimeDuration10min = 10.0 / (24.0 * 60.0);
-const double kVarTimeDuration30min = 30.0 / (24.0 * 60.0);
-const double kVarTimeDuration60min = 60.0 / (24.0 * 60.0);
-
+const double kVarTimeDuration1min = 1.0f / (24.0 * 60.0);
+const double kVarTimeDuration5min = 5.0f / (24.0 * 60.0);
+const double kVarTimeDuration10min = 10.0f / (24.0 * 60.0);
+const double kVarTimeDuration30min = 30.0f / (24.0 * 60.0);
+const double kVarTimeDuration60min = 60.0f / (24.0 * 60.0);
+////////////////////////////////////////////////////////////////////////////////
 namespace {
+static const double var_time_2_seconds_ = 2.3148148148148147e-05;
+static const double var_time_4_seconds_ = 4.6296296296296294e-05;
+static const double var_time_6_seconds_ = 6.944444444444444e-05;
+static const double var_time_8_seconds_ = 9.2592592592592588e-05;
+static const double var_time_10_seconds_ = 1.1574074074074075e-04;
 /// @brief data sampling interval value 12 second is one data sample.
 /// @note 12 second is one data sample for the graph control. used for the
 /// @note graph control data sample incoming. @see data_sampling_interval_ for
 /// @note the data sample incoming. @see data_sampling_interval_var_ for the
 /// @note data sample
-static const double data_sampling_interval_var_ = 1.388888888889e-4;
+static const double data_sampling_interval_var_ = var_time_10_seconds_;
+
+int32_t plot_point_size_with_sampling_total_minutes(
+    int32_t sampling_total_minutes) {
+  int32_t point_size = 5;
+  if (sampling_total_minutes == 1) {
+    point_size = 5;
+  } else if (sampling_total_minutes == 5) {
+    point_size = 4;
+  } else if (sampling_total_minutes == 10) {
+    point_size = 3;
+  } else if (sampling_total_minutes == 30) {
+    point_size = 2;
+  } else if (sampling_total_minutes == 60) {
+    point_size = 1;
+  }
+  return point_size;
+}
+
+double duration_with_sampling_total_minutes(int32_t sampling_total_minutes) {
+  double duration = kVarTimeDuration5min;
+  if (sampling_total_minutes == 1) {
+    duration = kVarTimeDuration1min;
+  } else if (sampling_total_minutes == 5) {
+    duration = kVarTimeDuration5min;
+  } else if (sampling_total_minutes == 10) {
+    duration = kVarTimeDuration10min;
+  } else if (sampling_total_minutes == 30) {
+    duration = kVarTimeDuration30min;
+  } else if (sampling_total_minutes == 60) {
+    duration = kVarTimeDuration60min;
+  }
+  return duration;
+}
 }  // namespace
 
 WorkWindowSecondWorkWindowSecondPageGraphCtrl::
     WorkWindowSecondWorkWindowSecondPageGraphCtrl() {}
 WorkWindowSecondWorkWindowSecondPageGraphCtrl::
     WorkWindowSecondWorkWindowSecondPageGraphCtrl(
+        GraphCtrlEventInterface* event_interface,
         CActiveXUI* activex,
         const std::string name,
         int32_t sampling_total_minutes,
         int32_t y_grid_step,
-        int32_t x_grid_step)
-    : activex_(activex),
+        int32_t x_grid_step,
+        double y_axis_intial_value,
+        bool auto_refresh)
+    : event_interface_(event_interface),
+      activex_(activex),
       name_(name),
       sampling_total_minutes_(sampling_total_minutes),
       y_grid_step_(y_grid_step),
-      x_grid_step_(x_grid_step) {
-  if (sampling_total_minutes_ == 5) {
-    x_duration_ = kVarTimeDuration5min;
-  } else if (sampling_total_minutes_ == 10) {
-    x_duration_ = kVarTimeDuration10min;
-  } else if (sampling_total_minutes_ == 30) {
-    x_duration_ = kVarTimeDuration30min;
-  } else if (sampling_total_minutes_ == 60) {
-    x_duration_ = kVarTimeDuration60min;
-  }
+      x_grid_step_(x_grid_step),
+      y_axis_intial_value_(y_axis_intial_value),
+	  auto_refresh_(auto_refresh) {
+  data_sample_count_for_one_graph_sample_ = 5;
+  x_duration_ = duration_with_sampling_total_minutes(sampling_total_minutes_);
   y_min_ = 0.0f;
   y_max_ = y_grid_step * 1.0f;
 }
@@ -137,8 +175,14 @@ WorkWindowSecondWorkWindowSecondPageGraphCtrl::GetGraphDataList() {
   return element_list;
 }
 
+void WorkWindowSecondWorkWindowSecondPageGraphCtrl::SetAutoRefresh(
+    bool auto_refresh) {
+  auto_refresh_ = auto_refresh;
+}
+
 void WorkWindowSecondWorkWindowSecondPageGraphCtrl::Init(
-    std::vector<Element2DPoint> element_list) {
+    std::vector<Element2DPoint> element_list,
+    int32_t data_sample_count_for_one_graph_sample) {
   HRESULT hr = activex_->GetControl(IID_IUnknown,
                                     reinterpret_cast<void**>(&graph_ctrl_));
   CHECK_HROBJ(hr, graph_ctrl_);
@@ -157,6 +201,7 @@ void WorkWindowSecondWorkWindowSecondPageGraphCtrl::Init(
   hr = x_spXAxis->put_Format(L"%M:%S");
   CHECK_HROBJ(hr, x_spXAxis);
   x_spXAxis->put_Time(VARIANT_TRUE);
+  x_spXAxis->put_GridNumber(x_grid_step_);
   x_spXAxis->Release();
 
   IDMGraphAxis* y_spXAxis = nullptr;
@@ -177,7 +222,9 @@ void WorkWindowSecondWorkWindowSecondPageGraphCtrl::Init(
 
   hr = spGraphElement_->put_LineType(LineType::XYStep);
   hr = spGraphElement_->put_PointSymbol(SymbolType::Dots);
-  hr = spGraphElement_->put_PointSize(3);
+  int point_size =
+      plot_point_size_with_sampling_total_minutes(sampling_total_minutes_);
+  hr = spGraphElement_->put_PointSize(point_size);
 
   ///////////////////////////////////////////////////////////////////////////
   /// @note plot the element list to the graph element.
@@ -185,27 +232,32 @@ void WorkWindowSecondWorkWindowSecondPageGraphCtrl::Init(
   /// @note value
   double x_min_axis_value = 0.0f;
   bool has_x_min_axis_value = false;
-  int32_t start_index = element_list.size() - (sampling_total_minutes_ * 5);
+  int32_t start_index =
+      element_list.size() - (sampling_total_minutes_ * x_grid_step_) *
+                                data_sample_count_for_one_graph_sample;
   int32_t end_index = element_list.size();
-  if (start_index < 0) {
+  if (start_index <= 0) {
     start_index = 0;
     if (end_index > 0) {
       has_x_min_axis_value = true;
       x_min_axis_value = element_list[start_index].x_;
+      if (data_sample_count_for_one_graph_sample > 1) {
+        x_min_axis_value -= var_time_2_seconds_;
+      }
     }
   }
 
   ///////////////////////////////////////////////////////////////////////////
   /// @note Update plot graph x axis time.
-  // graph_ctrl_->AutoRange();
   if (!has_x_min_axis_value) {
     this->UpateXTimeValue();
+    LOG_F_INFO_TAG(name_) << " " << "x_min:" << x_min_;
   } else {
     x_min_ = x_min_axis_value;
+    LOG_F_INFO_TAG(name_) << " " << "x_min:" << x_min_;
   }
+  LOG_F_INFO_TAG(name_) << " " << "x_min:" << x_min_ << " " << "SetRange";
   graph_ctrl_->SetRange(x_min_, x_min_ + x_duration_, y_min_, y_max_);
-  ///////////////////////////////////////////////////////////////////////////
-
   ///////////////////////////////////////////////////////////////////////////
   /// @note the real plot index is 2 for the graph element.
   /// @note 0 and 1 is the x and y axis.
@@ -218,75 +270,121 @@ void WorkWindowSecondWorkWindowSecondPageGraphCtrl::Init(
   /// @note intial point 50 plot point for 10 minute
   /// @note intial point 150 plot point for 30 minute
   /// @note intial point 300 plot point for 60 minute
-  for (int i = 0; i < sampling_total_minutes_ * 5; i++) {
-    spGraphElement_->PlotXY(x_min_ + data_sampling_interval_var_ * (i), 0);
+  for (int i = 0; i < sampling_total_minutes_ * x_grid_step_; i++) {
+    spGraphElement_->PlotXY(x_min_ + data_sampling_interval_var_ * (i),
+                            y_axis_intial_value_);
   }
+#if 1
+  // dump the x and y value of the graph element.
+  DumpGraphDataList();
+  // dump element list
+  for (uint32_t i = 0; i < element_list.size(); i++) {
+    LOG_F_INFO_TAG(name_) << "element:" << i << " "
+                          << "x:" << element_list[i].x_ << " "
+                          << "y:" << element_list[i].y_;
+  }
+#endif
   plot_index_ = plot_resvered_index_for_y_axis_;
+  double y_value = 0.0f;
+  int32_t data_sample_index = 1;
   for (int32_t i = start_index; i < end_index; i++) {
-    spGraphElement_->put_XValue(plot_index_, element_list[i - start_index].x_);
-    spGraphElement_->put_YValue(plot_index_, element_list[i].y_);
+    if ((data_sample_index % data_sample_count_for_one_graph_sample) != 0) {
+      y_value += element_list[i].y_;
+      data_sample_index++;
+      continue;
+    } else {
+      y_value += element_list[i].y_;
+    }
+    LOG_F_INFO_TAG(name_)
+        << "x:"
+        << element_list[((plot_index_ - plot_resvered_index_for_y_axis_) *
+                         data_sample_count_for_one_graph_sample)]
+               .x_
+        << " "
+        << "y:" << (y_value / data_sample_index) << " "
+        << "plot_index:" << plot_index_ << " "
+        << "data_sample_index:" << data_sample_index;
+    spGraphElement_->put_YValue(plot_index_, y_value / data_sample_index);
     plot_index_++;
+
+    y_value = 0.0f;
+    data_sample_index = 1;
   }
 }
 
 void WorkWindowSecondWorkWindowSecondPageGraphCtrl::ProcessDataSampleIncoming(
-    int32_t sample) {
+    double sample) {
+  if (!auto_refresh_)
+    return;
   /// @note 100 ms is one sample, 120 sample is 12 second, 120 sample is
   /// one data sample, take average of the 120 sample as one data sample
   /// and put it to the graph.
-  data_incomming_count_++;
-  data_incomming_total_ += sample;
+  data_sample_incoming_count_++;
+  data_sample_incoming_value_total_ += sample;
   /// @todo 100 ms is one sample, 120 sample is 12 second, 120 sample is
   /// one data sample, take average of the 120 sample as one data sample
   /// and put it to the graph.
   /// TODO(hhool): will be removed after the real data incoming.
-#if !defined(_DEBUG)
-  if (data_incomming_count_ % 6 == 0)
-#else
-#endif
-  {
-    int32_t average =
-        static_cast<int32_t>(static_cast<double>(data_incomming_total_) /
-                             (kMultiFactor * data_incomming_count_));
-    LOG_F(LG_INFO) << "um:" << average;
-    average %= y_grid_step_;
+  if (data_sample_incoming_count_ % data_sample_count_for_one_graph_sample_ ==
+      0) {
+    double average =
+        data_sample_incoming_value_total_ / (data_sample_incoming_count_);
+    double average_n = average;
+    average = average_n / kMultiFactor;
+    LOG_F_INFO_TAG(name_) << " " << "value:" << average;
 
     int32_t plot_data_sample_index =
         plot_index_ - plot_resvered_index_for_y_axis_;
     if (plot_data_sample_index > 0 &&
-        plot_data_sample_index % (sampling_total_minutes_ * 5) == 0) {
+        plot_data_sample_index %
+                (sampling_total_minutes_ * this->x_grid_step_) ==
+            0) {
+#if 1
+      DumpGraphDataList();
+#endif
       ///////////////////////////////////////////////
       /// @note Update plot graph x axis time.
       // graph_ctrl_->AutoRange();
       this->UpateXTimeValue();
-#if 0
-        /// @note for debug simulator
-        x_min_ += x_duration_;
-#endif
+      LOG_F(LG_INFO) << "\r\n=================================================="
+                        "======================================================"
+                        "=============="
+                        "======================================================"
+                        "==========\r\n";
+      LOG_F_INFO_TAG(name_) << " " << "x_min:" << x_min_ << " " << "SetRange";
       graph_ctrl_->SetRange(x_min_, x_min_ + x_duration_, y_min_, y_max_);
       ///////////////////////////////////////////////
       /// @note Reset value after plot_index and x axis time to new x_min_;
       for (int32_t i = plot_resvered_index_for_y_axis_;
-           i < sampling_total_minutes_ * 5 + plot_resvered_index_for_y_axis_;
+           i < sampling_total_minutes_ * x_grid_step_ +
+                   plot_resvered_index_for_y_axis_;
            i++) {
-        spGraphElement_->put_YValue(i, 0);
+        spGraphElement_->put_YValue(i, y_axis_intial_value_);
         spGraphElement_->put_XValue(
             i, x_min_ + data_sampling_interval_var_ *
                             (i - plot_resvered_index_for_y_axis_));
       }
       /// @note Reset the plot index to 2
       plot_index_ = plot_resvered_index_for_y_axis_;
+      ///////////////////////////////////////////////
+      if (event_interface_ != nullptr) {
+        event_interface_->OnGraphCtrlEvent(this, 1);
+      }
     }
+    LOG_F_INFO_TAG(name_) << " " << "plot_index:" << plot_index_;
     spGraphElement_->put_YValue(plot_index_, average);
     plot_index_++;
 
-    data_incomming_total_ = 0;
-    data_incomming_count_ = 0;
+    data_sample_incoming_value_total_ = 0;
+    data_sample_incoming_count_ = 0;
   }
 }
 
 void WorkWindowSecondWorkWindowSecondPageGraphCtrl::Release() {
   if (graph_ctrl_ != nullptr) {
+#if 1
+    DumpGraphDataList();
+#endif
     graph_ctrl_->ClearGraph();
   }
   SAFE_RELEASE(spGraphElement_);
@@ -296,16 +394,43 @@ void WorkWindowSecondWorkWindowSecondPageGraphCtrl::Release() {
 }
 
 double WorkWindowSecondWorkWindowSecondPageGraphCtrl::GetCurrentXMin() const {
+  LOG_F_INFO_TAG(name_) << " " << "x_min:" << x_min_;
   return x_min_;
 }
 
 double WorkWindowSecondWorkWindowSecondPageGraphCtrl::GetCurrentXDuration()
     const {
+  LOG_F_INFO_TAG(name_) << " " << "x_min:" << x_min_;
   return x_duration_;
+}
+
+int32_t WorkWindowSecondWorkWindowSecondPageGraphCtrl::
+    GetCurrentXDurationGraphSampleCount() const {
+  LOG_F_INFO_TAG(name_) << " " << "x_min:" << x_min_;
+  return sampling_total_minutes_ * this->x_grid_step_;
+}
+
+int32_t WorkWindowSecondWorkWindowSecondPageGraphCtrl::
+    GetDataSampleCountForOneGraphSample() const {
+  return data_sample_count_for_one_graph_sample_;
 }
 
 void WorkWindowSecondWorkWindowSecondPageGraphCtrl::UpateXTimeValue() {
   x_min_ = anx::common::GetCurrrentDateTime();
+  LOG_F_INFO_TAG(name_) << " " << "x_min:" << x_min_;
+}
+
+void WorkWindowSecondWorkWindowSecondPageGraphCtrl::DumpGraphDataList() {
+  for (int i = plot_resvered_index_for_y_axis_;
+       i <
+       sampling_total_minutes_ * x_grid_step_ + plot_resvered_index_for_y_axis_;
+       i++) {
+    double x = 0, y = 0;
+    spGraphElement_->get_XValue(i, &x);
+    spGraphElement_->get_YValue(i, &y);
+    LOG_F_INFO_TAG(name_) << "plot:" << i << " " << "x:" << x << " "
+                          << "y:" << y;
+  }
 }
 
 }  // namespace ui

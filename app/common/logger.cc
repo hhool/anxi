@@ -67,6 +67,21 @@ void Logger::Log(int level, std::string& log) {
 //////////////////////////////////////////////////////////////////////////
 // LoggerStream
 
+namespace {
+/// @brief get the current time in milliseconds
+/// @return  the current time in milliseconds %Y-%m-%d %H:%M:%S.%3d
+std::string FormatTimeMillis(int64_t millis) {
+  time_t t = millis / 1000;
+  int32_t ms = millis % 1000;
+  struct tm ltm;
+  GetLocalTime(&ltm);
+  char buf[32];
+  strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &ltm);
+  snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf), ".%03d", ms);
+  return std::string(buf);
+}
+}  // namespace
+
 LoggerStream::LoggerStream(const char* file,
                            int line,
                            const char* func,
@@ -79,8 +94,9 @@ LoggerStream::LoggerStream(const char* file,
     file_name = file_name.substr(pos + 1);
   }
   stream_ << "[" << std::this_thread::get_id() << ":"
-          << std::this_thread::get_id() << ":" << GetCurrentTimeMillis() << ":"
-          << file_name << ":" << line << ":" << func << "] ";
+          << std::this_thread::get_id() << ":"
+          << FormatTimeMillis(GetCurrentTimeMillis()) << ":" << file_name << ":"
+          << line << ":" << func << "] ";
 }
 
 LoggerStream::~LoggerStream() {

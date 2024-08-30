@@ -58,6 +58,7 @@ static void PrintTmVariantTime(DATE dt) {
 }
 
 static void VariantTimeIncrement(DATE* dt, double increment) {
+  printf("increment: %g\n", increment);
   *dt += increment;
   PrintTmVariantTime(*dt);
 }
@@ -116,4 +117,10 @@ TEST_F(OleVarTimeTest, OleVarTimeTest) {
   // 7. Increment 1 day
   printf("Increment 1 day\n");
   VariantTimeIncrement(&dt, 1.0);
+
+  // 8. increment 2 seconds 4 seconds 6 seconds loop to 1 minute
+  for (int i = 1; i <= 30; i++) {
+    printf("Increment %g second\n", i * 2.0f);
+    VariantTimeIncrement(&dt, (2.0f * i) / (24.0 * 60.0 * 60.0));
+  }
 }

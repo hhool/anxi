@@ -141,19 +141,19 @@ class WorkWindowSecondPageData::ListVirtalDataView
           pHBox->GetItemAt(1)->GetInterface(DUI_CTR_LABEL));
       pText->SetText(dui_string);
 
-      float kHz = atof(result[0]["kHz"].c_str()) / kMultiFactor;
+      double kHz = std::stod(result[0]["kHz"].c_str()) / kMultiFactor;
       dui_string = std::to_wstring(kHz).c_str();
       pText = static_cast<DuiLib::CLabelUI*>(
           pHBox->GetItemAt(2)->GetInterface(DUI_CTR_LABEL));
       pText->SetText(dui_string);
 
-      float Mpa = atof(result[0]["MPa"].c_str()) / kMultiFactor;
+      double Mpa = std::stod(result[0]["MPa"].c_str()) / kMultiFactor;
       dui_string = std::to_wstring(Mpa).c_str();
       pText = static_cast<DuiLib::CLabelUI*>(
           pHBox->GetItemAt(3)->GetInterface(DUI_CTR_LABEL));
       pText->SetText(dui_string);
 
-      float um = atof(result[0]["um"].c_str()) / kMultiFactor;
+      double um = std::stod(result[0]["um"].c_str()) / kMultiFactor;
       dui_string = std::to_wstring(um).c_str();
       pText = static_cast<DuiLib::CLabelUI*>(
           pHBox->GetItemAt(4)->GetInterface(DUI_CTR_LABEL));
@@ -167,9 +167,6 @@ class WorkWindowSecondPageData::ListVirtalDataView
 
  private:
   DuiLib::CListUI* list_ui_;
-  int32_t exp_data_table_start_row_no_ = 0;
-  int32_t exp_data_table_limit_row_no_ = 100;
-  int32_t exp_data_table_no_ = 0;
 };
 
 WorkWindowSecondPageData::WorkWindowSecondPageData(

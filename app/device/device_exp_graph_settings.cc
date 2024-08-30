@@ -25,14 +25,12 @@ namespace device {
 // clz DeviceExpGraph
 DeviceExpGraph::DeviceExpGraph()
     : exp_graph_show_time_type_(0),
-      exp_graph_always_new_(false),
       exp_graph_range_minitues_(0) {}
 
 DeviceExpGraph::DeviceExpGraph(int32_t exp_graph_show_time_type,
                                bool exp_graph_always_new,
                                int32_t exp_graph_range_minitues)
     : exp_graph_show_time_type_(exp_graph_show_time_type),
-      exp_graph_always_new_(exp_graph_always_new),
       exp_graph_range_minitues_(exp_graph_range_minitues) {}
 
 DeviceExpGraph::~DeviceExpGraph() {}
@@ -50,8 +48,6 @@ std::string DeviceExpGraphSettings::ToXml(bool close_tag) const {
   }
   ss << "<exp_graph_show_time_type>" << exp_graph_show_time_type_
      << "</exp_graph_show_time_type>\r\n";
-  ss << "<exp_graph_always_new>" << exp_graph_always_new_
-     << "</exp_graph_always_new>\r\n";
   ss << "<exp_graph_range_minitues>" << exp_graph_range_minitues_
      << "</exp_graph_range_minitues>\r\n";
   if (close_tag) {
@@ -87,7 +83,6 @@ std::unique_ptr<DeviceExpGraphSettings> DeviceExpGraphSettings::FromXml(
   std::unique_ptr<DeviceExpGraphSettings> settings(
       new DeviceExpGraphSettings());
   settings->exp_graph_show_time_type_ = exp_graph_show_time_type->IntText(0);
-  settings->exp_graph_always_new_ = exp_graph_always_new->BoolText(false);
   settings->exp_graph_range_minitues_ = exp_graph_range_minitues->IntText(0);
   return settings;
 }

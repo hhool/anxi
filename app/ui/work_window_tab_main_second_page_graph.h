@@ -42,13 +42,20 @@ class WorkWindowSecondWorkWindowSecondPageGraphCtrl;
 namespace anx {
 namespace ui {
 
+extern const int32_t kGraphCtrlSampleTotalMinutesOne;
+extern const int32_t kGraphCtrlSampleTotalMinutesFive;
+extern const int32_t kGraphCtrlSampleTotalMinutesTen;
+extern const int32_t kGraphCtrlSampleTotalMinutesThirty;
+extern const int32_t kGraphCtrlSampleTotalMinutesSixty;
+
 class WorkWindowSecondPageGraph : public DuiLib::CNotifyPump,
                                   public DuiLib::INotifyUI,
                                   public UIVirtualWndBase,
                                   public anx::device::DeviceComListener {
  public:
   WorkWindowSecondPageGraph(WorkWindow* pWorkWindow,
-                            DuiLib::CPaintManagerUI* paint_manager_ui, ExpDataInfo* exp_base);
+                            DuiLib::CPaintManagerUI* paint_manager_ui,
+                            ExpDataInfo* exp_base);
   ~WorkWindowSecondPageGraph();
 
  public:
@@ -62,8 +69,8 @@ class WorkWindowSecondPageGraph : public DuiLib::CNotifyPump,
   bool OnOptGraphTimeModeChange(void* param);
   bool OnChkGraphAlwaysShowNewChange(void* param);
   bool OnOptGraphTimeRangeChange(void* param);
-  bool OnPrePage(void* param);
-  bool OnNextPage(void* param);
+  bool OnPagePre(void* param);
+  bool OnPageNext(void* param);
   bool OnTimer(void* param);
 
  public:
@@ -96,10 +103,11 @@ class WorkWindowSecondPageGraph : public DuiLib::CNotifyPump,
   void OnExpPause();
   void OnExpResume();
 
-  class PageGraphCtrl;
+  class GraphCtrlEvent;
 
  private:
   WorkWindow* pWorkWindow_;
+  std::unique_ptr<GraphCtrlEventInterface> graph_ctrl_event_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
   ExpDataInfo* exp_data_info_;
   int64_t exp_time_interval_num_;
@@ -118,11 +126,12 @@ class WorkWindowSecondPageGraph : public DuiLib::CNotifyPump,
   DuiLib::CCheckBoxUI* chk_graph_always_show_new_;
 
   /// @brief graph time range option
-  DuiLib::COptionUI* opt_graph_time_range_5_mnitues_;
-  DuiLib::COptionUI* opt_graph_time_range_10_mnitues_;
-  DuiLib::COptionUI* opt_graph_time_range_30_mnitues_;
-  DuiLib::COptionUI* opt_graph_time_range_60_mnitues_;
-  int32_t graphctrl_sample_total_minutes_;
+  DuiLib::COptionUI* opt_graph_time_range_1_minitues_;
+  DuiLib::COptionUI* opt_graph_time_range_5_minitues_;
+  DuiLib::COptionUI* opt_graph_time_range_10_minitues_;
+  DuiLib::COptionUI* opt_graph_time_range_30_minitues_;
+  DuiLib::COptionUI* opt_graph_time_range_60_minitues_;
+  int32_t graphctrl_sample_total_minutes_ = kGraphCtrlSampleTotalMinutesOne;
 
   /// @brief graph amplitude title and canvas
   DuiLib::CButtonUI* btn_graph_amplitude_title_;

@@ -641,16 +641,14 @@ void WorkWindowSecondPage::OnDataReceived(
       // update the data to the database table amp, stress, um
       // TODO(hhool):
       int64_t cycle_count = exp_data_info_.exp_data_table_no_ * 500;
-      float KHz = 208.230f * kMultiFactor;
+      double KHz = 208.230f * kMultiFactor;
       // TODO(hhool): random KHz, um, MPa
-      float um = (rand() % 15) * kMultiFactor;
-      float MPa = (rand() % 2) * kMultiFactor;
+	  double um = (rand() % 15) * kMultiFactor;
+	  double MPa = (rand() % 8) * kMultiFactor;
+	  double date = anx::common::GetCurrrentDateTime() * kMultiFactor;
       exp_data_info_.amp_freq_ = KHz;
       exp_data_info_.amp_um_ = um;
       exp_data_info_.stress_value_ = MPa;
-      LOG_F(LG_INFO) << "no:" << exp_data_info_.exp_data_table_no_ << " "
-                     << "cycle:" << cycle_count << " " << "um:" << um << " "
-                     << "MPa:" << MPa;
       // TODO(hhool): save to database
       // format cycle_count, KHz, MPa, um to the sql string and insert to the
       // database
@@ -665,8 +663,13 @@ void WorkWindowSecondPage::OnDataReceived(
       sql_str.append(", ");
       sql_str.append(std::to_string(um));
       sql_str.append(", ");
-      sql_str.append(std::to_string(anx::common::GetCurrrentDateTime()));
+      sql_str.append(std::to_string(date));
       sql_str.append(");");
+      LOG_F(LG_INFO) << "\r\n";
+      LOG_F(LG_INFO) << "no:" << exp_data_info_.exp_data_table_no_ << " "
+                     << "cycle:" << cycle_count << " " << "um:" << um << " "
+                     << "MPa:" << MPa << " " << "KHz:" << KHz << " "
+                     << "sql:" << sql_str;
       anx::db::helper::InsertDataTable(
           anx::db::helper::kDefaultDatabasePathname,
           anx::db::helper::kTableExpData, sql_str);
