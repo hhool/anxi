@@ -19,6 +19,11 @@
 #include <crtdbg.h>
 #endif
 
+#include "app/common/logger.h"
+
+static std::shared_ptr<anx::common::FileLoggerSink> g_sink(
+    new anx::common::FileLoggerSink("anxi.log"));
+
 #if defined(WIN32)
 #if !defined(UNDER_CE)
 int APIENTRY WinMain(HINSTANCE hInstance,
@@ -39,8 +44,10 @@ int main() {
   int Flag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
   Flag |= _CRTDBG_LEAK_CHECK_DF;
   _CrtSetDbgFlag(Flag);
- //  _CrtSetBreakAlloc(269);
+  //  _CrtSetBreakAlloc(269);
 #endif
+  anx::common::Logger::add_sink(g_sink);
+  anx::common::Logger::set_log_level(anx::common::LS_INFO);
   void* handle_app = anx::app::CreateApp(hInstance);
   if (handle_app == nullptr) {
     return -1;

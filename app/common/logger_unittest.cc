@@ -53,5 +53,21 @@ TEST_F(LoggerTest, TestLogger) {
                   << "d:" << d;
 }
 
+TEST_F(LoggerTest, Logger2File) {
+  std::shared_ptr<FileLoggerSink> sink(new FileLoggerSink("test.log"));
+  Logger::add_sink(sink);
+  Logger::set_log_level(LS_INFO);
+  int64_t i = 10;
+  float f = 10.0f;
+  double d = 10.00001f;
+  std::string str = "abc";
+  LOG_F(LS_INFO) << "info:" << "i:" << i << " " << "f:" << f << " "
+                 << "d:" << d;
+  LOG_F(LS_WARN) << "warn" << "i:" << i << " " << "f:" << f << " " << "d:" << d;
+  LOG_F(LS_ERROR) << "error" << "i:" << i << " " << "f:" << f << " "
+                  << "d:" << d;
+  LOG_F(LS_FATAL) << "fatal" << "i:" << i << " " << "f:" << f << " "
+                  << "d:" << d;
+}
 }  // namespace common
 }  // namespace anx

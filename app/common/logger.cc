@@ -134,8 +134,8 @@ void ConsoleLoggerSink::Log(int level, std::string& log) {
 //////////////////////////////////////////////////////////////////////////
 // FileLoggerSink
 
-FileLoggerSink::FileLoggerSink(const std::string& file_path) {
-  file_.open(file_path, std::ios::out | std::ios::app);
+FileLoggerSink::FileLoggerSink(std::string file_path) {
+  file_.open(file_path, std::ios::out | std::ios::binary);
 }
 
 FileLoggerSink::~FileLoggerSink() {
@@ -161,7 +161,13 @@ void FileLoggerSink::Log(int level, std::string& log) {
       level_str = "UNKNOWN";
       break;
   }
-  // file_.write((level_str + ": " + log + "\n").c_str(), log.size() + 1);
+  std::string out = level_str;
+  out.append(":");
+  out.append(log);
+  out.append("\n");
+  file_.write(out.data(), out.size());
+  file_.write("\n", 1);
+  file_.flush();
 }
 
 }  // namespace common

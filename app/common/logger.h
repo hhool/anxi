@@ -101,7 +101,8 @@ class ConsoleLoggerSink : public LoggerSink {
 
 class FileLoggerSink : public LoggerSink {
  public:
-  explicit FileLoggerSink(const std::string& file_path);
+  explicit FileLoggerSink(std::string file_path);
+  explicit FileLoggerSink(const FileLoggerSink& other) = delete;
   virtual ~FileLoggerSink();
 
   void Log(int level, std::string& log) override;
@@ -109,6 +110,7 @@ class FileLoggerSink : public LoggerSink {
  private:
   std::fstream file_;
 };
+
 }  // namespace common
 }  // namespace anx
 
