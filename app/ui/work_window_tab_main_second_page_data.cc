@@ -458,22 +458,19 @@ void WorkWindowSecondPageData::OnDataOutgoing(
 void WorkWindowSecondPageData::OnExpStart() {
   is_exp_state_ = 1;
   exp_time_interval_num_ = 0;
+  exp_start_date_time_ = time(nullptr);
 
   UpdateUIWithExpStatus(1);
   list_data_->RemoveAll();
-  exp_datas_.clear();
 }
 
 void WorkWindowSecondPageData::OnExpStop() {
   is_exp_state_ = 0;
   UpdateUIWithExpStatus(0);
-  // TODO(hhool): auto save the data to the file
-  // file path is execuatable path/recored/xxx.csv
-  // file format is csv
-  anx::expdata::SaveExperimentDataToCsvWithDefaultPath(
-      exp_datas_, exp_data_info_->exp_start_time_ms_);
+  ExportToCSV(exp_start_date_time_);
   // reset exp params;
   exp_time_interval_num_ = 0;
+  exp_start_date_time_ = 0;
 }
 
 void WorkWindowSecondPageData::OnExpPause() {
@@ -485,10 +482,39 @@ void WorkWindowSecondPageData::OnExpResume() {
   UpdateUIWithExpStatus(1);
   is_exp_state_ = 1;
 }
-
+/// TODO(hhool): add the function to clear the data
+/// save the data to the file?
 void WorkWindowSecondPageData::ClearExpData() {
   list_data_->RemoveAll();
-  exp_datas_.clear();
+}
+
+void anx::ui::WorkWindowSecondPageData::ExportToCSV(int64_t start_time) {
+  std::string sql_str = "SELECT * FROM ";
+  sql_str += anx::db::helper::kTableExpData;
+  sql_str += " ORDER BY date ASC";
+  sql_str += ";";
+  std::vector<std::map<std::string, std::string>> result;
+  anx::db::helper::QueryDataBase(anx::db::helper::kDefaultDatabasePathname,
+                                 anx::db::helper::kTableExpData, sql_str,
+                                 &result);
+  if (result.size() == 0) {
+    return;
+  }
+
+  std::vector<anx::expdata::ExperimentData> exp_datas;
+  for (auto& item : result) {
+    anx::expdata::ExperimentData data;
+    data.id_ = std::stoi(item["id"]);
+    data.cycle_count_ = std::stoi(item["cycle"]);
+    data.KHz_ = std::stod(item["kHz"]) / kMultiFactor;
+    data.MPa_ = std::stod(item["MPa"]) / kMultiFactor;
+    data.um_ = std::stod(item["um"]) / kMultiFactor;
+    exp_datas.push_back(data);
+  }
+  // TODO(hhool): auto save the data to the file
+  // file path is execuatable path/recored/xxx.csv
+  // file format is csv
+  anx::expdata::SaveExperimentDataToCsvWithDefaultPath(exp_datas, start_time);
 }
 
 }  // namespace ui

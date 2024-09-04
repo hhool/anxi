@@ -39,8 +39,8 @@ void MainWindow::InitWindow() {
       m_PaintManager.FindControl(_T("work_3point_bending")));
   btn_work_vibration_bending_ = static_cast<CButtonUI*>(
       m_PaintManager.FindControl(_T("work_vibration_bending")));
-  btn_work_pilot_e10c_ = static_cast<CButtonUI*>(
-      m_PaintManager.FindControl(_T("work_pilot_e10c")));
+  btn_work_pilot_e10c_ =
+      static_cast<CButtonUI*>(m_PaintManager.FindControl(_T("btn_pilot_e10c")));
 }
 
 void MainWindow::OnFinalMessage(HWND hWnd) {

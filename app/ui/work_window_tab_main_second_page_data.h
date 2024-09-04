@@ -94,6 +94,7 @@ class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
  protected:
   friend class WorkWindowSecondPage;
   void ClearExpData();
+  void ExportToCSV(int64_t start_time);
 
  protected:
   class ListVirtalDataView;
@@ -106,6 +107,8 @@ class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
   std::unique_ptr<anx::device::DeviceExpDataSampleSettings>
       device_exp_data_settings_;
   ExpDataInfo* exp_data_info_;
+
+  int64_t exp_start_date_time_ = 0;
   int64_t exp_time_interval_num_;
 
   /// @brief sample mode option button
@@ -128,15 +131,6 @@ class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
   /// @brief exp status
   /// 0 - stop, 1 - start, 2 - pause, <0 - unvalid
   int32_t is_exp_state_ = -1;
-
-  /// @brief experiment data  for the data table view
-  std::vector<anx::expdata::ExperimentData> exp_datas_;
-  /// @brief start row no for the data table view
-  int32_t exp_data_table_start_row_no_ = 0;
-  /// @brief limit row no for the data table view
-  int32_t exp_data_table_limit_row_no_ = 100;
-  /// @brief data table count for the data table view
-  int32_t exp_data_table_count_ = 0;
 };
 }  // namespace ui
 }  // namespace anx
