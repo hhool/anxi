@@ -14,6 +14,7 @@
 #if defined(WIN32)
 #include <Windows.h>
 #endif
+#include <tchar.h>
 
 #if defined(_DEBUG) && defined(_MSC_VER) && defined(WIN32)
 #include <crtdbg.h>
@@ -30,15 +31,28 @@ int APIENTRY WinMain(HINSTANCE hInstance,
                      HINSTANCE /*hPrevInstance*/,
                      LPSTR /*lpCmdLine*/,
                      int nCmdShow) {
+  HANDLE hMutex = NULL;
 #else
 int APIENTRY WinMain(HINSTANCE hInstance,
                      HINSTANCE /*hPrevInstance*/,
                      LPTSTR lpCmdLine,
                      int nCmdShow) {
+  HANDLE hMutex = NULL;
 #endif
 #else
 int main() {
   HINSTANCE hInstance = nullptr;
+#endif
+#if defined(WIN32)
+  hMutex = CreateMutex(NULL, FALSE,
+                       _T("Global\\73E21C80-1960-472F-BF0B-3EE7CC7AF17E"));
+  DWORD dwError = GetLastError();
+  if (ERROR_ALREADY_EXISTS == dwError || ERROR_ACCESS_DENIED == dwError) {
+    if (hMutex) {
+      CloseHandle(hMutex);
+      return -1;
+    }
+  }
 #endif
 #if defined(_DEBUG) && defined(_MSC_VER) && defined(WIN32)
   int Flag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
@@ -50,9 +64,20 @@ int main() {
   anx::common::Logger::set_log_level(anx::common::LS_INFO);
   void* handle_app = anx::app::CreateApp(hInstance);
   if (handle_app == nullptr) {
+#if defined(WIN32)
+    if (hMutex) {
+      CloseHandle(hMutex);
+      return -1;
+    }
+#endif
     return -1;
   }
   anx::app::Run(handle_app);
   anx::app::DestroyApp(handle_app);
+#if defined(WIN32)
+  if (hMutex) {
+    CloseHandle(hMutex);
+  }
+#endif
   return 0;
 }
