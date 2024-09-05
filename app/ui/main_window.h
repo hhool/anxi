@@ -14,6 +14,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "third_party\duilib\source\DuiLib\UIlib.h"
 
@@ -59,12 +60,14 @@ class MainWindow : public DuiLib::WindowImplBase {
   void Switch_Stresses_Adjustable();
   void Switch_Th3point_Bending();
   void Switch_Vibration_Bending();
+  void Switch_ThirdApp();
 
  protected:
-  LRESULT OnNcHitTest(UINT uMsg,
-                      WPARAM wParam,
-                      LPARAM lParam,
-                      BOOL& bHandled) override;
+  LRESULT
+  OnNcHitTest(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled) override;
+
+ protected:
+  std::vector<std::string> LoadThirdAppList();
 
  private:
   CButtonUI* btn_close_;
@@ -73,6 +76,7 @@ class MainWindow : public DuiLib::WindowImplBase {
   CButtonUI* btn_work_th3point_bending_;
   CButtonUI* btn_work_vibration_bending_;
   CButtonUI* btn_work_pilot_e10c_;
+  std::vector<std::string> third_app_list_;
 };
 }  // namespace ui
 }  // namespace anx

@@ -12,9 +12,13 @@
 #include "app/ui/main_window.h"
 
 #include "app/common/defines.h"
+#include "app/common/module_utils.h"
+#include "app/common/string_utils.h"
 #include "app/esolution/solution_design.h"
 #include "app/ui/ui_constants.h"
 #include "app/ui/work_window.h"
+
+#include "third_party/tinyxml2/source/tinyxml2.h"
 
 DUI_BEGIN_MESSAGE_MAP(anx::ui::MainWindow, DuiLib::WindowImplBase)
 DUI_ON_MSGTYPE(DUI_MSGTYPE_CLICK, OnClick)
@@ -41,6 +45,7 @@ void MainWindow::InitWindow() {
       m_PaintManager.FindControl(_T("work_vibration_bending")));
   btn_work_pilot_e10c_ =
       static_cast<CButtonUI*>(m_PaintManager.FindControl(_T("btn_pilot_e10c")));
+  third_app_list_ = LoadThirdAppList();
 }
 
 void MainWindow::OnFinalMessage(HWND hWnd) {
@@ -69,9 +74,7 @@ void MainWindow::OnClick(DuiLib::TNotifyUI& msg) {
   } else if (msg.pSender == btn_work_vibration_bending_) {
     Switch_Vibration_Bending();
   } else if (msg.pSender == btn_work_pilot_e10c_) {
-    // TODO(hhool):
-    MessageBox(m_hWnd, _T("Not implemented yet!"), _T("Warning"),
-               MB_OK | MB_ICONWARNING);
+    Switch_ThirdApp();
   } else {
     // TODO(hhool):
   }
@@ -142,6 +145,52 @@ LRESULT anx::ui::MainWindow::OnNcHitTest(UINT uMsg,
     return HTCAPTION;
 
   return HTCLIENT;
+}
+
+std::vector<std::string> anx::ui::MainWindow::LoadThirdAppList() {
+  std::string module_dir = anx::common::GetModuleDir();
+  if (module_dir.empty()) {
+    return std::vector<std::string>();
+  }
+  std::string module_path = module_dir + "\\default\\third_app.xml";
+  std::vector<std::string> third_app_list;
+  tinyxml2::XMLDocument doc;
+  if (doc.LoadFile(module_path.c_str()) != tinyxml2::XML_SUCCESS) {
+    return std::vector<std::string>();
+  }
+  tinyxml2::XMLElement* root = doc.RootElement();
+  if (root == nullptr) {
+    return std::vector<std::string>();
+  }
+  tinyxml2::XMLElement* ele_item = root->FirstChildElement("item");
+  if (ele_item == nullptr) {
+    return std::vector<std::string>();
+  }
+  do {
+    if (ele_item == nullptr) {
+      break;
+    }
+    tinyxml2::XMLElement* ele_name = ele_item->FirstChildElement("name");
+    if (ele_name == nullptr) {
+      break;
+    }
+    tinyxml2::XMLElement* ele_path = ele_item->FirstChildElement("path");
+    if (ele_path == nullptr) {
+      break;
+    }
+    third_app_list.push_back(ele_path->GetText());
+  } while (ele_item = ele_item->NextSiblingElement("item"));
+  return third_app_list;
+}
+
+void anx::ui::MainWindow::Switch_ThirdApp() {
+  if (third_app_list_.empty()) {
+    return;
+  }
+  std::string path = third_app_list_.begin()->c_str();
+  ShellExecute(NULL, _T("open"),
+               anx::common::string2wstring(path.c_str()).c_str(), NULL, NULL,
+               SW_SHOW);
 }
 }  // namespace ui
 }  // namespace anx
