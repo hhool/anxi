@@ -60,6 +60,12 @@ class MainWindow : public DuiLib::WindowImplBase {
   void Switch_Th3point_Bending();
   void Switch_Vibration_Bending();
 
+ protected:
+  LRESULT OnNcHitTest(UINT uMsg,
+                      WPARAM wParam,
+                      LPARAM lParam,
+                      BOOL& bHandled) override;
+
  private:
   CButtonUI* btn_close_;
   CButtonUI* btn_work_axially_symmetrical_;

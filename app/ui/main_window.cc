@@ -120,5 +120,28 @@ void anx::ui::MainWindow::Switch_Vibration_Bending() {
   work_window->ShowWindow(true, true);
   ::PostMessage(*work_window, WM_SYSCOMMAND, SC_MAXIMIZE, 0);
 }
+
+LRESULT anx::ui::MainWindow::OnNcHitTest(UINT uMsg,
+                                         WPARAM wParam,
+                                         LPARAM lParam,
+                                         BOOL& bHandled) {
+  POINT pt;
+  pt.x = GET_X_LPARAM(lParam);
+  pt.y = GET_Y_LPARAM(lParam);
+  ::ScreenToClient(*this, &pt);
+
+  RECT rcClient;
+  ::GetClientRect(*this, &rcClient);
+
+  RECT rcCaption = m_PaintManager.GetCaptionRect();
+  CControlUI* pControl =
+      static_cast<CControlUI*>(m_PaintManager.FindControl(pt));
+  if (pControl && _tcscmp(pControl->GetClass(), DUI_CTR_BUTTON) != 0 &&
+      _tcscmp(pControl->GetClass(), DUI_CTR_OPTION) != 0 &&
+      _tcscmp(pControl->GetClass(), DUI_CTR_TEXT) != 0)
+    return HTCAPTION;
+
+  return HTCLIENT;
+}
 }  // namespace ui
 }  // namespace anx
