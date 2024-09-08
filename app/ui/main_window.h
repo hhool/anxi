@@ -55,6 +55,7 @@ class MainWindow : public DuiLib::WindowImplBase {
   }
   LPCTSTR GetWindowClassName(void) const override { return _T("main_window"); }
 
+  LRESULT OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled) override;
  protected:
   void Switch_Axially_Symmetrical();
   void Switch_Stresses_Adjustable();

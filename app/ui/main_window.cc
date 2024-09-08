@@ -80,6 +80,15 @@ void MainWindow::OnClick(DuiLib::TNotifyUI& msg) {
   }
 }
 
+LRESULT anx::ui::MainWindow::OnClose(UINT uMsg,
+                                     WPARAM wParam,
+                                     LPARAM lParam,
+                                     BOOL& bHandled) {
+  bHandled = TRUE;
+  PostQuitMessage(0);
+  return 0;
+}
+
 void anx::ui::MainWindow::Switch_Axially_Symmetrical() {
   this->ShowWindow(false, false);
   ui::WorkWindow* work_window = new ui::WorkWindow(
