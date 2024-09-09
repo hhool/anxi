@@ -334,8 +334,8 @@ void WorkWindow::OnClick(DuiLib::TNotifyUI& msg) {
     if (pOwner_ != nullptr) {
       CloseDeviceCom(anx::device::kDeviceCom_Ultrasound);
       CloseDeviceCom(anx::device::kDeviceCom_StaticLoad);
+      Close();
       pOwner_->ShowWindow(true, true);
-      this->Close();
     } else {
       PostQuitMessage(0);
     }
@@ -442,6 +442,55 @@ LRESULT WorkWindow::OnDestroy(UINT, WPARAM, LPARAM, BOOL& bHandled) {
   label_chart_uis_.clear();
   bHandled = FALSE;
   return __super::OnDestroy(0, 0, 0, bHandled);
+}
+
+LRESULT WorkWindow::OnNcHitTest(UINT uMsg,
+                                WPARAM wParam,
+                                LPARAM lParam,
+                                BOOL& bHandled) {
+  POINT pt;
+  pt.x = GET_X_LPARAM(lParam);
+  pt.y = GET_Y_LPARAM(lParam);
+  ::ScreenToClient(*this, &pt);
+
+  RECT rcClient;
+  ::GetClientRect(*this, &rcClient);
+  if (!::IsZoomed(*this)) {
+    RECT rcSizeBox = m_PaintManager.GetSizeBox();
+    if (pt.y < rcClient.top + rcSizeBox.top) {
+      if (pt.x < rcClient.left + rcSizeBox.left)
+        return HTTOPLEFT;
+      if (pt.x > rcClient.right - rcSizeBox.right)
+        return HTTOPRIGHT;
+      return HTTOP;
+
+    } else if (pt.y > rcClient.bottom - rcSizeBox.bottom) {
+      if (pt.x < rcClient.left + rcSizeBox.left)
+        return HTBOTTOMLEFT;
+      if (pt.x > rcClient.right - rcSizeBox.right)
+        return HTBOTTOMRIGHT;
+      return HTBOTTOM;
+    }
+    if (pt.x < rcClient.left + rcSizeBox.left)
+      return HTLEFT;
+    if (pt.x > rcClient.right - rcSizeBox.right)
+      return HTRIGHT;
+  }
+
+  RECT rcCaption = m_PaintManager.GetCaptionRect();
+  if (pt.x >= rcClient.left + rcCaption.left &&
+      pt.x < rcClient.right - rcCaption.right && pt.y >= rcCaption.top &&
+      pt.y < rcCaption.bottom) {
+    CControlUI* pControl =
+        static_cast<CControlUI*>(m_PaintManager.FindControl(pt));
+    if (pControl &&
+        (_tcsicmp(pControl->GetClass(), _T("HorizontalLayout")) == 0 ||
+         _tcsicmp(pControl->GetClass(), _T("Container")) == 0)) {
+      return HTCAPTION;
+    }
+  }
+
+  return HTCLIENT;
 }
 
 void WorkWindow::OnPrepare(DuiLib::TNotifyUI& msg) {

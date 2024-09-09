@@ -93,6 +93,9 @@ class WorkWindow : public DuiLib::WindowImplBase,
                     LPARAM /*lParam*/,
                     BOOL& bHandled) override;
 
+  LRESULT
+  OnNcHitTest(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled) override;
+
  protected:
   void OnPrepare(DuiLib::TNotifyUI& msg);  // NOLINT
 
