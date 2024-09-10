@@ -93,6 +93,11 @@ bool InsertDataTable(const std::string& db_name,
                      const std::string& table,
                      const std::string& sql);
 
+/// @brief Drop the database table
+/// @param table the table name in the database
+/// @return true if success
+bool DropDataTable(const std::string& db_name, const std::string& table);
+
 /// @brief Close the database
 /// @param db_name the database name
 void CloseDataBase(const std::string& db_name);

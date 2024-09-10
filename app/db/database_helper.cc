@@ -188,6 +188,17 @@ bool InsertDataTable(const std::string& db_name,
   return false;
 }
 
+bool DropDataTable(const std::string& db_name, const std::string& table) {
+  std::string db_filepathname;
+  DefaultDatabasePathname(&db_filepathname);
+  auto db = DatabaseFactory::Instance()->CreateOrGetDatabase(db_filepathname);
+  if (db) {
+    std::string sql = "DROP TABLE " + table;
+    return db->Execute(sql);
+  }
+  return false;
+}
+
 void CloseDataBase(const std::string& db_name) {
   DatabaseFactory::Instance()->CloseDatabase(db_name);
 }

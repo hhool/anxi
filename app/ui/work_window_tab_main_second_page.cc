@@ -13,6 +13,7 @@
 
 #include <iostream>
 #include <utility>
+#include <vector>
 
 #include "app/common/defines.h"
 #include "app/common/logger.h"
@@ -545,8 +546,24 @@ int32_t WorkWindowSecondPage::exp_start() {
   UpdateExpClipTimeFromControl();
   is_exp_state_ = 1;
 
+  /// @brief reset the database exp_data table.
+  /// @note the table name is exp_data, delete exp_data table and create a new
+  /// one.
+  anx::db::helper::DropDataTable(anx::db::helper::kDefaultDatabasePathname,
+                                 anx::db::helper::kTableExpData);
+
+  std::string db_filepathname;
+  anx::db::helper::DefaultDatabasePathname(&db_filepathname);
+  auto db = anx::db::DatabaseFactory::Instance()->CreateOrGetDatabase(
+      db_filepathname);
+  db->Execute(anx::db::helper::sql::kCreateTableAmpSqlFormat);
+
+  /// @brief get the exp data sample settings and set the exp start time
+  /// and exp sample interval
   std::unique_ptr<anx::device::DeviceExpDataSampleSettings> dedss =
       anx::device::LoadDeviceExpDataSampleSettingsDefaultResource();
+  exp_data_info_.exp_data_table_no_ = 0;
+  exp_data_info_.exp_time_interval_num_ = 0;
   exp_data_info_.exp_start_time_ms_ = anx::common::GetCurrentTimeMillis();
   exp_data_info_.exp_sample_interval_ms_ = dedss->sampling_interval_ * 100;
 
@@ -590,12 +607,6 @@ void WorkWindowSecondPage::exp_stop() {
   UpdateUIWithExpStatus(0);
 
   is_exp_state_ = 0;
-
-  /////////////////////////
-  // exp_data_info reset
-  exp_data_info_.exp_start_time_ms_ = 0;
-  exp_data_info_.exp_time_interval_num_ = 0;
-  exp_data_info_.exp_data_table_no_ = 0;
 
   // notify the exp stop
   DuiLib::TNotifyUI msg;
@@ -643,9 +654,9 @@ void WorkWindowSecondPage::OnDataReceived(
       int64_t cycle_count = exp_data_info_.exp_data_table_no_ * 500;
       double KHz = 208.230f * kMultiFactor;
       // TODO(hhool): random KHz, um, MPa
-	  double um = (rand() % 15) * kMultiFactor;
-	  double MPa = (rand() % 8) * kMultiFactor;
-	  double date = anx::common::GetCurrrentDateTime() * kMultiFactor;
+      double um = (rand() % 15) * kMultiFactor;
+      double MPa = (rand() % 8) * kMultiFactor;
+      double date = anx::common::GetCurrrentDateTime() * kMultiFactor;
       exp_data_info_.amp_freq_ = KHz;
       exp_data_info_.amp_um_ = um;
       exp_data_info_.stress_value_ = MPa;

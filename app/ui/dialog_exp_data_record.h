@@ -14,6 +14,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "third_party\duilib\source\DuiLib\UIlib.h"
 
@@ -25,6 +26,11 @@ using DuiLib::CPaintManagerUI;
 using DuiLib::CWindowWnd;
 using DuiLib::INotifyUI;
 
+namespace anx {
+namespace expdata {
+class ExperimentFileSummary;
+}  // namespace expdata
+}  // namespace anx
 namespace anx {
 namespace ui {
 class DialogExpDataRecord : public DuiLib::WindowImplBase {
@@ -63,11 +69,19 @@ class DialogExpDataRecord : public DuiLib::WindowImplBase {
  protected:
   void OnPrepare(const TNotifyUI& msg);
 
+  bool OnRefreshButtonClick(void* msg);  // NOLINT
+  bool OnListItemClick(void* msg);       // NOLINT
+  bool ShowSummaryItemDetail(int index);
+  void ShowSummaryEmptyDetail();
+
  private:
   DuiLib::CButtonUI* close_button_;
   DuiLib::CButtonUI* refresh_button_;
   DuiLib::CDateTimeUI* start_date_time_;
   DuiLib::CDateTimeUI* end_date_time_;
+  DuiLib::CListUI* exp_data_list_;
+
+  std::vector<anx::expdata::ExperimentFileSummary> exp_data_summary_list_;
 };
 }  // namespace ui
 }  // namespace anx

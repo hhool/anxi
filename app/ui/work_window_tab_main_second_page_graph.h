@@ -14,8 +14,10 @@
 
 #include "app/ui/work_window_tab_main_second_page_base.h"
 
+#include <map>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "app/device/device_com.h"
 #include "app/ui/ui_virtual_wnd_base.h"
@@ -79,8 +81,12 @@ class WorkWindowSecondPageGraph : public DuiLib::CNotifyPump,
   void Unbind() override;
 
  protected:
-  void CheckDeviceComConnectedStatus();
-  void RefreshExpGraphTitelControl();
+  void UpdateGraphCtrl(
+      std::string name,
+      const std::vector<std::map<std::string, std::string>>& result);
+  void RefreshExpGraphTitleControl();
+  void RefreshPreNextAlwaysShowNewControl(bool is_first_page,
+                                          bool is_last_page);
   void RefreshPreNextControl();
   void UpdateControlFromSettings();
   void SaveSettingsFromControl();
@@ -109,13 +115,12 @@ class WorkWindowSecondPageGraph : public DuiLib::CNotifyPump,
   WorkWindow* pWorkWindow_;
   std::unique_ptr<GraphCtrlEventInterface> graph_ctrl_event_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
-  ExpDataInfo* exp_data_info_;
-  int64_t exp_time_interval_num_;
   std::shared_ptr<anx::device::DeviceComInterface> device_com_ul_;
   std::shared_ptr<anx::device::DeviceComInterface> device_com_sl_;
+  /// @brief exp related members
+  ExpDataInfo* exp_data_info_;
   /// @brief amp start time, stress start time.
-  double amp_start_time_ = 0;
-  double stress_start_time_ = 0;
+  int64_t exp_time_interval_num_;
 
   /// @brief graph time mode pre hour
   DuiLib::COptionUI* opt_graph_time_mode_pre_hour_;

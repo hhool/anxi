@@ -76,26 +76,49 @@ const int32_t kTimerGraphIdPeriod = 1000;
 const double kYAxisAmpInitialValue = 0.05f;
 
 const double kYAxisStressInitialValue = 0.03f;
-/////////////////////////////////////////////////////////////////////////////
-/// @brief the graph control sample total minutes for the graph control.
 
-double minutes_to_var_time_duration(int32_t minutes) {
-  if (minutes == 1) {
-    return kVarTimeDuration5min;
-  } else if (minutes == 5) {
-    return kVarTimeDuration5min;
-  } else if (minutes == 10) {
-    return kVarTimeDuration10min;
-  } else if (minutes == 30) {
-    return kVarTimeDuration30min;
-  } else if (minutes == 60) {
-    return kVarTimeDuration60min;
-  } else {
-    return kVarTimeDuration5min;
-  }
-}
+const int32_t kTimeGraphButtonId = 2;
 }  // namespace
 
+namespace {
+std::vector<std::map<std::string, std::string>> QueryExpDataItemByStartTime(
+    double start_time,
+    int32_t item_count) {
+  std::string sql_str = " SELECT* FROM ";
+  sql_str += anx::db::helper::kTableExpData;
+  sql_str += " WHERE ";
+  sql_str += " date > ";
+  sql_str += std::to_string(start_time);
+  sql_str += " ORDER BY date ASC";
+  sql_str += " LIMIT ";
+  sql_str += std::to_string(item_count);
+  sql_str += ";";
+  std::vector<std::map<std::string, std::string>> result;
+  anx::db::helper::QueryDataBase(anx::db::helper::kDefaultDatabasePathname,
+                                 anx::db::helper::kTableExpData, sql_str,
+                                 &result);
+  return result;
+}
+
+std::vector<std::map<std::string, std::string>> QueryExpDataItemById(
+    int32_t id,
+    int32_t item_count) {
+  std::string sql_str = " SELECT* FROM ";
+  sql_str += anx::db::helper::kTableExpData;
+  sql_str += " WHERE ";
+  sql_str += " id >= ";
+  sql_str += std::to_string(id);
+  sql_str += " ORDER BY date ASC";
+  sql_str += " LIMIT ";
+  sql_str += std::to_string(item_count);
+  sql_str += ";";
+  std::vector<std::map<std::string, std::string>> result;
+  anx::db::helper::QueryDataBase(anx::db::helper::kDefaultDatabasePathname,
+                                 anx::db::helper::kTableExpData, sql_str,
+                                 &result);
+  return result;
+}
+}  // namespace
 class WorkWindowSecondPageGraph::GraphCtrlEvent
     : public GraphCtrlEventInterface {
  public:
@@ -114,15 +137,16 @@ class WorkWindowSecondPageGraph::GraphCtrlEvent
     /// page graph data. so we only need to get the sample count for one page
     /// graph data from the stress graph control.
     int32_t graph_sample_count_one_page =
-        pWorkWindowSecondPageGraph_->page_graph_stress_ctrl_
-            ->GetCurrentXDurationGraphSampleCount();
+        pWorkWindowSecondPageGraph_->page_graph_amplitude_ctrl_
+            ->GetGraphSampleCountOfXDurationAxis();
     int32_t data_sample_count_for_one_graph_sample =
-        pWorkWindowSecondPageGraph_->page_graph_stress_ctrl_
+        pWorkWindowSecondPageGraph_->page_graph_amplitude_ctrl_
             ->GetDataSampleCountForOneGraphSample();
     int32_t total_data_sample_count_one_page =
         graph_sample_count_one_page * data_sample_count_for_one_graph_sample;
 
-    pWorkWindowSecondPageGraph_->exp_data_info_->exp_data_current_no_ =
+    pWorkWindowSecondPageGraph_->exp_data_info_
+        ->exp_data_view_current_start_no_ =
         (pWorkWindowSecondPageGraph_->exp_data_info_->exp_data_table_no_ /
          total_data_sample_count_one_page) *
             total_data_sample_count_one_page +
@@ -151,6 +175,7 @@ WorkWindowSecondPageGraph::WorkWindowSecondPageGraph(
 
 WorkWindowSecondPageGraph::~WorkWindowSecondPageGraph() {
   paint_manager_ui_->KillTimer(btn_graph_amplitude_title_, kTimerGraphId);
+  paint_manager_ui_->KillTimer(btn_pre_page_, kTimeGraphButtonId);
   device_com_sl_.reset();
   device_com_ul_.reset();
 }
@@ -193,17 +218,43 @@ bool WorkWindowSecondPageGraph::OnOptGraphTimeModeChange(void* param) {
 }
 
 bool WorkWindowSecondPageGraph::OnChkGraphAlwaysShowNewChange(void* param) {
-  // TODO(hhool):
   TNotifyUI* pMsg = reinterpret_cast<TNotifyUI*>(param);
   if (pMsg == nullptr) {
     return false;
   }
   if (pMsg->pSender == chk_graph_always_show_new_) {
     if (chk_graph_always_show_new_->IsSelected()) {
-      // always show new
+      /// @note show the last page data
+      int32_t graphctrl_sample_total_minutes = graphctrl_sample_total_minutes_;
+      int32_t data_sample_count_for_one_graph_sample =
+          page_graph_amplitude_ctrl_->GetCurrentDataSampleCountOfOneGraphPlot();
+      int32_t data_sample_count =
+          minutes_to_data_sample_count(graphctrl_sample_total_minutes);
+      int32_t id = exp_data_info_->exp_data_view_current_start_no_;
+      while (id + data_sample_count < exp_data_info_->exp_data_table_no_) {
+        id += data_sample_count;
+      }
+      std::vector<std::map<std::string, std::string>> result =
+          QueryExpDataItemById(
+              id, data_sample_count + data_sample_count_for_one_graph_sample);
+      if (result.size() <= 0) {
+        return true;
+      }
+      id = std::stoi(result[0]["id"]);
+      assert(exp_data_info_->exp_data_view_current_start_no_ % 10 == 1);
+      if (exp_data_info_->exp_data_view_current_start_no_ % 10 != 1) {
+        return false;
+      }
+      exp_data_info_->exp_data_view_current_start_no_ = id;
+
+      /// @note update the graph control with the data from the database.
+      this->UpdateGraphCtrl("amp", result);
+      this->UpdateGraphCtrl("stress", result);
+
+      /// always show new
       LOG_F(LG_INFO) << "chk_graph_always_show_new_ selected";
-      exp_data_info_->mode_ = 0;
-      // update the graph to last page data
+      exp_data_info_->mode_ = view_mode_real;
+      /// update the graph to last page data
       if (page_graph_amplitude_ctrl_.get() != nullptr) {
         page_graph_amplitude_ctrl_->SetAutoRefresh(true);
       }
@@ -213,7 +264,7 @@ bool WorkWindowSecondPageGraph::OnChkGraphAlwaysShowNewChange(void* param) {
     } else {
       // not always show new
       LOG_F(LG_INFO) << "chk_graph_always_show_new_ not selected";
-      exp_data_info_->mode_ = 1;
+      exp_data_info_->mode_ = view_mode_history;
       if (page_graph_amplitude_ctrl_.get() != nullptr) {
         page_graph_amplitude_ctrl_->SetAutoRefresh(false);
       }
@@ -249,61 +300,56 @@ bool WorkWindowSecondPageGraph::OnOptGraphTimeRangeChange(void* param) {
   } else {
     return false;
   }
+  if (graphctrl_sample_total_minutes == graphctrl_sample_total_minutes_) {
+    return true;
+  }
   graphctrl_sample_total_minutes_ = graphctrl_sample_total_minutes;
+  assert(page_graph_amplitude_ctrl_ != nullptr);
+  // TODO(hhool): reset the graph control
+  // 1. get the current x min value. the current x min value is the start time.
+  double x_min = page_graph_amplitude_ctrl_->GetXMinOfAxis();
+  double x_duration = minutes_to_vartime(graphctrl_sample_total_minutes);
+  // 2. read the data from the database. from the current x min value to the
+  //    current x min value + new x duration value and plus the data sample
+  //    count for one graph sample.
+  int32_t data_sample_count_for_one_graph_sample =
+      page_graph_amplitude_ctrl_->GetCurrentDataSampleCountOfOneGraphPlot();
+  int32_t data_sample_count =
+      minutes_to_data_sample_count(graphctrl_sample_total_minutes) +
+      data_sample_count_for_one_graph_sample;
 
-  if (page_graph_amplitude_ctrl_ != nullptr) {
-    if (page_graph_amplitude_ctrl_->GetSamplingTotalMinutes() !=
-        graphctrl_sample_total_minutes) {
-      CActiveXUI* activex = static_cast<CActiveXUI*>(
-          paint_manager_ui_->FindControl(_T("graph_amplitude_canvas")));
-      std::vector<Element2DPoint> element_list =
-          page_graph_amplitude_ctrl_->GetGraphDataList();
-      int32_t data_sample_count_for_one_graph_sample =
-          page_graph_amplitude_ctrl_->GetSamplingCount();
-      double data_sample_value_one_graph_sample =
-          page_graph_amplitude_ctrl_->GetSamplingValueTotal();
-      page_graph_amplitude_ctrl_->Release();
-      page_graph_amplitude_ctrl_.reset();
-      page_graph_amplitude_ctrl_.reset(
-          new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
-              graph_ctrl_event_.get(), activex, "amp",
-              graphctrl_sample_total_minutes, 15, 6, kYAxisAmpInitialValue,
-              true));
-      page_graph_amplitude_ctrl_->Init(element_list);
-      page_graph_amplitude_ctrl_->SetSamplingCount(
-          data_sample_count_for_one_graph_sample);
-      page_graph_amplitude_ctrl_->SetSamplingValueTotal(
-          data_sample_value_one_graph_sample);
-    }
+  int32_t id = exp_data_info_->exp_data_view_current_start_no_;
+  std::vector<std::map<std::string, std::string>> result =
+      QueryExpDataItemById(id, data_sample_count);
+
+  if (result.size() <= 0) {
+    return true;
+  }
+  exp_data_info_->exp_data_view_current_start_no_ = std::stoi(result[0]["id"]);
+  assert(exp_data_info_->exp_data_view_current_start_no_ % 10 == 1);
+  if (exp_data_info_->exp_data_view_current_start_no_ % 10 != 1) {
+    return true;
+  }
+  /// @note update the graph control with the data from the database.
+  /// @note update auto refresh check box to false
+  /// @note update the mode to 1 history view for the graph control
+  bool is_last_page = false;
+  if ((exp_data_info_->exp_data_view_current_start_no_ + data_sample_count) >
+      exp_data_info_->exp_data_table_no_) {
+    is_last_page = true;
+  }
+  bool is_first_page = false;
+  if (exp_data_info_->exp_data_view_current_start_no_ == 1) {
+    is_first_page = true;
   }
 
-  /////////////////////////////////////////////////////////////////////////////
-  if (page_graph_stress_ctrl_ != nullptr) {
-    if (page_graph_stress_ctrl_->GetSamplingTotalMinutes() !=
-        graphctrl_sample_total_minutes) {
-      CActiveXUI* activex = static_cast<CActiveXUI*>(
-          paint_manager_ui_->FindControl(_T("graph_stress_canvas")));
-      std::vector<Element2DPoint> element_list =
-          page_graph_stress_ctrl_->GetGraphDataList();
-      int32_t data_sample_count_for_one_graph_sample =
-          page_graph_stress_ctrl_->GetSamplingCount();
-      double data_sample_value_one_graph_sample =
-          page_graph_stress_ctrl_->GetSamplingValueTotal();
-      page_graph_stress_ctrl_->Release();
-      page_graph_stress_ctrl_.reset();
-      page_graph_stress_ctrl_.reset(
-          new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
-              graph_ctrl_event_.get(), activex, "stress",
-              graphctrl_sample_total_minutes, 8, 6, kYAxisStressInitialValue,
-              true));
-      page_graph_stress_ctrl_->Init(element_list);
-      page_graph_stress_ctrl_->SetSamplingCount(
-          data_sample_count_for_one_graph_sample);
-      page_graph_stress_ctrl_->SetSamplingValueTotal(
-          data_sample_value_one_graph_sample);
-    }
-  }
+  /// @note update the graph control with the data from the database.
+  this->UpdateGraphCtrl("amp", result);
+  this->UpdateGraphCtrl("stress", result);
 
+  /// @note update auto refresh check box to false
+  /// @note update the mode to 1 history view for the graph control
+  this->RefreshPreNextAlwaysShowNewControl(is_first_page, is_last_page);
   return true;
 }
 
@@ -319,175 +365,52 @@ bool WorkWindowSecondPageGraph::OnPagePre(void* param) {
     return true;
   }
 
-  /// @note update auto refresh check box to false
-  /// @note update the mode to 1 history view for the graph control
-  chk_graph_always_show_new_->Selected(false);
-  exp_data_info_->mode_ = 1;
-
-  /// @note update the auto refresh of graph control to false
-  if (page_graph_amplitude_ctrl_.get() != nullptr) {
-    page_graph_amplitude_ctrl_->SetAutoRefresh(false);
-  }
-  if (page_graph_stress_ctrl_.get() != nullptr) {
-    page_graph_stress_ctrl_->SetAutoRefresh(false);
-  }
-
-  /// @note amp and stress graph control has the same sample count for one page
-  /// graph data. so we only need to get the sample count for one page graph
-  /// data from the stress graph control.
+  /// @note amp and stress graph control has the same sample count for one
+  /// page graph data. so we only need to get the sample count for one page
+  /// graph data from the stress graph control.
   int32_t graph_sample_count_one_page =
-      page_graph_stress_ctrl_->GetCurrentXDurationGraphSampleCount();
+      page_graph_amplitude_ctrl_->GetGraphSampleCountOfXDurationAxis();
   int32_t data_sample_count_for_one_graph_sample =
-      page_graph_stress_ctrl_->GetDataSampleCountForOneGraphSample();
+      page_graph_amplitude_ctrl_->GetDataSampleCountForOneGraphSample();
   int32_t total_data_sample_count_one_page =
       graph_sample_count_one_page * data_sample_count_for_one_graph_sample;
 
   /// @note update the current no to the pre page no and update the graph data
   /// from the database and update the graph control. and update the pre page
   /// button status.
-  if (exp_data_info_->exp_data_current_no_ < 1) {
-    exp_data_info_->exp_data_current_no_ = 1;
-  } else if (exp_data_info_->exp_data_current_no_ >
-             total_data_sample_count_one_page) {
-    exp_data_info_->exp_data_current_no_ -= total_data_sample_count_one_page;
-  } else {
-    exp_data_info_->exp_data_current_no_ = 1;
+  assert(exp_data_info_->exp_data_view_current_start_no_ % 10 == 1);
+  int32_t id = exp_data_info_->exp_data_view_current_start_no_;
+  bool is_first_page = false;
+  id -= graph_sample_count_one_page * data_sample_count_for_one_graph_sample;
+  if (id <= 1) {
+    id = 1;
+    is_first_page = true;
   }
-  assert(exp_data_info_->exp_data_current_no_ % 10 == 1);
-  int32_t id = exp_data_info_->exp_data_current_no_;
-  if (id < 1) {
-    assert(false);
-    btn_pre_page_->SetEnabled(false);
-    return false;
+  bool is_last_page = false;
+  if (id + total_data_sample_count_one_page >=
+      exp_data_info_->exp_data_table_no_) {
+    is_last_page = true;
   }
-  /// @note update next page button status false temporarily. will update it
-  /// later.
-  btn_next_page_->SetEnabled(false);
-  bool enable_next_btn = true;
   int32_t no = id;
   LOG_F(LG_INFO) << "no: " << no
                  << " exp_data_info: " << exp_data_info_->ToString();
-  /////////////////////////////////////////////////////////////////////////////
-  /// @note clear current graph data and update the graph data from the exp_data
-  /// of the database. and update the graph control.
-  {
-    /// @note query the data from the exp_data of the database and update the
-    /// graph control.
-    std::string sql_str = " SELECT* FROM ";
-    sql_str += anx::db::helper::kTableExpData;
-    sql_str += " WHERE ";
-    sql_str += " id >= ";
-    sql_str += std::to_string(id);
-    sql_str += " AND";
-    sql_str += " id <";
-    sql_str += std::to_string(id + graph_sample_count_one_page *
-                                       data_sample_count_for_one_graph_sample);
-    sql_str += " ORDER BY date ASC";
-    sql_str += ";";
-    std::vector<std::map<std::string, std::string>> result;
-    anx::db::helper::QueryDataBase(anx::db::helper::kDefaultDatabasePathname,
-                                   anx::db::helper::kTableExpData, sql_str,
-                                   &result);
-    std::string id_str = (result.size() > 0) ? result[0]["id"] : "-1";
-    int32_t id_result_zero = std::stoi(id_str);
-    if (id_result_zero <= 1) {
-      btn_pre_page_->SetEnabled(false);
-    }
-    /// @note calculate the next page button status. if the result size is less
-    /// than the total data sample count for one page graph sample or the next
-    /// page no is greater than the total data sample count for one page graph
-    /// sample, then the next page button status is false.
-    if (static_cast<int32_t>(result.size()) <
-            graph_sample_count_one_page *
-                data_sample_count_for_one_graph_sample ||
-        (id + graph_sample_count_one_page *
-                  data_sample_count_for_one_graph_sample) >=
-            static_cast<int32_t>(exp_data_info_->exp_data_table_no_)) {
-      enable_next_btn = false;
-    }
-    /// @note update the graph control with the data from the database.
-    /// reverse result data to the element list
-    std::vector<Element2DPoint> element_list;
-    for (auto& item : result) {
-      double x = std::stod(item["date"]) / kMultiFactor;
-      double y = std::stod(item["um"]) / kMultiFactor;
-      element_list.push_back(Element2DPoint(x, y));
-    }
-    page_graph_amplitude_ctrl_->Release();
-    page_graph_amplitude_ctrl_.reset();
-    CActiveXUI* activex = static_cast<CActiveXUI*>(
-        paint_manager_ui_->FindControl(_T("graph_amplitude_canvas")));
-    page_graph_amplitude_ctrl_.reset(
-        new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
-            graph_ctrl_event_.get(), activex, "amp",
-            graphctrl_sample_total_minutes_, 15, 6, kYAxisAmpInitialValue,
-            false));
-    page_graph_amplitude_ctrl_->Init(element_list,
-                                     data_sample_count_for_one_graph_sample);
+  std::vector<std::map<std::string, std::string>> result = QueryExpDataItemById(
+      id, graph_sample_count_one_page * data_sample_count_for_one_graph_sample);
+  if (result.size() <= 0) {
+    return true;
   }
-  /////////////////////////////////////////////////////////////////////////////
-  /// @note clear current graph data and update the graph data from the exp_data
-  /// of the database. and update the graph control.
+  exp_data_info_->exp_data_view_current_start_no_ = std::stoi(result[0]["id"]);
+  assert(exp_data_info_->exp_data_view_current_start_no_ % 10 == 1);
+  if (exp_data_info_->exp_data_view_current_start_no_ % 10 != 1) {
+    return false;
+  }
+  this->UpdateGraphCtrl("amp", result);
+  this->UpdateGraphCtrl("stress", result);
 
-  {
-    /// @note query the data from the exp_data of the database and update the
-    /// graph control.
-    std::string sql_str = " SELECT* FROM ";
-    sql_str += anx::db::helper::kTableExpData;
-    sql_str += " WHERE ";
-    sql_str += " id >= ";
-    sql_str += std::to_string(id);
-    sql_str += " AND";
-    sql_str += " id <";
-    sql_str += std::to_string(id + graph_sample_count_one_page *
-                                       data_sample_count_for_one_graph_sample);
-    sql_str += " ORDER BY date ASC";
-    sql_str += ";";
-    std::vector<std::map<std::string, std::string>> result;
-    anx::db::helper::QueryDataBase(anx::db::helper::kDefaultDatabasePathname,
-                                   anx::db::helper::kTableExpData, sql_str,
-                                   &result);
-    std::string id_str = (result.size() > 0) ? result[0]["id"] : "-1";
-    int32_t id_result_zero = std::stoi(id_str);
-    if (id_result_zero <= 1) {
-      btn_pre_page_->SetEnabled(false);
-    }
-    /// @note calculate the next page button status. if the result size is less
-    /// than the total data sample count for one page graph sample or the next
-    /// page no is greater than the total data sample count for one page graph
-    /// sample, then the next page button status is false.
-    if (static_cast<int32_t>(result.size()) <
-            graph_sample_count_one_page *
-                data_sample_count_for_one_graph_sample ||
-        (id + graph_sample_count_one_page *
-                  data_sample_count_for_one_graph_sample) >=
-            static_cast<int32_t>(exp_data_info_->exp_data_table_no_)) {
-      enable_next_btn = false;
-    }
-    /// @note update the graph control with the data from the database.
-    /// reverse result data to the element list.
-    std::vector<Element2DPoint> element_list;
-    for (auto& item : result) {
-      double x = std::stod(item["date"]) / kMultiFactor;
-      double y = std::stod(item["MPa"]) / kMultiFactor;
-      element_list.push_back(Element2DPoint(x, y));
-    }
-
-    page_graph_stress_ctrl_->Release();
-    page_graph_stress_ctrl_.reset();
-    CActiveXUI* activex_stress = static_cast<CActiveXUI*>(
-        paint_manager_ui_->FindControl(_T("graph_stress_canvas")));
-    page_graph_stress_ctrl_.reset(
-        new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
-            graph_ctrl_event_.get(), activex_stress, "stress",
-            graphctrl_sample_total_minutes_, 8, 6, kYAxisStressInitialValue,
-            false));
-    page_graph_stress_ctrl_->Init(element_list,
-                                  data_sample_count_for_one_graph_sample);
-  }
-  if (enable_next_btn) {
-    btn_next_page_->SetEnabled(true);
-  }
+  /// @note update the graph control with the data from the database.
+  /// @note update auto refresh check box to false
+  /// @note update the mode to 1 history view for the graph control
+  this->RefreshPreNextAlwaysShowNewControl(is_first_page, is_last_page);
   return true;
 }
 
@@ -501,163 +424,59 @@ bool WorkWindowSecondPageGraph::OnPageNext(void* param) {
   if (exp_data_info_->exp_data_table_no_ <= 0) {
     return true;
   }
-
-  /// @note update auto refresh check box to false
-  /// @note update the mode to 1 history view for the graph control
-  chk_graph_always_show_new_->Selected(false);
-  exp_data_info_->mode_ = 1;
-
-  /// @note update the auto refresh of graph control to false
-  if (page_graph_amplitude_ctrl_.get() != nullptr) {
-    page_graph_amplitude_ctrl_->SetAutoRefresh(false);
-  }
-  if (page_graph_stress_ctrl_.get() != nullptr) {
-    page_graph_stress_ctrl_->SetAutoRefresh(false);
-  }
-
-  /// @note amp and stress graph control has the same sample count for one page
-  /// graph data. so we only need to get the sample count for one page graph
-  /// data from the stress graph control.
+  /// @note amp and stress graph control has the same sample count for one
+  /// page graph data. so we only need to get the sample count for one page
+  /// graph data from the stress graph control.
   int32_t graph_sample_count_one_page =
-      page_graph_stress_ctrl_->GetCurrentXDurationGraphSampleCount();
+      page_graph_amplitude_ctrl_->GetGraphSampleCountOfXDurationAxis();
   int32_t data_sample_count_for_one_graph_sample =
-      page_graph_stress_ctrl_->GetDataSampleCountForOneGraphSample();
+      page_graph_amplitude_ctrl_->GetDataSampleCountForOneGraphSample();
   int32_t total_data_sample_count_one_page =
       graph_sample_count_one_page * data_sample_count_for_one_graph_sample;
   int32_t graph_sample_count = graph_sample_count_one_page;
 
-  int32_t id = exp_data_info_->exp_data_current_no_;
+  bool is_last_page = false;
+  int32_t id = exp_data_info_->exp_data_view_current_start_no_;
+  int32_t id_next_page = id + total_data_sample_count_one_page;
   assert(id % 10 == 1);
-  if ((id + total_data_sample_count_one_page) <=
+  if ((id_next_page + total_data_sample_count_one_page) >=
       static_cast<int32_t>(exp_data_info_->exp_data_table_no_)) {
     /// @note next page has 1 more page data than the current page data.
-    id += total_data_sample_count_one_page;
-  } else if ((id + total_data_sample_count_one_page) >
-             static_cast<int32_t>(exp_data_info_->exp_data_table_no_)) {
-    /// @note current page is the last page data.
-    btn_next_page_->SetEnabled(false);
+    is_last_page = true;
   }
-  // update pre page button status
+
+  id += total_data_sample_count_one_page;
   int32_t no = id;
-  LOG_F(LG_INFO) << "no: " << no << " exp_data_current_no_: "
-                 << exp_data_info_->exp_data_current_no_
+  LOG_F(LG_INFO) << "no: " << no << " exp_data_view_current_start_no_: "
+                 << exp_data_info_->exp_data_view_current_start_no_
                  << " total: " << exp_data_info_->exp_data_table_no_;
 
+  /// @note query the data from the exp_data of the database and update the
+  /// graph control.
+  std::vector<std::map<std::string, std::string>> result = QueryExpDataItemById(
+      id, graph_sample_count * data_sample_count_for_one_graph_sample);
+  if (result.size() == 0) {
+    return true;
+  }
+  /// @note update the current no to the next page no and update the graph data
+  /// from the database and update the graph control. and update the next page
+  /// button status.
+  exp_data_info_->exp_data_view_current_start_no_ = std::stoi(result[0]["id"]);
+  assert(exp_data_info_->exp_data_view_current_start_no_ % 10 == 1);
+  if (exp_data_info_->exp_data_view_current_start_no_ % 10 != 1) {
+    return false;
+  }
+
   /////////////////////////////////////////////////////////////////////////////
   /// @note clear current graph data and update the graph data from the
   /// exp_data of the database. and update the graph control.
-  {
-    /// @note query the data from the exp_data of the database and update the
-    /// graph control.
-    std::string sql_str = " SELECT* FROM ";
-    sql_str += anx::db::helper::kTableExpData;
-    sql_str += " WHERE ";
-    sql_str += " id >= ";
-    sql_str += std::to_string(id);
-    sql_str += " AND";
-    sql_str += " id <";
-    sql_str += std::to_string(id + graph_sample_count *
-                                       data_sample_count_for_one_graph_sample);
-    sql_str += " ORDER BY date ASC";
-    sql_str += ";";
-    std::vector<std::map<std::string, std::string>> result;
-    anx::db::helper::QueryDataBase(anx::db::helper::kDefaultDatabasePathname,
-                                   anx::db::helper::kTableExpData, sql_str,
-                                   &result);
-    if (result.size() == total_data_sample_count_one_page) {
-      exp_data_info_->exp_data_current_no_ = id;
-      if ((static_cast<int32_t>(exp_data_info_->exp_data_table_no_) -
-           exp_data_info_->exp_data_current_no_) > 0) {
-        btn_next_page_->SetEnabled(true);
-        btn_pre_page_->SetEnabled(true);
-      } else {
-        btn_next_page_->SetEnabled(false);
-        btn_pre_page_->SetEnabled(true);
-      }
-    } else {
-      exp_data_info_->exp_data_current_no_ =
-          ((id + result.size()) / total_data_sample_count_one_page *
-           total_data_sample_count_one_page) +
-          1;
-      btn_next_page_->SetEnabled(false);
-      chk_graph_always_show_new_->SetCheck(true);
-      exp_data_info_->mode_ = 0;
-      btn_pre_page_->SetEnabled(true);
-    }
-    /// @note update the graph control with the data from the database.
-    /// reverse result data to the element list
-    std::vector<Element2DPoint> element_list;
-    for (auto& item : result) {
-      double x = std::stod(item["date"]) / kMultiFactor;
-      double y = std::stod(item["um"]) / kMultiFactor;
-      element_list.push_back(Element2DPoint(x, y));
-    }
+  this->UpdateGraphCtrl("amp", result);
+  this->UpdateGraphCtrl("stress", result);
 
-    page_graph_amplitude_ctrl_->Release();
-    page_graph_amplitude_ctrl_.reset();
-    CActiveXUI* activex = static_cast<CActiveXUI*>(
-        paint_manager_ui_->FindControl(_T("graph_amplitude_canvas")));
-    page_graph_amplitude_ctrl_.reset(
-        new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
-            graph_ctrl_event_.get(), activex, "amp",
-            graphctrl_sample_total_minutes_, 15, 6, kYAxisAmpInitialValue,
-            false));
-    page_graph_amplitude_ctrl_->Init(element_list,
-                                     data_sample_count_for_one_graph_sample);
-  }
-  /////////////////////////////////////////////////////////////////////////////
-  /// @note clear current graph data and update the graph data from the
-  /// exp_data of the database. and update the graph control.
-  {
-    /// @note query the data from the exp_data of the database and update the
-    /// graph control.
-    std::string sql_str = " SELECT* FROM ";
-    sql_str += anx::db::helper::kTableExpData;
-    sql_str += " WHERE ";
-    sql_str += " id >= ";
-    sql_str += std::to_string(id);
-    sql_str += " AND";
-    sql_str += " id <";
-    sql_str += std::to_string(id + graph_sample_count_one_page *
-                                       data_sample_count_for_one_graph_sample);
-    sql_str += " ORDER BY date ASC";
-    sql_str += ";";
-    std::vector<std::map<std::string, std::string>> result;
-    anx::db::helper::QueryDataBase(anx::db::helper::kDefaultDatabasePathname,
-                                   anx::db::helper::kTableExpData, sql_str,
-                                   &result);
-    // TODO(hhool): deal with more
-    if (result.size() < 0) {
-      btn_next_page_->SetEnabled(false);
-      return false;
-    }
-    std::string id_str = (result.size() > 0) ? result[0]["id"] : "-1";
-    int32_t id_result_zero = std::stoi(id_str);
-    if (id_result_zero >=
-        static_cast<int32_t>(exp_data_info_->exp_data_table_no_)) {
-      btn_next_page_->SetEnabled(false);
-    }
-    /// @note update the graph control with the data from the database.
-    /// reverse result data to the element list.
-    std::vector<Element2DPoint> element_list;
-    for (auto& item : result) {
-      double x = std::stod(item["date"]) / kMultiFactor;
-      double y = std::stod(item["MPa"]) / kMultiFactor;
-      element_list.push_back(Element2DPoint(x, y));
-    }
-
-    page_graph_stress_ctrl_->Release();
-    page_graph_stress_ctrl_.reset();
-    CActiveXUI* activex_stress = static_cast<CActiveXUI*>(
-        paint_manager_ui_->FindControl(_T("graph_stress_canvas")));
-    page_graph_stress_ctrl_.reset(
-        new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
-            graph_ctrl_event_.get(), activex_stress, "stress",
-            graphctrl_sample_total_minutes_, 8, 6, kYAxisStressInitialValue,
-            exp_data_info_->mode_ ? false : true));
-    page_graph_stress_ctrl_->Init(element_list,
-                                  data_sample_count_for_one_graph_sample);
-  }
+  /// @note update the graph control with the data from the database.
+  /// @note update auto refresh check box to false
+  /// @note update the mode to 1 history view for the graph control
+  this->RefreshPreNextAlwaysShowNewControl(false, is_last_page);
   return true;
 }
 
@@ -666,16 +485,19 @@ bool WorkWindowSecondPageGraph::OnTimer(void* param) {
   if (pMsg == nullptr) {
     return false;
   }
-  if (pMsg->pSender != btn_graph_amplitude_title_) {
+  if (pMsg->pSender != btn_graph_amplitude_title_ &&
+      pMsg->pSender != btn_pre_page_) {
     return false;
   }
   if (pMsg->wParam == kTimerGraphId) {
     // update the graph
-    RefreshExpGraphTitelControl();
+    RefreshExpGraphTitleControl();
+    return true;
+  } else if (pMsg->wParam == kTimeGraphButtonId) {
+    // update the graph button
     RefreshPreNextControl();
     return true;
   } else {
-    // TODO(hhool): do nothing;
     return false;
   }
   return true;
@@ -708,7 +530,7 @@ void WorkWindowSecondPageGraph::Bind() {
   chk_graph_always_show_new_ = static_cast<DuiLib::CCheckBoxUI*>(
       paint_manager_ui_->FindControl(_T("graph_settings_always_new")));
   chk_graph_always_show_new_->Selected(true);
-  exp_data_info_->mode_ = 0;
+  exp_data_info_->mode_ = view_mode_real;
   /// @brief bind the check box event
   chk_graph_always_show_new_->OnNotify += ::MakeDelegate(
       this, &WorkWindowSecondPageGraph::OnChkGraphAlwaysShowNewChange);
@@ -762,14 +584,16 @@ void WorkWindowSecondPageGraph::Bind() {
   btn_next_page_->SetEnabled(false);
 
   UpdateControlFromSettings();
+  // init the graph control
+  double x_min = anx::common::GetCurrrentDateTime();
+  double x_duration = minutes_to_vartime(graphctrl_sample_total_minutes_);
   {
     CActiveXUI* activex = static_cast<CActiveXUI*>(
         paint_manager_ui_->FindControl(_T("graph_amplitude_canvas")));
     page_graph_amplitude_ctrl_.reset(
         new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
-            graph_ctrl_event_.get(), activex, "amp",
-            graphctrl_sample_total_minutes_, 15, 6, kYAxisAmpInitialValue,
-            exp_data_info_->mode_ ? false : true));
+            graph_ctrl_event_.get(), activex, "amp", x_min, x_duration, 15, 6,
+            kYAxisAmpInitialValue, exp_data_info_->mode_ ? false : true));
     page_graph_amplitude_ctrl_->Init(std::vector<Element2DPoint>());
   }
   {
@@ -777,19 +601,26 @@ void WorkWindowSecondPageGraph::Bind() {
         paint_manager_ui_->FindControl(_T("graph_stress_canvas")));
     page_graph_stress_ctrl_.reset(
         new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
-            graph_ctrl_event_.get(), activex, "stress",
-            graphctrl_sample_total_minutes_, 8, 6, kYAxisStressInitialValue,
-            exp_data_info_->mode_ ? false : true));
+            graph_ctrl_event_.get(), activex, "stress", x_min, x_duration, 8, 6,
+            kYAxisStressInitialValue, exp_data_info_->mode_ ? false : true));
     page_graph_stress_ctrl_->Init(std::vector<Element2DPoint>());
   }
+  // bind the graph title timer
   btn_graph_amplitude_title_->OnNotify +=
+      ::MakeDelegate(this, &WorkWindowSecondPageGraph::OnTimer);
+  // bind the graph control event
+  paint_manager_ui_->SetTimer(btn_pre_page_, kTimeGraphButtonId, 1000);
+  btn_pre_page_->OnNotify +=
       ::MakeDelegate(this, &WorkWindowSecondPageGraph::OnTimer);
 }
 
 void WorkWindowSecondPageGraph::Unbind() {
   SaveSettingsFromControl();
-
+  // kill the timer for the graph title
   paint_manager_ui_->KillTimer(btn_graph_amplitude_title_, kTimerGraphId);
+  // kill the timer for the graph button
+  paint_manager_ui_->KillTimer(btn_pre_page_, kTimeGraphButtonId);
+  // release the graph control
   if (page_graph_amplitude_ctrl_ != nullptr) {
     page_graph_amplitude_ctrl_->Release();
     page_graph_amplitude_ctrl_.reset();
@@ -809,9 +640,71 @@ void WorkWindowSecondPageGraph::Unbind() {
   }
 }
 
-void WorkWindowSecondPageGraph::CheckDeviceComConnectedStatus() {}
+void WorkWindowSecondPageGraph::UpdateGraphCtrl(
+    std::string name,
+    const std::vector<std::map<std::string, std::string>>& result) {
+  if (name == "amp") {
+    if (page_graph_amplitude_ctrl_ != nullptr) {
+      page_graph_amplitude_ctrl_->Release();
+      page_graph_amplitude_ctrl_.reset();
+    }
+    std::vector<Element2DPoint> element_list;
+    int32_t item_count = result.size();
+    for (int32_t i = 0; i < item_count; i++) {
+      const std::map<std::string, std::string>& item = result[i];
+      double x = std::stod(item.at("date")) / kMultiFactor;
+      double y = std::stod(item.at("um")) / kMultiFactor;
+      int32_t id = std::stoi(item.at("id"));
+      element_list.push_back(Element2DPoint(x, y, id));
+    }
+    const std::map<std::string, std::string>& item = result[0];
+    double x_min = std::stod(item.at("date")) / kMultiFactor;
+    double x_duration =
+        minutes_to_vartime(this->graphctrl_sample_total_minutes_);
+    x_min -= kVartime2Seconds;
+    if (x_min < 0) {
+      x_min = 0.0f;
+    }
+    CActiveXUI* activex = static_cast<CActiveXUI*>(
+        paint_manager_ui_->FindControl(_T("graph_amplitude_canvas")));
+    page_graph_amplitude_ctrl_.reset(
+        new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
+            graph_ctrl_event_.get(), activex, "amp", x_min, x_duration, 15, 6,
+            kYAxisAmpInitialValue, true));
+    page_graph_amplitude_ctrl_->Init(element_list);
+  } else if (name == "stress") {
+    if (page_graph_stress_ctrl_ != nullptr) {
+      page_graph_stress_ctrl_->Release();
+      page_graph_stress_ctrl_.reset();
+    }
+    std::vector<Element2DPoint> element_list;
+    int32_t item_count = result.size();
+    for (int32_t i = 0; i < item_count; i++) {
+      const std::map<std::string, std::string>& item = result[i];
+      double x = std::stod(item.at("date")) / kMultiFactor;
+      double y = std::stod(item.at("MPa")) / kMultiFactor;
+      int32_t id = std::stoi(item.at("id"));
+      element_list.push_back(Element2DPoint(x, y, id));
+    }
+    const std::map<std::string, std::string>& item = result[0];
+    double x_min = std::stod(item.at("date")) / kMultiFactor;
+    double x_duration =
+        minutes_to_vartime(this->graphctrl_sample_total_minutes_);
+    x_min -= kVartime2Seconds;
+    if (x_min < 0) {
+      x_min = 0.0f;
+    }
+    CActiveXUI* activex = static_cast<CActiveXUI*>(
+        paint_manager_ui_->FindControl(_T("graph_stress_canvas")));
+    page_graph_stress_ctrl_.reset(
+        new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
+            graph_ctrl_event_.get(), activex, "stress", x_min, x_duration, 8, 6,
+            kYAxisStressInitialValue, true));
+    page_graph_stress_ctrl_->Init(element_list);
+  }
+}
 
-void WorkWindowSecondPageGraph::RefreshExpGraphTitelControl() {
+void WorkWindowSecondPageGraph::RefreshExpGraphTitleControl() {
   // get current system time get current hour and minute
   struct tm timeinfo;
   anx::common::GetLocalTime(&timeinfo);
@@ -841,18 +734,73 @@ void WorkWindowSecondPageGraph::RefreshExpGraphTitelControl() {
   // minute
 }
 
-void WorkWindowSecondPageGraph::RefreshPreNextControl() {
-  if (page_graph_amplitude_ctrl_ != nullptr) {
-    double var_time_amp_current_x_min =
-        page_graph_amplitude_ctrl_->GetCurrentXMin();
-    double diff = var_time_amp_current_x_min - amp_start_time_;
-    if (!exp_data_info_->mode_) {
-      if (diff > 0) {
-        btn_pre_page_->SetEnabled(true);
-      } else {
-        btn_pre_page_->SetEnabled(false);
-      }
+void WorkWindowSecondPageGraph::RefreshPreNextAlwaysShowNewControl(
+    bool is_first_page,
+    bool is_last_page) {
+  if (is_first_page) {
+    btn_pre_page_->SetEnabled(false);
+  } else {
+    btn_pre_page_->SetEnabled(true);
+  }
+  if (is_last_page) {
+    btn_next_page_->SetEnabled(false);
+    chk_graph_always_show_new_->Selected(true);
+    exp_data_info_->mode_ = view_mode_real;
+    // update the graph to last page data
+    if (page_graph_amplitude_ctrl_.get() != nullptr) {
+      page_graph_amplitude_ctrl_->SetAutoRefresh(true);
     }
+    if (page_graph_stress_ctrl_.get() != nullptr) {
+      page_graph_stress_ctrl_->SetAutoRefresh(true);
+    }
+  } else {
+    btn_next_page_->SetEnabled(true);
+    chk_graph_always_show_new_->Selected(false);
+    exp_data_info_->mode_ = view_mode_history;
+    // update the graph to last page data
+    if (page_graph_amplitude_ctrl_.get() != nullptr) {
+      page_graph_amplitude_ctrl_->SetAutoRefresh(false);
+    }
+    if (page_graph_stress_ctrl_.get() != nullptr) {
+      page_graph_stress_ctrl_->SetAutoRefresh(false);
+    }
+  }
+}
+
+void WorkWindowSecondPageGraph::RefreshPreNextControl() {
+  // get the current page no
+  int32_t id = exp_data_info_->exp_data_view_current_start_no_;
+  // get the total data sample count for one page graph data
+  int32_t graph_sample_count_one_page =
+      page_graph_amplitude_ctrl_->GetGraphSampleCountOfXDurationAxis();
+  int32_t data_sample_count_for_one_graph_sample =
+      page_graph_amplitude_ctrl_->GetDataSampleCountForOneGraphSample();
+  int32_t total_data_sample_count_one_page =
+      graph_sample_count_one_page * data_sample_count_for_one_graph_sample;
+  // get the total data sample count
+  int32_t total_data_sample_count = exp_data_info_->exp_data_table_no_;
+  // get the graph sample display in the graph control min record no
+  int32_t min_disaplay_no = exp_data_info_->exp_data_view_current_start_no_;
+  bool is_first_page = true;
+  if (min_disaplay_no > 1) {
+    is_first_page = false;
+  }
+  // get the graph sample display in the graph control max record no
+  int32_t max_display_no = min_disaplay_no + total_data_sample_count_one_page;
+  bool is_last_page = true;
+  if (max_display_no < total_data_sample_count) {
+    is_last_page = false;
+  }
+  // update the pre next button status
+  if (is_first_page) {
+    btn_pre_page_->SetEnabled(false);
+  } else {
+    btn_pre_page_->SetEnabled(true);
+  }
+  if (is_last_page) {
+    btn_next_page_->SetEnabled(false);
+  } else {
+    btn_next_page_->SetEnabled(true);
   }
 }
 
@@ -894,7 +842,7 @@ void WorkWindowSecondPageGraph::OnDataReceived(
   page_graph_stress_ctrl_->ProcessDataSampleIncoming(
       exp_data_info_->stress_value_);  // NOLINT
 
-  RefreshExpGraphTitelControl();
+  RefreshExpGraphTitleControl();
 }
 
 void WorkWindowSecondPageGraph::OnDataOutgoing(
@@ -913,7 +861,7 @@ void WorkWindowSecondPageGraph::OnDataOutgoing(
     // 2. update the data to the graph
     // 3. update the data to the data table
   }
-  RefreshExpGraphTitelControl();
+  RefreshExpGraphTitleControl();
 }
 
 void WorkWindowSecondPageGraph::UpdateControlFromSettings() {
@@ -988,32 +936,38 @@ void WorkWindowSecondPageGraph::SaveSettingsFromControl() {
 }
 
 void WorkWindowSecondPageGraph::OnExpStart() {
-  RefreshExpGraphTitelControl();
+  /// @note update graph title
+  RefreshExpGraphTitleControl();
+  /// @note reset the graph to mode real and set the time interval number to 0
+  chk_graph_always_show_new_->SetCheck(true);
+  exp_data_info_->mode_ = view_mode_real;
+  exp_data_info_->exp_data_view_current_start_no_ = 1;
   exp_time_interval_num_ = 0;
-
+  /// @note set the timer for the graph title for the graph control
   paint_manager_ui_->SetTimer(btn_graph_amplitude_title_, kTimerGraphId,
                               kTimerGraphIdPeriod);
+
+  /// @note update the graph control with the data from the database and
+  /// update the graph control.
+  double x_min = anx::common::GetCurrrentDateTime();
+  double x_duration = minutes_to_vartime(graphctrl_sample_total_minutes_);
   {
     CActiveXUI* activex = static_cast<CActiveXUI*>(
         paint_manager_ui_->FindControl(_T("graph_amplitude_canvas")));
     page_graph_amplitude_ctrl_.reset(
         new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
-            graph_ctrl_event_.get(), activex, "amp",
-            graphctrl_sample_total_minutes_, 15, 6, kYAxisAmpInitialValue,
-            exp_data_info_->mode_ ? false : true));
+            graph_ctrl_event_.get(), activex, "amp", x_min, x_duration, 15, 6,
+            kYAxisAmpInitialValue, exp_data_info_->mode_ ? false : true));
     page_graph_amplitude_ctrl_->Init(std::vector<Element2DPoint>());
-    amp_start_time_ = page_graph_amplitude_ctrl_->GetCurrentXMin();
   }
   {
     CActiveXUI* activex = static_cast<CActiveXUI*>(
         paint_manager_ui_->FindControl(_T("graph_stress_canvas")));
     page_graph_stress_ctrl_.reset(
         new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
-            graph_ctrl_event_.get(), activex, "stress",
-            graphctrl_sample_total_minutes_, 8, 6, kYAxisStressInitialValue,
-            exp_data_info_->mode_ ? false : true));
+            graph_ctrl_event_.get(), activex, "stress", x_min, x_duration, 8, 6,
+            kYAxisStressInitialValue, exp_data_info_->mode_ ? false : true));
     page_graph_stress_ctrl_->Init(std::vector<Element2DPoint>());
-    stress_start_time_ = page_graph_stress_ctrl_->GetCurrentXMin();
   }
 }
 
@@ -1027,6 +981,8 @@ void WorkWindowSecondPageGraph::OnExpPause() {
 }
 
 void WorkWindowSecondPageGraph::OnExpResume() {
+  chk_graph_always_show_new_->SetCheck(true);
+  exp_data_info_->mode_ = view_mode_real;
   paint_manager_ui_->SetTimer(btn_graph_amplitude_title_, kTimerGraphId,
                               kTimerGraphIdPeriod);
 }

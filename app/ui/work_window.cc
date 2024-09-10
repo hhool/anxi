@@ -296,8 +296,8 @@ void WorkWindow::OnClick(DuiLib::TNotifyUI& msg) {
     if (pOwner_ != nullptr) {
       CloseDeviceCom(anx::device::kDeviceCom_Ultrasound);
       CloseDeviceCom(anx::device::kDeviceCom_StaticLoad);
-      pOwner_->ShowWindow(true, true);
       this->Close();
+      pOwner_->ShowWindow(true, true);
     } else {
       PostQuitMessage(0);
     }
@@ -388,8 +388,8 @@ LRESULT WorkWindow::OnSysCommand(UINT uMsg,
     if (pOwner_ != nullptr) {
       CloseDeviceCom(anx::device::kDeviceCom_Ultrasound);
       CloseDeviceCom(anx::device::kDeviceCom_StaticLoad);
-      pOwner_->ShowWindow(true, true);
       this->Close();
+      pOwner_->ShowWindow(true, true);
     } else {
       PostQuitMessage(0);
     }

@@ -40,6 +40,13 @@ namespace ui {
 
 const float kMultiFactor = 1000.0f;
 
+typedef enum {
+  /// @brief real time view mode of graph ctrl for exp data display
+  view_mode_real = 0,
+  /// @brief history view mode of graph ctrl for exp data display
+  view_mode_history = 1
+};
+
 class ExpDataInfo {
  public:
   ExpDataInfo() = default;
@@ -47,11 +54,12 @@ class ExpDataInfo {
 
  public:
   /// @brief current mode, 0: real time, 1: history
-  int32_t mode_ = 0;
+  int32_t mode_ = view_mode_real;
   /// @brief exp data table no of history view start position.
   /// 0: is not initialized: !0: is initialized and valid.
-  /// exp_data_current_no_ % 10 must be 1
-  int32_t exp_data_current_no_ = 0;
+  /// exp_data_view_current_start_no_ % 10 must be 1
+  /// for graph ctrl display
+  int32_t exp_data_view_current_start_no_ = 1;
   /// @brief exp start time. in miliseconds
   int64_t exp_start_time_ms_ = 0;
   /// @brief exp data sample interval in miliseconds, 2000ms default
@@ -60,7 +68,7 @@ class ExpDataInfo {
   int64_t exp_time_interval_num_ = 0;
   /// @brief exp data sample store in database exp table count since exp start
   /// time
-  uint32_t exp_data_table_no_ = 0;
+  int32_t exp_data_table_no_ = 0;
   /// @brief real value multiply by kMultiFactor,
   ///  store in database REAL
   double amp_freq_ = 0.0f;
@@ -74,7 +82,8 @@ class ExpDataInfo {
  public:
   std::string ToString() const {
     return "mode: " + std::to_string(mode_) +
-           ", exp_data_current_no_: " + std::to_string(exp_data_current_no_) +
+           ", exp_data_view_current_start_no_: " +
+           std::to_string(exp_data_view_current_start_no_) +
            ", exp_start_time_ms_: " + std::to_string(exp_start_time_ms_) +
            ", exp_sample_interval_ms_: " +
            std::to_string(exp_sample_interval_ms_) +
