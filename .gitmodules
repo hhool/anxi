@@ -19,3 +19,6 @@
 [submodule "app/resource"]
 	path = app/resource
 	url = git@github.com:hhool/anxi_resource.git
+[submodule "third_party/zlib/source"]
+	path = third_party/zlib/source
+	url = git@github.com:hhool/zlib.git
