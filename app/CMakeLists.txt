@@ -31,6 +31,8 @@ set(COMMON_FILES
     common/module_utils.h
     common/string_utils.cc
     common/string_utils.h
+    common/thread.cc
+    common/thread.h
     common/time_utils.cc
     common/time_utils.h)
 source_group("common" FILES ${COMMON_FILES})
