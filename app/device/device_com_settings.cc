@@ -24,7 +24,6 @@ namespace device {
 // constants
 const int32_t kDeviceCom_Ultrasound = 0;
 const int32_t kDeviceCom_StaticLoad = 1;
-const int32_t kDeviceCom_Air_compressor = 2;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief clz ComSettings

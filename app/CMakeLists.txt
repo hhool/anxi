@@ -80,6 +80,39 @@ set(DEVICE_FILES
 source_group("device" FILES ${DEVICE_FILES})
 list(APPEND APP_SOURCES ${DEVICE_FILES})
 
+if(WIN32)
+    set(DEVICE_STLOAD_FILES
+        device/stload/stload_common.h
+        device/stload/stload_helper.cc
+        device/stload/stload_helper.h
+        device/stload/stload_wrapper.cc
+        device/stload/stload_wrapper.h)
+    source_group("device_stload" FILES ${DEVICE_STLOAD_FILES})
+    list(APPEND APP_SOURCES ${DEVICE_STLOAD_FILES})
+
+    if(ANXI_BUILD_STLOAD_SIMULATOR)
+        set(DEVICE_STLOAD_SIMULATOR_FILES
+            device/stload_simulation/stload_device.cc
+            device/stload_simulation/stload_device.def
+            device/stload_simulation/stload_device.h)
+        source_group("device_stload_simulator" FILES ${DEVICE_STLOAD_SIMULATOR_FILES})
+        add_library(app_stload_simulator SHARED ${DEVICE_STLOAD_SIMULATOR_FILES})
+        target_link_libraries(app_stload_simulator app_ui)
+        target_compile_definitions(app_stload_simulator PRIVATE STLOAD_SIMULATION_EXPORTS)
+    endif()
+endif()
+
+if(ANXI_BUILD_UNITTEST)
+    if(WIN32)
+        set(APP_DEVICE_UNITTEST_FILES
+            device/stload/stload_wrapper_unittest.cc)
+        source_group("device_stload_unittest" FILES ${APP_DEVICE_UNITTEST_FILES})
+        list(APPEND APP_DEVICE_UNITTEST_FILES ${APP_DEVICE_UNITTEST_FILES})
+        add_executable(app_device_stload_unittest ${APP_DEVICE_UNITTEST_FILES})
+        target_link_libraries(app_device_stload_unittest gtest_main gtest app_ui)
+    endif()
+endif()
+
 set(EXPDATA_FILES
     expdata/experiment_data_base.cc
     expdata/experiment_data_base.h
@@ -217,6 +250,11 @@ target_link_libraries(app_exe app_ui)
 if(WIN32)
     target_link_libraries(app_exe user32 gdi32)
     set_target_properties(app_exe PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS")
+
+    # set working directory to bin directory
+    # for visual studio debugger to find third stload third dll
+    # and the resource files
+    set_target_properties(app_exe PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/../bin/${CMAKE_BUILD_TYPE})
 endif()
 
 # rename the output file to product name
@@ -236,6 +274,9 @@ endif()
 
 # ##############################################################################
 # copy folder resource/skin resource/default to the target directory
+add_custom_command(TARGET app_exe POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${PROJECT_SOURCE_DIR}/resource/pilot/etm ${PROJECT_BINARY_DIR}/../bin/${CMAKE_BUILD_TYPE}/)
 add_custom_command(TARGET app_exe POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${PROJECT_SOURCE_DIR}/resource/skin ${PROJECT_BINARY_DIR}/../bin/${CMAKE_BUILD_TYPE}/skin)

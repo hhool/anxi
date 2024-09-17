@@ -29,7 +29,6 @@ namespace device {
 // constants
 extern const int32_t kDeviceCom_Ultrasound;
 extern const int32_t kDeviceCom_StaticLoad;
-extern const int32_t kDeviceCom_Air_compressor;
 
 class ComSettings : public ComPortDevice {
  public:

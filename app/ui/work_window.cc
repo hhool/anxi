@@ -24,6 +24,7 @@
 #include "app/device/device_com_settings.h"
 #include "app/device/device_com_settings_helper.h"
 #include "app/device/device_exp_data_sample_settings.h"
+#include "app/device/stload/stload_helper.h"
 #include "app/esolution/solution_design.h"
 #include "app/esolution/solution_design_default.h"
 #include "app/esolution/solution_design_helper.h"
@@ -47,6 +48,25 @@ namespace anx {
 namespace ui {
 
 namespace {
+std::string format_num(int64_t num) {
+  std::string value;
+  int64_t integer_part = num / 1000;
+  int64_t decimal_part = num % 1000;
+  // remove the 0 at the end of the decimal.
+  while (decimal_part % 10 == 0) {
+    decimal_part /= 10;
+    if (decimal_part == 0) {
+      break;
+    }
+  }
+  // format integer part
+  value += std::to_string(integer_part);
+  if (decimal_part != 0) {
+    value += ".";
+    value += std::to_string(decimal_part);
+  }
+  return value;
+}
 const int32_t kTimerCurrentTimeMsgId = 1;
 const int32_t kTimerCurrentTimePeriod = 50;
 }  // namespace
@@ -57,11 +77,9 @@ WorkWindow::WorkWindow(DuiLib::WindowImplBase* pOwner, int32_t solution_type)
   device_com_ul_ =
       anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
           anx::device::kDeviceCom_Ultrasound, this);
+  is_device_stload_connected_ = false;
 
-  device_com_sl_ =
-      anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
-          anx::device::kDeviceCom_StaticLoad, this);
-
+  anx::device::stload::STLoadHelper::InitStLoad();
   // database initial
   // remove database
   anx::db::helper::ClearDatabaseFile(anx::db::helper::kDefaultDatabasePathname);
@@ -166,6 +184,8 @@ WorkWindow::~WorkWindow() {
   // close devices all
   CloseDeviceCom(anx::device::kDeviceCom_Ultrasound);
   CloseDeviceCom(anx::device::kDeviceCom_StaticLoad);
+
+  anx::device::stload::STLoadHelper::UnInitStLoad();
 }
 
 void WorkWindow::InitWindow() {
@@ -205,6 +225,9 @@ void WorkWindow::InitWindow() {
       m_PaintManager.FindControl(_T("args_area_value_static_load")));
   btn_args_area_value_stress_ratio_ = static_cast<CButtonUI*>(
       m_PaintManager.FindControl(_T("args_area_value_stress_ratio")));
+
+  anx::device::stload::STLoadHelper::st_load_loader_.st_api_.set_dest_wnd(
+      this->GetHWND());
 }
 
 void WorkWindow::OnFinalMessage(HWND hWnd) {
@@ -469,6 +492,49 @@ LRESULT WorkWindow::OnNcHitTest(UINT uMsg,
   return HTCLIENT;
 }
 
+#define DLLMSG WM_USER + 4001
+#define DLL_SAMPLE 1
+
+LRESULT WorkWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
+  if (uMsg == DLLMSG) {
+    LOG_F(LG_INFO) << "uMsg == DLLMSG:" << uMsg << " wParam:" << wParam
+                   << " lParam:" << lParam;
+    if (lParam == DLL_SAMPLE) {
+      anx::device::stload::STLoadHelper::st_load_loader_.st_api_
+          .before_get_sample();
+      double load =
+          anx::device::stload::STLoadHelper::st_load_loader_.st_api_.get_load();
+      double pos =
+          anx::device::stload::STLoadHelper::st_load_loader_.st_api_.get_posi();
+      double exten =
+          anx::device::stload::STLoadHelper::st_load_loader_.st_api_.get_extn();
+      LOG_F(LG_INFO) << "load:" << load << " pos:" << pos << " exten:" << exten;
+      anx::device::stload::STLoadHelper::st_load_loader_.st_api_
+          .after_get_sample();
+      if (anx::device::stload::STLoadHelper::Is_Stload_Simulation()) {
+        pos = static_cast<float>(rand() % 100);
+        load = static_cast<float>(rand() % 100);
+      }
+      // update static load value to args area view.
+      std::string num_format = format_num(static_cast<int64_t>(pos * 100));
+      btn_args_area_value_static_load_->SetText(
+          anx::common::string2wstring(num_format.c_str()).c_str());
+      // notify third page to update the chart
+      pos = pos * 1000;
+      load = load * 1000;
+      DuiLib::TNotifyUI msg;
+      msg.pSender = this->btn_args_area_value_static_load_;
+      msg.sType = kClick;
+
+      msg.lParam = pos;
+      msg.wParam = load;
+      tab_main_pages_["WorkWindowThirdPage"]->NotifyPump(msg);
+    }
+    return 0;
+  }
+  return __super::HandleMessage(uMsg, wParam, lParam);
+}
+
 void WorkWindow::OnPrepare(DuiLib::TNotifyUI& msg) {
   if (solution_type_ >= anx::esolution::kSolutionName_Axially_Symmetrical &&
       solution_type_ <= anx::esolution::kSolutionName_Vibration_Bending) {
@@ -628,6 +694,20 @@ int32_t WorkWindow::SaveFileWithDialog() {
   return 0;
 }
 
+namespace {
+/// @brief transform port name to int32_t
+///        COM1 -> 1
+///        COM2 -> 2
+/// @param port_name
+/// @return
+int32_t PortNameToInt32(const std::string& port_name) {
+  if (port_name.size() < 4) {
+    return -1;
+  }
+  return std::stoi(port_name.substr(3));
+}
+}  // namespace
+
 void WorkWindow::OnMenuDeviceConnectClicked(DuiLib::TNotifyUI& msg) {
   // create or get ultrasound device.
   int32_t ret = OpenDeviceCom(anx::device::kDeviceCom_Ultrasound);
@@ -636,28 +716,36 @@ void WorkWindow::OnMenuDeviceConnectClicked(DuiLib::TNotifyUI& msg) {
   } else if (ret == -2) {
     // TODO(hhool): show status bar message
   }
-  // open static load device.
   ret = OpenDeviceCom(anx::device::kDeviceCom_StaticLoad);
-  if (ret == -1) {
-    // TODO(hhool): show status bar message
+  if (ret == 0) {
+	  is_device_stload_connected_ = true;
+  } else if (ret == -1) {
+    // show status bar message
   } else if (ret == -2) {
-    // TODO(hhool): show status bar message
+    // show status bar message
+  }
+  if (ret == -1) {
+    // show status bar message
+  } else if (ret == -2) {
+    // show status bar message
   }
 }
 
 void WorkWindow::OnMenuDeviceDisconnectClicked(DuiLib::TNotifyUI& msg) {
   CloseDeviceCom(anx::device::kDeviceCom_Ultrasound);
   CloseDeviceCom(anx::device::kDeviceCom_StaticLoad);
+  is_device_stload_connected_ = false;
+  // close static load device.
   // TODO(hhooll): show status bar message
 }
 
 bool WorkWindow::IsDeviceComInterfaceConnected() const {
   return (device_com_ul_ != nullptr && device_com_ul_->isOpened()) ||
-         (device_com_sl_ != nullptr && device_com_sl_->isOpened());
+         (is_device_stload_connected_);
 }
 
 bool WorkWindow::IsSLDeviceComInterfaceConnected() const {
-  return device_com_sl_ != nullptr && device_com_sl_->isOpened();
+	return is_device_stload_connected_;
 }
 
 bool WorkWindow::IsULDeviceComInterfaceConnected() const {
@@ -675,29 +763,30 @@ int32_t WorkWindow::OpenDeviceCom(int32_t device_type) {
       }
       if (device_com_ul_->Open(*(reinterpret_cast<anx::device::ComPortDevice*>(
               com_settings.get()))) != 0) {
-        // show status bar message
         return -2;
       }
     } else {
-      // show status bar message
       return -3;
     }
   } else if (device_type == anx::device::kDeviceCom_StaticLoad) {
-    if (!device_com_sl_->isOpened()) {
-      std::unique_ptr<anx::device::ComSettings> com_settings =
-          anx::device::LoadDeviceComSettingsDefaultResourceWithType(
-              device_type);
-      if (com_settings == nullptr) {
+    std::unique_ptr<anx::device::ComSettings> com_settings =
+        anx::device::LoadDeviceComSettingsDefaultResourceWithType(
+            anx::device::kDeviceCom_StaticLoad);
+    if (com_settings == nullptr) {
+      return -1;
+    }
+    int32_t port = PortNameToInt32(com_settings->GetComName());
+    if (port > 0) {
+      bool bSuccess =
+          anx::device::stload::STLoadHelper::st_load_loader_.st_api_
+                  .open_device(PortNameToInt32(com_settings->GetComName()))
+              ? true
+              : false;
+      if (!bSuccess) {
         return -1;
       }
-      if (device_com_sl_->Open(*(reinterpret_cast<anx::device::ComPortDevice*>(
-              com_settings.get()))) != 0) {
-        // show status bar message
-        return -2;
-      }
     } else {
-      // show status bar message
-      return -3;
+      return -2;
     }
   } else {
     assert(false && "Invalid device type");
@@ -712,9 +801,17 @@ void WorkWindow::CloseDeviceCom(int32_t device_type) {
       device_com_ul_->RemoveListener(this);
     }
   } else if (device_type == anx::device::kDeviceCom_StaticLoad) {
-    if (device_com_sl_ != nullptr) {
-      device_com_sl_->Close();
-      device_com_sl_->RemoveListener(this);
+    if (anx::device::stload::STLoadHelper::st_load_loader_.st_api_.stop_run !=
+        nullptr) {
+      anx::device::stload::STLoadHelper::st_load_loader_.st_api_.stop_run();
+    }
+    if (anx::device::stload::STLoadHelper::st_load_loader_.st_api_.off_line !=
+        nullptr) {
+      anx::device::stload::STLoadHelper::st_load_loader_.st_api_.off_line();
+    }
+    if (anx::device::stload::STLoadHelper::st_load_loader_.st_api_
+            .close_device != nullptr) {
+      anx::device::stload::STLoadHelper::st_load_loader_.st_api_.close_device();
     }
   } else {
     assert(false && "Invalid device type");

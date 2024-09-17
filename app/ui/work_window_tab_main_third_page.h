@@ -74,7 +74,6 @@ class WorkWindowThirdPage : public DuiLib::CNotifyPump,
   WorkWindow* pWorkWindow_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
   std::shared_ptr<anx::device::DeviceComInterface> device_com_ul_;
-  std::shared_ptr<anx::device::DeviceComInterface> device_com_sl_;
   uint32_t send_table_no_ = 0;
   uint32_t recv_table_no_ = 0;
   uint32_t recv_notify_table_no_ = 0;

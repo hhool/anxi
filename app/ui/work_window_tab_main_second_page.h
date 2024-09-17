@@ -19,6 +19,7 @@
 #include <string>
 
 #include "app/device/device_com.h"
+#include "app/device/stload/stload_helper.h"
 #include "app/ui/ui_virtual_wnd_base.h"
 
 #include "third_party\duilib\source\DuiLib\UIlib.h"
@@ -71,6 +72,19 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   void exp_stop();
   void exp_resume();
 
+  /// @brief static load aircraft clear
+  void OnButtonStaticAircraftClear();
+  /// @brief static load aircraft setting
+  void OnButtonStaticAircraftSetting();
+  /// @brief static load aircraft reset
+  void OnButtonStaticAircraftReset();
+  /// @brief static load aircraft up
+  void OnButtonStaticAircraftUp();
+  /// @brief static load aircraft down
+  void OnButtonStaticAircraftDown();
+  /// @brief static load aircraft stop
+  void OnButtonStaticAircraftStop();
+
   /// @brief  Update button with exp status
   /// @param status  0 - stop, 1 - start, 2 - pause
   void UpdateUIWithExpStatus(int status);
@@ -99,7 +113,6 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   /// 0 - stop, 1 - start, 2 - pause, <0 - unvalid
   int32_t is_exp_state_;
   std::shared_ptr<anx::device::DeviceComInterface> device_com_ul_;
-  std::shared_ptr<anx::device::DeviceComInterface> device_com_sl_;
   int64_t exp_clip_time_duration_;
   int64_t exp_clip_time_paused_;
   int64_t exp_cycle_count_;
@@ -120,6 +133,9 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   /// @brief Static aircraft reset button
   DuiLib::CButtonUI* btn_sa_reset_;
 
+  bool st_load_is_running_ = false;
+  int64_t st_start_time_ = 0;
+  int64_t st_run_time_ = 0;
   /// @brief exp action releated button
   ///
   /// @brief exp action start button
@@ -160,6 +176,8 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   DuiLib::CEditUI* edit_max_cycle_count_;
   DuiLib::CEditUI* edit_max_cycle_power_;
   DuiLib::CEditUI* edit_frequency_fluctuations_range_;
+
+  /// @brief exp data sample settings
 };
 
 }  // namespace ui

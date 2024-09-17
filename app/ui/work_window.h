@@ -92,6 +92,7 @@ class WorkWindow : public DuiLib::WindowImplBase,
 
   LRESULT
   OnNcHitTest(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled) override;
+  LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) override;
 
  protected:
   void OnPrepare(DuiLib::TNotifyUI& msg);  // NOLINT
@@ -166,7 +167,7 @@ class WorkWindow : public DuiLib::WindowImplBase,
   std::unique_ptr<DuiLib::CNotifyPump> work_window_status_bar_;
   UIVirtualWndBase* work_window_status_bar_virtual_wnd_;
   std::shared_ptr<anx::device::DeviceComInterface> device_com_ul_;
-  std::shared_ptr<anx::device::DeviceComInterface> device_com_sl_;
+  bool is_device_stload_connected_ = false;
   /// @brief experiment related data
   /// @brief exp status
   /// 0 - stop, 1 - start, 2 - pause, <0 - unvalid

@@ -75,6 +75,8 @@ target_link_libraries(${PREFIX}_cserialport_unittest gtest_main gtest libcserial
 if(WIN32)
     add_executable(${PREFIX}_ole_vartime_unittest ole_vartime_unittest.cc)
     target_link_libraries(${PREFIX}_ole_vartime_unittest gtest_main gtest comctl32 oleaut32)
+    add_executable(${PREFIX}_library_win_unittest library_win_unittest.cc)
+    target_link_libraries(${PREFIX}_library_win_unittest gtest_main gtest app_ui comctl32 oleaut32)
 endif()
 
 # ###############

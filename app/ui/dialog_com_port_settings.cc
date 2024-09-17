@@ -35,8 +35,6 @@ int32_t TailPrefixToDeviceComType(std::string tail_prefix) {
     return anx::device::kDeviceCom_Ultrasound;
   } else if (tail_prefix == "sl") {
     return anx::device::kDeviceCom_StaticLoad;
-  } else if (tail_prefix == "ac") {
-    return anx::device::kDeviceCom_Air_compressor;
   }
   return -1;
 }

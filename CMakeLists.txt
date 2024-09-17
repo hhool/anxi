@@ -33,6 +33,7 @@ option(ANXI_BUILD_EXAMPLES "Build anxi examples" ON)
 option(ANXI_BUILD_DOC "Build anxi Doc" OFF)
 option(ANXI_BUILD_TEST "Build anxi Test" ON)
 option(ANXI_BUILD_UNITTEST "Build anxi Unittest" ON)
+option(ANXI_BUILD_STLOAD_SIMULATOR "Use STLOAD simulator" ON)
 
 # only build library if add anxi as subdirectory
 if(NOT CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)

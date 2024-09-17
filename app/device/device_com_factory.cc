@@ -96,8 +96,6 @@ DeviceComFactory::CreateOrGetDeviceComWithType(int32_t device_com_type,
     device_com = std::make_shared<ComPortDeviceImpl>("ul");
   } else if (device_com_type == kDeviceCom_StaticLoad) {
     device_com = std::make_shared<ComPortDeviceImpl>("sl");
-  } else if (device_com_type == kDeviceCom_Air_compressor) {
-    device_com = std::make_shared<ComPortDeviceImpl>("ac");
   } else {
     return nullptr;
   }

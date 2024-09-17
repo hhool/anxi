@@ -116,7 +116,6 @@ class WorkWindowSecondPageGraph : public DuiLib::CNotifyPump,
   std::unique_ptr<GraphCtrlEventInterface> graph_ctrl_event_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
   std::shared_ptr<anx::device::DeviceComInterface> device_com_ul_;
-  std::shared_ptr<anx::device::DeviceComInterface> device_com_sl_;
   /// @brief exp related members
   ExpDataInfo* exp_data_info_;
   /// @brief amp start time, stress start time.

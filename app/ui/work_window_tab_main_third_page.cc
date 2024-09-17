@@ -265,6 +265,19 @@ void WorkWindowThirdPage::OnClick(TNotifyUI& msg) {
     } else {
       // TODO(hhool): do nothing
     }
+    if (msg.pSender->GetName() == _T("args_area_value_static_load")) {
+      // update the label_displacement_ with random value
+      float pos = msg.lParam / 1000.0f;
+      std::string num_format =
+          format_num(static_cast<int64_t>(pos * 100));
+      label_displacement_->SetText(
+          anx::common::string2wstring(num_format.c_str()).c_str());
+      // update the label_strength_ with random value
+      float load = msg.wParam / 1000.0f;
+      num_format = format_num(static_cast<int64_t>(load * 100));
+      label_strength_->SetText(
+          anx::common::string2wstring(num_format.c_str()).c_str());
+    }
   } else {
     // TODO(hhool): do nothing
   }
@@ -282,9 +295,6 @@ void WorkWindowThirdPage::Bind() {
   device_com_ul_ =
       anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
           anx::device::kDeviceCom_Ultrasound, this);
-  device_com_sl_ =
-      anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
-          anx::device::kDeviceCom_StaticLoad, this);
   // bind timer
   DuiLib::CHorizontalLayoutUI* layout =
       static_cast<DuiLib::CHorizontalLayoutUI*>(
@@ -366,10 +376,6 @@ void WorkWindowThirdPage::Unbind() {
     device_com_ul_->RemoveListener(this);
     device_com_ul_.reset();
   }
-  if (device_com_sl_ != nullptr) {
-    device_com_sl_->RemoveListener(this);
-    device_com_sl_.reset();
-  }
 }
 
 void WorkWindowThirdPage::UpdateControlFromSettings() {
@@ -396,7 +402,6 @@ void WorkWindowThirdPage::OnDataReceived(
     int32_t size) {
   // TODO(hhool): review the implementation
   if (device == device_com_ul_.get()) {
-  } else if (device == device_com_sl_.get()) {
   }
   if (!check_box_display_stop_recv_notify_->IsSelected()) {
     std::string hex_str;
@@ -439,18 +444,6 @@ void WorkWindowThirdPage::OnDataReceived(
 
     list_recv_->SetVirtualItemCount(recv_table_no_);
   }
-  // update the label_displacement_ with random value
-  float displacement = 0.0f;
-  displacement = static_cast<float>(rand() % 100);
-  std::string num_format = format_num(static_cast<int64_t>(displacement * 100));
-  label_displacement_->SetText(
-      anx::common::string2wstring(num_format.c_str()).c_str());
-  // update the label_strength_ with random value
-  float strength = 0.0f;
-  strength = static_cast<float>(rand() % 100);
-  num_format = format_num(static_cast<int64_t>(strength * 100));
-  label_strength_->SetText(
-      anx::common::string2wstring(num_format.c_str()).c_str());
 }
 
 void WorkWindowThirdPage::OnDataOutgoing(
@@ -459,7 +452,6 @@ void WorkWindowThirdPage::OnDataOutgoing(
     int32_t size) {
   // TODO(hhool): review the implementation
   if (device == device_com_ul_.get()) {
-  } else if (device == device_com_sl_.get()) {
   }
   if (check_box_display_send_->IsSelected()) {
     std::string hex_str;

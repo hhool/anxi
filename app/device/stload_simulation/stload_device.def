@@ -1,0 +1,36 @@
+LIBRARY app_stload_simulator
+
+; stload device simulator
+
+EXPORTS
+  SetDestWnd @1 PRIVATE
+  AfterGetSample @2 PRIVATE
+  BeforeGetSample @3 PRIVATE
+  Carry200 @4 PRIVATE
+  Carry210 @5 PRIVATE
+  CarryPID @6 PRIVATE
+  CloseDevice @7 PRIVATE
+  EndRead @8 PRIVATE
+  GetExt1 @9 PRIVATE
+  GetExtendSensors @10 PRIVATE
+  GetExtensions @11 PRIVATE
+  GetExtn @12 PRIVATE
+  GetLoad @13 PRIVATE
+  GetLoadSensors @14 PRIVATE
+  GetPosi @15 PRIVATE
+  GetTestStatus @16 PRIVATE
+  GetTestTime @17 PRIVATE
+  LoadHareWareParameters @18 PRIVATE
+  OffLine @19 PRIVATE
+  OnLine @20 PRIVATE
+  OpenDevice @21 PRIVATE
+  SetResolve @22 PRIVATE
+  SetSectCorrA @23 PRIVATE
+  SetTestDir @24 PRIVATE
+  StartRead @25 PRIVATE
+  StopRun @26 PRIVATE
+  TareExt1 @27 PRIVATE
+  TareExtn @28 PRIVATE
+  TareLoad @29 PRIVATE
+  TarePosi @30 PRIVATE
+  TareTime @31 PRIVATE

@@ -103,7 +103,6 @@ class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
   WorkWindow* pWorkWindow_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
   std::shared_ptr<anx::device::DeviceComInterface> device_com_ul_;
-  std::shared_ptr<anx::device::DeviceComInterface> device_com_sl_;
   std::unique_ptr<anx::device::DeviceExpDataSampleSettings>
       device_exp_data_settings_;
   ExpDataInfo* exp_data_info_;

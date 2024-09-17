@@ -238,9 +238,6 @@ void WorkWindowSecondPageData::Bind() {
   device_com_ul_ =
       anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
           anx::device::kDeviceCom_Ultrasound, this);
-  device_com_sl_ =
-      anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
-          anx::device::kDeviceCom_StaticLoad, this);
   /// @brief sample mode option button exp
   option_sample_mode_exp_ = static_cast<DuiLib::COptionUI*>(
       paint_manager_ui_->FindControl(_T("opt_sampling_exponent")));
@@ -282,11 +279,6 @@ void WorkWindowSecondPageData::Unbind() {
 
   paint_manager_ui_->KillTimer(text_sample_interval_, kTimerIdRefreshControl);
 
-  // release the device com interface
-  if (device_com_sl_ != nullptr) {
-    device_com_sl_->RemoveListener(this);
-    device_com_sl_ = nullptr;
-  }
   if (device_com_ul_ != nullptr) {
     device_com_ul_->RemoveListener(this);
     device_com_ul_ = nullptr;
@@ -421,13 +413,6 @@ void WorkWindowSecondPageData::OnDataReceived(
     // output the data as hex to the std::string
     hex_str = anx::common::ByteArrayToHexString(data, size);
     std::cout << hex_str << std::endl;
-  } else if (device == device_com_sl_.get()) {
-    // process the data from static load device
-    // 1. parse the data
-    // 2. update the data to the graph
-    // 3. update the data to the data table
-    hex_str = anx::common::ByteArrayToHexString(data, size);
-    std::cout << hex_str << std::endl;
   }
   if (exp_data_info_->exp_time_interval_num_ <= exp_time_interval_num_) {
     return;
@@ -444,11 +429,6 @@ void WorkWindowSecondPageData::OnDataOutgoing(
   // TODO(hhool):
   if (device == device_com_ul_.get()) {
     // process the data from ultrasound device
-    // 1. parse the data
-    // 2. update the data to the graph
-    // 3. update the data to the data table
-  } else if (device == device_com_sl_.get()) {
-    // process the data from static load device
     // 1. parse the data
     // 2. update the data to the graph
     // 3. update the data to the data table

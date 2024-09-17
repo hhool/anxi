@@ -25,6 +25,7 @@
 #include "app/device/device_com_settings_helper.h"
 #include "app/device/device_exp_data_sample_settings.h"
 #include "app/device/device_exp_graph_settings.h"
+#include "app/device/device_exp_load_static_settings.h"
 #include "app/device/device_exp_ultrasound_settings.h"
 #include "app/esolution/solution_design.h"
 #include "app/esolution/solution_design_default.h"
@@ -79,6 +80,7 @@ const int32_t kTimerIdSampling = 1;
 /// @brief timer id for refresh
 /// @note 2
 const int32_t kTimerIdRefresh = 2;
+
 }  // namespace
 
 WorkWindowSecondPage::WorkWindowSecondPage(
@@ -108,7 +110,6 @@ WorkWindowSecondPage::WorkWindowSecondPage(
 
 WorkWindowSecondPage::~WorkWindowSecondPage() {
   paint_manager_ui_->KillTimer(btn_exp_start_, 1);
-  device_com_sl_.reset();
   device_com_ul_.reset();
 }
 
@@ -120,23 +121,11 @@ void WorkWindowSecondPage::OnClick(TNotifyUI& msg) {
     } else if (msg.pSender == btn_tab_data_) {
       btn_tablayout_->SelectItem(1);
     } else if (msg.pSender == this->btn_sa_clear_) {
-      // TODO(hhool): add clear action
+      OnButtonStaticAircraftClear();
     } else if (msg.pSender == this->btn_sa_setting_) {
-      DialogStaticLoadGuaranteedSettings*
-          dialog_static_load_guraranteed_settings =
-              new DialogStaticLoadGuaranteedSettings();
-      dialog_static_load_guraranteed_settings->Create(
-          *pWorkWindow_, _T("dialog_static_load_guraranteed_settings"),
-          UI_WNDSTYLE_FRAME, WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
-      dialog_static_load_guraranteed_settings->CenterWindow();
-      dialog_static_load_guraranteed_settings->ShowModal();
+      OnButtonStaticAircraftSetting();
     } else if (msg.pSender == this->btn_sa_reset_) {
-      // TODO(hhool): add reset action
-      this->pWorkWindow_->ClearArgsFreqNum();
-      WorkWindowSecondPageData* data_page =
-          reinterpret_cast<WorkWindowSecondPageData*>(
-              work_window_second_page_data_notify_pump_.get());
-      data_page->ClearExpData();
+      OnButtonStaticAircraftReset();
     } else if (msg.pSender == this->btn_exp_start_) {
       exp_start();
     } else if (msg.pSender == this->btn_exp_stop_) {
@@ -155,11 +144,13 @@ void WorkWindowSecondPage::OnClick(TNotifyUI& msg) {
     } else if (msg.pSender == this->btn_exp_resume_) {
       exp_resume();
     } else if (msg.pSender == this->btn_sa_up_) {
-      // TODO(hhool): add up action
+      OnButtonStaticAircraftUp();
     } else if (msg.pSender == this->btn_sa_down_) {
       // TODO(hhool): add down action
+      OnButtonStaticAircraftDown();
     } else if (msg.pSender == this->btn_sa_stop_) {
       // TODO(hhool): add stop action
+      OnButtonStaticAircraftStop();
     } else if (msg.pSender == this->btn_aa_setting_) {
       DialogAmplitudeCalibrationSettings*
           dialog_amplitude_calibration_settings =
@@ -183,47 +174,27 @@ void WorkWindowSecondPage::OnTimer(TNotifyUI& msg) {
       if (device_com_ul_) {
         // do something
         std::cout << "exp running" << std::endl;
-        uint8_t hex[8];
-        hex[0] = 0x01;
-        hex[1] = 0x04;
-        hex[2] = 0x00;
-        hex[3] = 0x01;
-        hex[4] = 0x00;
-        hex[5] = 0x01;
-        hex[6] = 0x60;
-        hex[7] = 0x0A;
-        int written = device_com_ul_->Write(hex, sizeof(hex));
-        if (written < 0) {
-          std::cout << "ul written error:" << written;
+        {
+          uint8_t hex[8];
+          hex[0] = 0x01;
+          hex[1] = 0x04;
+          hex[2] = 0x00;
+          hex[3] = 0x01;
+          hex[4] = 0x00;
+          hex[5] = 0x01;
+          hex[6] = 0x60;
+          hex[7] = 0x0A;
+          int written = device_com_ul_->Write(hex, sizeof(hex));
+          if (written < 0) {
+            std::cout << "ul written error:" << written;
+          }
         }
-      }
-      if (device_com_sl_) {
-        uint8_t hex[64] = {0};
-        int32_t readed = device_com_sl_->Read(hex, sizeof(hex));
-        if (readed > 0) {
-          std::cout << "sl readed:" << readed;
-        }
-      }
-      if (device_com_sl_) {
-        uint8_t hex[8];
-        hex[0] = 0xB0;
-        hex[1] = 0x03;
-        hex[2] = 0x00;
-        hex[3] = 0x01;
-        hex[4] = 0x00;
-        hex[5] = 0x03;
-        hex[6] = 0x4F;
-        hex[7] = 0xEA;
-        int written = device_com_sl_->Write(hex, sizeof(hex));
-        if (written < 0) {
-          std::cout << "sl written error:" << written;
-        }
-      }
-      if (device_com_ul_) {
-        uint8_t hex[64] = {0};
-        int32_t readed = device_com_ul_->Read(hex, sizeof(hex));
-        if (readed > 0) {
-          std::cout << "ul readed:" << readed;
+        {
+          uint8_t hex[64];
+          int read = device_com_ul_->Read(hex, sizeof(hex));
+          if (read < 0) {
+            std::cout << "ul read error:" << read;
+          }
         }
       }
     }
@@ -231,7 +202,7 @@ void WorkWindowSecondPage::OnTimer(TNotifyUI& msg) {
     CheckDeviceComConnectedStatus();
     RefreshExpClipTimeControl();
   } else {
-    std::cout << "";
+    std::cout << "timer id:" << id_timer << std::endl;
   }
 }
 
@@ -317,9 +288,7 @@ void WorkWindowSecondPage::Bind() {
   device_com_ul_ =
       anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
           anx::device::kDeviceCom_Ultrasound, this);
-  device_com_sl_ =
-      anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
-          anx::device::kDeviceCom_StaticLoad, this);
+
   work_window_second_page_graph_virtual_wnd_->Bind();
   work_window_second_page_data_virtual_wnd_->Bind();
 }
@@ -347,11 +316,6 @@ void WorkWindowSecondPage::Unbind() {
   paint_manager_ui_->KillTimer(btn_exp_start_, kTimerIdSampling);
   paint_manager_ui_->KillTimer(btn_exp_start_, kTimerIdRefresh);
 
-  /// @brief release the device com
-  if (device_com_sl_ != nullptr) {
-    device_com_sl_->RemoveListener(this);
-    device_com_sl_ = nullptr;
-  }
   if (device_com_ul_ != nullptr) {
     device_com_ul_->RemoveListener(this);
     device_com_ul_ = nullptr;
@@ -568,7 +532,8 @@ int32_t WorkWindowSecondPage::exp_start() {
   exp_data_info_.exp_sample_interval_ms_ = dedss->sampling_interval_ * 100;
 
   // TODO(hhool): sample interval
-  paint_manager_ui_->SetTimer(btn_exp_start_, 1, kSamplingInterval);
+  paint_manager_ui_->SetTimer(btn_exp_start_, kTimerIdSampling,
+                              kSamplingInterval);
   DuiLib::TNotifyUI msg;
   msg.pSender = btn_exp_start_;
   msg.sType = kClick;
@@ -619,6 +584,277 @@ void WorkWindowSecondPage::exp_stop() {
   paint_manager_ui_->KillTimer(btn_exp_start_, kTimerIdSampling);
 }
 
+void WorkWindowSecondPage::OnButtonStaticAircraftClear() {
+  // clear the data
+  // TODO(hhool): clear the data
+  if (is_exp_state_) {
+    return;
+  }
+  if (anx::device::stload::STLoadHelper::st_load_loader_.st_api_.tare_ext1) {
+    anx::device::stload::STLoadHelper::st_load_loader_.st_api_.tare_ext1();
+  }
+  if (anx::device::stload::STLoadHelper::st_load_loader_.st_api_.tare_posi) {
+    anx::device::stload::STLoadHelper::st_load_loader_.st_api_.tare_posi();
+  }
+  if (anx::device::stload::STLoadHelper::st_load_loader_.st_api_.tare_load) {
+    anx::device::stload::STLoadHelper::st_load_loader_.st_api_.tare_load();
+  }
+  if (anx::device::stload::STLoadHelper::st_load_loader_.st_api_.tare_time) {
+    anx::device::stload::STLoadHelper::st_load_loader_.st_api_.tare_time();
+  }
+}
+
+void WorkWindowSecondPage::OnButtonStaticAircraftSetting() {
+  DialogStaticLoadGuaranteedSettings* dialog_static_load_guaranteed_settings =
+      new DialogStaticLoadGuaranteedSettings();
+  dialog_static_load_guaranteed_settings->Create(
+      *pWorkWindow_, _T("dialog_static_load_guaranteed_settings"),
+      UI_WNDSTYLE_FRAME, WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
+  dialog_static_load_guaranteed_settings->CenterWindow();
+  dialog_static_load_guaranteed_settings->ShowModal();
+}
+
+void WorkWindowSecondPage::OnButtonStaticAircraftReset() {
+  // reset the data
+  // TODO(hhool): add reset action
+  this->pWorkWindow_->ClearArgsFreqNum();
+  WorkWindowSecondPageData* data_page =
+      reinterpret_cast<WorkWindowSecondPageData*>(
+          work_window_second_page_data_notify_pump_.get());
+  data_page->ClearExpData();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Static aircraft releated button
+void WorkWindowSecondPage::OnButtonStaticAircraftUp() {
+  if (st_load_is_running_) {
+    return;
+  }
+  int machineType = 4;
+  int nDTCType = 2;
+  int nCommport = 4;
+  int nChannelNo = 2;
+  int rate = 30;
+  int sensorPosition = 0;
+  int TestSpace = 0;
+  int nDataBlockSize = 2;
+  bool isAE = false;
+  float speed = 2.0f / 60.0f;
+
+  // 力传感器P值
+  int lLoad_P = 20;
+  int lLoad_I = 0;
+  int lLoad_D = 0;
+
+  // 位移传感器P值
+  int lPosi_P = 20;
+  int lPosi_I = 0;
+  int lPosi_D = 0;
+
+  // 引伸计P值
+  int lExt_P = 30;
+  int lExt_I = 0;
+  int lExt_D = 0;
+  std::unique_ptr<anx::device::DeviceLoadStaticSettings> lss =
+      anx::device::LoadDeviceLoadStaticSettingsDefaultResource();
+  if (lss == nullptr) {
+    MessageBox(this->pWorkWindow_->GetHWND(), _T("静载机配置文件加载失败"),
+               _T("错误"), MB_OK);
+    return;
+  }
+  if (lss->direct_ == 1) {
+    // up
+    anx::device::stload::STLoadHelper::st_load_loader_.st_api_.set_test_dir(1);
+  } else if (lss->direct_ == 2) {
+    // down
+    anx::device::stload::STLoadHelper::st_load_loader_.st_api_.set_test_dir(0);
+  } else {
+    MessageBox(this->pWorkWindow_->GetHWND(), _T("静载机配置文件方向配置错误"),
+               _T("错误"), MB_OK);
+  }
+  speed = lss->speed_ / 60.0f;
+  BOOL bSuccess =
+      anx::device::stload::STLoadHelper::st_load_loader_.st_api_.on_line(
+          nChannelNo, 0, 0, 0, rate, machineType, nDTCType, sensorPosition,
+          TestSpace, nDataBlockSize, isAE)
+          ? true
+          : false;
+  if (!bSuccess) {
+    MessageBox(this->pWorkWindow_->GetHWND(), L"on_line_error", L"on_line",
+               MB_OK);
+    return;
+  }
+
+  bSuccess =
+      anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
+          CH_LOAD, lLoad_P, lLoad_I, lLoad_D)
+          ? true
+          : false;
+  if (!bSuccess) {
+    MessageBox(this->pWorkWindow_->GetHWND(), L"carry_pid-CH_LOAD_error",
+               L"carry_pid-CH_LOAD", MB_OK);
+    return;
+  }
+
+  bSuccess =
+      anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
+          CH_POSI, lPosi_P, lPosi_I, lPosi_D)
+          ? true
+          : false;
+  if (!bSuccess) {
+    MessageBox(this->pWorkWindow_->GetHWND(), L"carry_pid-CH_POSI_error",
+               L"carry_pid-CH_POSI", MB_OK);
+    return;
+  }
+
+  bSuccess =
+      anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
+          CH_EXTN, lExt_P, lExt_I, lExt_D)
+          ? true
+          : false;
+  if (!bSuccess) {
+    MessageBox(this->pWorkWindow_->GetHWND(), L"carry_pid-CH_EXTN_error",
+               L"carry_pid-CH_EXTN", MB_OK);
+    return;
+  }
+  int ret = MessageBox(this->pWorkWindow_->GetHWND(), L"carry_pid",
+                       L"carry_pid", MB_OKCANCEL);
+  if (ret == IDOK) {
+    // carry_pid
+  } else {
+    return;
+  }
+  /// RUN the static load, the direction is up and the speed is 2.0f / 60.0f
+  bSuccess =
+      anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_200(
+          2, 2, speed, 5, 1, true, DIR_NO, 0, 1, 0)
+          ? true
+          : false;
+  if (!bSuccess) {
+    MessageBox(this->pWorkWindow_->GetHWND(), _T("carry_200_error"),
+               _T("carry_200"), MB_OK);
+  }
+
+  st_load_is_running_ = true;
+}
+
+void WorkWindowSecondPage::OnButtonStaticAircraftDown() {
+  int machineType = 4;
+  int nDTCType = 2;
+  int nCommport = 4;
+  int nChannelNo = 2;
+  int rate = 30;
+  int sensorPosition = 0;
+  int TestSpace = 0;
+  int nDataBlockSize = 2;
+  bool isAE = false;
+  float speed = 2.0f / 60.0f;
+
+  // 力传感器P值
+  int lLoad_P = 20;
+  int lLoad_I = 0;
+  int lLoad_D = 0;
+
+  // 位移传感器P值
+  int lPosi_P = 20;
+  int lPosi_I = 0;
+  int lPosi_D = 0;
+
+  // 引伸计P值
+  int lExt_P = 30;
+  int lExt_I = 0;
+  int lExt_D = 0;
+  std::unique_ptr<anx::device::DeviceLoadStaticSettings> lss =
+      anx::device::LoadDeviceLoadStaticSettingsDefaultResource();
+  if (lss == nullptr) {
+    MessageBox(this->pWorkWindow_->GetHWND(), _T("静载机配置文件加载失败"),
+               _T("错误"), MB_OK);
+    return;
+  }
+  if (lss->direct_ == 1) {
+    // up
+    anx::device::stload::STLoadHelper::st_load_loader_.st_api_.set_test_dir(1);
+  } else if (lss->direct_ == 2) {
+    // down
+    anx::device::stload::STLoadHelper::st_load_loader_.st_api_.set_test_dir(0);
+  } else {
+    MessageBox(this->pWorkWindow_->GetHWND(), _T("静载机配置文件方向配置错误"),
+               _T("错误"), MB_OK);
+  }
+  speed = lss->speed_ / 60.0f;
+  BOOL bSuccess =
+      anx::device::stload::STLoadHelper::st_load_loader_.st_api_.on_line(
+          nChannelNo, 0, 0, 0, rate, machineType, nDTCType, sensorPosition,
+          TestSpace, nDataBlockSize, isAE)
+          ? true
+          : false;
+  if (!bSuccess) {
+    MessageBox(this->pWorkWindow_->GetHWND(), L"on_line_error", L"on_line",
+               MB_OK);
+    return;
+  }
+
+  bSuccess =
+      anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
+          CH_LOAD, lLoad_P, lLoad_I, lLoad_D)
+          ? true
+          : false;
+  if (!bSuccess) {
+    MessageBox(this->pWorkWindow_->GetHWND(), L"carry_pid-CH_LOAD_error",
+               L"carry_pid-CH_LOAD", MB_OK);
+    return;
+  }
+
+  bSuccess =
+      anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
+          CH_POSI, lPosi_P, lPosi_I, lPosi_D)
+          ? true
+          : false;
+  if (!bSuccess) {
+    MessageBox(this->pWorkWindow_->GetHWND(), L"carry_pid-CH_POSI_error",
+               L"carry_pid-CH_POSI", MB_OK);
+    return;
+  }
+
+  bSuccess =
+      anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
+          CH_EXTN, lExt_P, lExt_I, lExt_D)
+          ? true
+          : false;
+  if (!bSuccess) {
+    MessageBox(this->pWorkWindow_->GetHWND(), L"carry_pid-CH_EXTN_error",
+               L"carry_pid-CH_EXTN", MB_OK);
+    return;
+  }
+  int ret = MessageBox(this->pWorkWindow_->GetHWND(), L"carry_pid",
+                       L"carry_pid", MB_OKCANCEL);
+  if (ret == IDOK) {
+    // carry_pid
+  } else {
+    return;
+  }
+  /// RUN the static load, the direction is up and the speed is 2.0f / 60.0f
+  bSuccess =
+      anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_200(
+          2, 2, speed, 5, 1, true, DIR_NO, 0, 1, 0)
+          ? true
+          : false;
+  if (!bSuccess) {
+    MessageBox(this->pWorkWindow_->GetHWND(), _T("carry_200_error"),
+               _T("carry_200"), MB_OK);
+  }
+
+  st_load_is_running_ = true;
+}
+
+void WorkWindowSecondPage::OnButtonStaticAircraftStop() {
+  if (st_load_is_running_) {
+    // anx::device::stload::STLoadHelper::st_load_loader_.st_api_.end_read();
+    anx::device::stload::STLoadHelper::st_load_loader_.st_api_.stop_run();
+    st_load_is_running_ = false;
+  }
+}
+
 void WorkWindowSecondPage::OnDataReceived(
     anx::device::DeviceComInterface* device,
     const uint8_t* data,
@@ -632,13 +868,6 @@ void WorkWindowSecondPage::OnDataReceived(
       // 2. update the data to the graph
       // 3. update the data to the data table
       // output the data as hex to the std::string
-      hex_str = anx::common::ByteArrayToHexString(data, size);
-      std::cout << hex_str << std::endl;
-    } else if (device == device_com_sl_.get()) {
-      // process the data from static load device
-      // 1. parse the data
-      // 2. update the data to the graph
-      // 3. update the data to the data table
       hex_str = anx::common::ByteArrayToHexString(data, size);
       std::cout << hex_str << std::endl;
     }
@@ -695,11 +924,6 @@ void WorkWindowSecondPage::OnDataOutgoing(
   // TODO(hhool):
   if (device == device_com_ul_.get()) {
     // process the data from ultrasound device
-    // 1. parse the data
-    // 2. update the data to the graph
-    // 3. update the data to the data table
-  } else if (device == device_com_sl_.get()) {
-    // process the data from static load device
     // 1. parse the data
     // 2. update the data to the graph
     // 3. update the data to the data table
