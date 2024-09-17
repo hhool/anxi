@@ -12,6 +12,7 @@
 #ifndef APP_UI_MAIN_WINDOW_H_
 #define APP_UI_MAIN_WINDOW_H_
 
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -55,7 +56,11 @@ class MainWindow : public DuiLib::WindowImplBase {
   }
   LPCTSTR GetWindowClassName(void) const override { return _T("main_window"); }
 
-  LRESULT OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled) override;
+  LRESULT OnClose(UINT uMsg,
+                  WPARAM wParam,
+                  LPARAM lParam,
+                  BOOL& bHandled) override;
+
  protected:
   void Switch_Axially_Symmetrical();
   void Switch_Stresses_Adjustable();
@@ -69,6 +74,7 @@ class MainWindow : public DuiLib::WindowImplBase {
 
  protected:
   std::vector<std::string> LoadThirdAppList();
+  std::map<std::string, std::string> LoadAppConfig();
 
  private:
   CButtonUI* btn_close_;

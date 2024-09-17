@@ -12,6 +12,7 @@
 #ifndef APP_UI_DIALOG_ABOUT_H_
 #define APP_UI_DIALOG_ABOUT_H_
 
+#include <map>
 #include <memory>
 #include <string>
 
@@ -58,6 +59,7 @@ class DialogAbout : public DuiLib::WindowImplBase {
 
  protected:
   void OnPrepare(const TNotifyUI& msg);
+  std::map<std::string, std::string> LoadAboutConfig();
 
  private:
 };

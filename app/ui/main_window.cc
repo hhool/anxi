@@ -46,6 +46,14 @@ void MainWindow::InitWindow() {
   btn_work_pilot_e10c_ =
       static_cast<CButtonUI*>(m_PaintManager.FindControl(_T("btn_pilot_e10c")));
   third_app_list_ = LoadThirdAppList();
+  std::map<std::string, std::string> app_config = LoadAppConfig();
+  CLabelUI* lb_code =
+      static_cast<CLabelUI*>(m_PaintManager.FindControl(_T("lb_code")));
+  lb_code->SetText(anx::common::string2wstring(app_config["code"]).c_str());
+  CLabelUI* lb_copyright =
+      static_cast<CLabelUI*>(m_PaintManager.FindControl(_T("lb_copyright")));
+  lb_copyright->SetText(
+      anx::common::string2wstring(app_config["copyright"]).c_str());
 }
 
 void MainWindow::OnFinalMessage(HWND hWnd) {
@@ -133,6 +141,16 @@ void anx::ui::MainWindow::Switch_Vibration_Bending() {
   ::PostMessage(*work_window, WM_SYSCOMMAND, SC_MAXIMIZE, 0);
 }
 
+void anx::ui::MainWindow::Switch_ThirdApp() {
+  if (third_app_list_.empty()) {
+    return;
+  }
+  std::string path = third_app_list_.begin()->c_str();
+  ShellExecute(NULL, _T("open"),
+               anx::common::string2wstring(path.c_str()).c_str(), NULL, NULL,
+               SW_SHOW);
+}
+
 LRESULT anx::ui::MainWindow::OnNcHitTest(UINT uMsg,
                                          WPARAM wParam,
                                          LPARAM lParam,
@@ -192,14 +210,37 @@ std::vector<std::string> anx::ui::MainWindow::LoadThirdAppList() {
   return third_app_list;
 }
 
-void anx::ui::MainWindow::Switch_ThirdApp() {
-  if (third_app_list_.empty()) {
-    return;
+std::map<std::string, std::string> MainWindow::LoadAppConfig() {
+  std::map<std::string, std::string> app_config;
+  std::string module_dir = anx::common::GetModuleDir();
+  std::string module_path = module_dir + "\\default\\config_app.xml";
+  tinyxml2::XMLDocument doc;
+  if (doc.LoadFile(module_path.c_str()) != tinyxml2::XML_SUCCESS) {
+    return app_config;
   }
-  std::string path = third_app_list_.begin()->c_str();
-  ShellExecute(NULL, _T("open"),
-               anx::common::string2wstring(path.c_str()).c_str(), NULL, NULL,
-               SW_SHOW);
+  tinyxml2::XMLElement* root = doc.RootElement();
+  if (root == nullptr) {
+    return app_config;
+  }
+  tinyxml2::XMLElement* ele = root->FirstChildElement("app");
+  if (ele == nullptr) {
+    return app_config;
+  }
+  do {
+    if (ele == nullptr) {
+      break;
+    }
+    tinyxml2::XMLElement* ele_code = ele->FirstChildElement("code");
+    if (ele_code != nullptr) {
+      app_config["code"] = ele_code->GetText();
+    }
+    tinyxml2::XMLElement* ele_copyright = ele->FirstChildElement("copyright");
+    if (ele_copyright != nullptr) {
+      app_config["copyright"] = ele_copyright->GetText();
+    }
+  } while (false);
+  return app_config;
 }
+
 }  // namespace ui
 }  // namespace anx
