@@ -51,8 +51,7 @@ void DialogComRecord2000C::OnFinalMessage(HWND hWnd) {
   delete this;
 }
 
-LRESULT DialogComRecord2000C::ResponseDefaultKeyEvent(WPARAM wParam,
-                                                      bool& bHandled) {
+LRESULT DialogComRecord2000C::ResponseDefaultKeyEvent(WPARAM wParam) {
   if (wParam == VK_RETURN) {
     this->Close();
     return TRUE;

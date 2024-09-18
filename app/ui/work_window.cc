@@ -213,7 +213,7 @@ void WorkWindow::OnFinalMessage(HWND hWnd) {
   delete this;
 }
 
-LRESULT WorkWindow::ResponseDefaultKeyEvent(WPARAM wParam, bool& bHandled) {
+LRESULT WorkWindow::ResponseDefaultKeyEvent(WPARAM wParam) {
   if (wParam == VK_RETURN) {
     return FALSE;
   } else if (wParam == VK_ESCAPE) {

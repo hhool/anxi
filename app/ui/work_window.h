@@ -57,7 +57,7 @@ class WorkWindow : public DuiLib::WindowImplBase,
   // impliment the pure virtual function of DuiLib::WindowImplBase
   void InitWindow() override;
   void OnFinalMessage(HWND hWnd) override;
-  LRESULT ResponseDefaultKeyEvent(WPARAM wParam, bool& bHandled) override;
+  LRESULT ResponseDefaultKeyEvent(WPARAM wParam) override;
   void Notify(DuiLib::TNotifyUI& msg) override;
 
   DUI_DECLARE_MESSAGE_MAP()

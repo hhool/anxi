@@ -70,7 +70,7 @@ void DialogAbout::OnFinalMessage(HWND hWnd) {
   delete this;
 }
 
-LRESULT DialogAbout::ResponseDefaultKeyEvent(WPARAM wParam, bool& bHandled) {
+LRESULT DialogAbout::ResponseDefaultKeyEvent(WPARAM wParam) {
   if (wParam == VK_RETURN) {
     this->Close();
     return TRUE;

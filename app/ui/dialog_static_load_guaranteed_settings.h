@@ -35,7 +35,7 @@ class DialogStaticLoadGuaranteedSettings : public DuiLib::WindowImplBase {
   void InitWindow() override;
   void Notify(DuiLib::TNotifyUI& msg) override;
   void OnFinalMessage(HWND hWnd) override;
-  LRESULT ResponseDefaultKeyEvent(WPARAM wParam, bool& bHandled) override;
+  LRESULT ResponseDefaultKeyEvent(WPARAM wParam) override;
 
   DUI_DECLARE_MESSAGE_MAP()
   void OnClick(DuiLib::TNotifyUI& msg) override;

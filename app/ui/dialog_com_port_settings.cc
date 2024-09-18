@@ -69,8 +69,7 @@ void DialogComPortSettings::OnFinalMessage(HWND hWnd) {
   delete this;
 }
 
-LRESULT DialogComPortSettings::ResponseDefaultKeyEvent(WPARAM wParam,
-                                                       bool& bHandled) {
+LRESULT DialogComPortSettings::ResponseDefaultKeyEvent(WPARAM wParam) {
   if (wParam == VK_RETURN) {
     this->Close();
     return TRUE;

@@ -79,7 +79,7 @@ void DialogCommon::OnFinalMessage(HWND hWnd) {
   delete this;
 }
 
-LRESULT DialogCommon::ResponseDefaultKeyEvent(WPARAM wParam, bool& bHandled) {
+LRESULT DialogCommon::ResponseDefaultKeyEvent(WPARAM wParam) {
   if (wParam == VK_RETURN) {
     this->Close();
     return TRUE;
