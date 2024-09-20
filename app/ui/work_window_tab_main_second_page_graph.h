@@ -84,7 +84,7 @@ class WorkWindowSecondPageGraph : public DuiLib::CNotifyPump,
   void UpdateGraphCtrl(
       std::string name,
       const std::vector<std::map<std::string, std::string>>& result);
-  void RefreshExpGraphTitleControl();
+  void RefreshExpGraphTitleControl(double vartime);
   void RefreshPreNextAlwaysShowNewControl(bool is_first_page,
                                           bool is_last_page);
   void RefreshPreNextControl();

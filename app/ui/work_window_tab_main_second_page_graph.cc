@@ -67,12 +67,6 @@ std::string format_num(int64_t num) {
   return value;
 }
 
-/// @brief timer id for the graph update
-const int32_t kTimerGraphId = 1;
-
-/// @brief period for the graph update in ms
-const int32_t kTimerGraphIdPeriod = 1000;
-
 const double kYAxisAmpInitialValue = 0.05f;
 
 const double kYAxisStressInitialValue = 0.03f;
@@ -118,7 +112,21 @@ std::vector<std::map<std::string, std::string>> QueryExpDataItemById(
                                  &result);
   return result;
 }
+
+void VartimeToTimeinfo(double vartime, struct tm* timeinfo) {
+  time_t t = static_cast<time_t>(vartime);
+  SYSTEMTIME st;
+  VariantTimeToSystemTime(vartime, &st);
+  timeinfo->tm_year = st.wYear - 1900;
+  timeinfo->tm_mon = st.wMonth - 1;
+  timeinfo->tm_mday = st.wDay;
+  timeinfo->tm_hour = st.wHour;
+  timeinfo->tm_min = st.wMinute;
+  timeinfo->tm_sec = st.wSecond;
+  timeinfo->tm_isdst = -1;
+}
 }  // namespace
+
 class WorkWindowSecondPageGraph::GraphCtrlEvent
     : public GraphCtrlEventInterface {
  public:
@@ -155,6 +163,11 @@ class WorkWindowSecondPageGraph::GraphCtrlEvent
     pWorkWindowSecondPageGraph_->btn_pre_page_->SetEnabled(true);
     LOG_F(LG_INFO) << "OnGraphCtrlEvent: " << action << " "
                    << pWorkWindowSecondPageGraph_->exp_data_info_->ToString();
+    // get the current x min value. update the graph title with the current x
+    // (x==vartime) min value.
+    double x_min = pOwner->GetXMinOfAxis();
+    double x_duration = pOwner->GetXDurationOfAxis();
+    pWorkWindowSecondPageGraph_->RefreshExpGraphTitleControl(x_min);
   }
 
  private:
@@ -174,7 +187,6 @@ WorkWindowSecondPageGraph::WorkWindowSecondPageGraph(
 }
 
 WorkWindowSecondPageGraph::~WorkWindowSecondPageGraph() {
-  paint_manager_ui_->KillTimer(btn_graph_amplitude_title_, kTimerGraphId);
   paint_manager_ui_->KillTimer(btn_pre_page_, kTimeGraphButtonId);
   device_com_sl_.reset();
   device_com_ul_.reset();
@@ -222,6 +234,7 @@ bool WorkWindowSecondPageGraph::OnChkGraphAlwaysShowNewChange(void* param) {
   if (pMsg == nullptr) {
     return false;
   }
+
   if (pMsg->pSender == chk_graph_always_show_new_) {
     if (chk_graph_always_show_new_->IsSelected()) {
       /// @note show the last page data
@@ -250,6 +263,10 @@ bool WorkWindowSecondPageGraph::OnChkGraphAlwaysShowNewChange(void* param) {
       /// @note update the graph control with the data from the database.
       this->UpdateGraphCtrl("amp", result);
       this->UpdateGraphCtrl("stress", result);
+
+      /// @note update vartime and update the graph title
+      double vartime = std::stod(result[0]["date"]) / kMultiFactor;
+      RefreshExpGraphTitleControl(vartime);
 
       /// always show new
       LOG_F(LG_INFO) << "chk_graph_always_show_new_ selected";
@@ -347,6 +364,10 @@ bool WorkWindowSecondPageGraph::OnOptGraphTimeRangeChange(void* param) {
   this->UpdateGraphCtrl("amp", result);
   this->UpdateGraphCtrl("stress", result);
 
+  /// @note update vartime and update the graph title
+  double vartime = std::stod(result[0]["date"]) / kMultiFactor;
+  RefreshExpGraphTitleControl(vartime);
+
   /// @note update auto refresh check box to false
   /// @note update the mode to 1 history view for the graph control
   this->RefreshPreNextAlwaysShowNewControl(is_first_page, is_last_page);
@@ -406,6 +427,10 @@ bool WorkWindowSecondPageGraph::OnPagePre(void* param) {
   }
   this->UpdateGraphCtrl("amp", result);
   this->UpdateGraphCtrl("stress", result);
+
+  /// @note update vartime and update the graph title
+  double vartime = std::stod(result[0]["date"]) / kMultiFactor;
+  RefreshExpGraphTitleControl(vartime);
 
   /// @note update the graph control with the data from the database.
   /// @note update auto refresh check box to false
@@ -473,6 +498,10 @@ bool WorkWindowSecondPageGraph::OnPageNext(void* param) {
   this->UpdateGraphCtrl("amp", result);
   this->UpdateGraphCtrl("stress", result);
 
+  /// @note update vartime and update the graph title
+  double vartime = std::stod(result[0]["date"]) / kMultiFactor;
+  RefreshExpGraphTitleControl(vartime);
+
   /// @note update the graph control with the data from the database.
   /// @note update auto refresh check box to false
   /// @note update the mode to 1 history view for the graph control
@@ -489,11 +518,7 @@ bool WorkWindowSecondPageGraph::OnTimer(void* param) {
       pMsg->pSender != btn_pre_page_) {
     return false;
   }
-  if (pMsg->wParam == kTimerGraphId) {
-    // update the graph
-    RefreshExpGraphTitleControl();
-    return true;
-  } else if (pMsg->wParam == kTimeGraphButtonId) {
+  if (pMsg->wParam == kTimeGraphButtonId) {
     // update the graph button
     RefreshPreNextControl();
     return true;
@@ -616,8 +641,6 @@ void WorkWindowSecondPageGraph::Bind() {
 
 void WorkWindowSecondPageGraph::Unbind() {
   SaveSettingsFromControl();
-  // kill the timer for the graph title
-  paint_manager_ui_->KillTimer(btn_graph_amplitude_title_, kTimerGraphId);
   // kill the timer for the graph button
   paint_manager_ui_->KillTimer(btn_pre_page_, kTimeGraphButtonId);
   // release the graph control
@@ -704,10 +727,10 @@ void WorkWindowSecondPageGraph::UpdateGraphCtrl(
   }
 }
 
-void WorkWindowSecondPageGraph::RefreshExpGraphTitleControl() {
-  // get current system time get current hour and minute
+void WorkWindowSecondPageGraph::RefreshExpGraphTitleControl(double vartime) {
+  // format vartime to timeinfo struct
   struct tm timeinfo;
-  anx::common::GetLocalTime(&timeinfo);
+  VartimeToTimeinfo(vartime, &timeinfo);
 
   // format the time string like 00:00 and append to the title string
   // like "最大静载 00:00" and set to the title control. %02d:%02d is
@@ -841,8 +864,6 @@ void WorkWindowSecondPageGraph::OnDataReceived(
       exp_data_info_->amp_um_);  // NOLINT
   page_graph_stress_ctrl_->ProcessDataSampleIncoming(
       exp_data_info_->stress_value_);  // NOLINT
-
-  RefreshExpGraphTitleControl();
 }
 
 void WorkWindowSecondPageGraph::OnDataOutgoing(
@@ -861,7 +882,6 @@ void WorkWindowSecondPageGraph::OnDataOutgoing(
     // 2. update the data to the graph
     // 3. update the data to the data table
   }
-  RefreshExpGraphTitleControl();
 }
 
 void WorkWindowSecondPageGraph::UpdateControlFromSettings() {
@@ -936,17 +956,15 @@ void WorkWindowSecondPageGraph::SaveSettingsFromControl() {
 }
 
 void WorkWindowSecondPageGraph::OnExpStart() {
-  /// @note update graph title
-  RefreshExpGraphTitleControl();
+  /// @note update graph title with the current time
+  /// get current var time
+  double vartime = anx::common::GetCurrrentDateTime();
+  RefreshExpGraphTitleControl(vartime);
   /// @note reset the graph to mode real and set the time interval number to 0
   chk_graph_always_show_new_->SetCheck(true);
   exp_data_info_->mode_ = view_mode_real;
   exp_data_info_->exp_data_view_current_start_no_ = 1;
   exp_time_interval_num_ = 0;
-  /// @note set the timer for the graph title for the graph control
-  paint_manager_ui_->SetTimer(btn_graph_amplitude_title_, kTimerGraphId,
-                              kTimerGraphIdPeriod);
-
   /// @note update the graph control with the data from the database and
   /// update the graph control.
   double x_min = anx::common::GetCurrrentDateTime();
@@ -972,19 +990,14 @@ void WorkWindowSecondPageGraph::OnExpStart() {
 }
 
 void WorkWindowSecondPageGraph::OnExpStop() {
-  paint_manager_ui_->KillTimer(btn_graph_amplitude_title_, kTimerGraphId);
   exp_time_interval_num_ = 0;
 }
 
-void WorkWindowSecondPageGraph::OnExpPause() {
-  paint_manager_ui_->KillTimer(btn_graph_amplitude_title_, kTimerGraphId);
-}
+void WorkWindowSecondPageGraph::OnExpPause() {}
 
 void WorkWindowSecondPageGraph::OnExpResume() {
   chk_graph_always_show_new_->SetCheck(true);
   exp_data_info_->mode_ = view_mode_real;
-  paint_manager_ui_->SetTimer(btn_graph_amplitude_title_, kTimerGraphId,
-                              kTimerGraphIdPeriod);
 }
 
 }  // namespace ui
