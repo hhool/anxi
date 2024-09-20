@@ -164,6 +164,21 @@ if(ANXI_BUILD_UNITTEST)
     target_link_libraries(app_esolution_unittest gtest_main gtest app_ui)
 endif()
 
+set(ESOLUTION_ALG_FILES
+    esolution/algorithm/alg_th3.cc
+    esolution/algorithm/alg.h)
+source_group("esolution\\algorithm" FILES ${ESOLUTION_ALG_FILES})
+list(APPEND APP_SOURCES ${ESOLUTION_ALG_FILES})
+
+if(ANXI_BUILD_UNITTEST)
+    set(APP_ESOLUTION_ALG_UNITTEST_FILES
+        esolution/algorithm/alg_unittest.cc)
+    source_group("algorithm_unittest" FILES ${APP_ESOLUTION_ALG_UNITTEST_FILES})
+    list(APPEND APP_ESOLUTION_ALG_UNITTEST_SOURCES ${APP_ESOLUTION_ALG_UNITTEST_FILES})
+    add_executable(app_esolution_alg_unittest ${APP_ESOLUTION_ALG_UNITTEST_FILES})
+    target_link_libraries(app_esolution_alg_unittest gtest_main gtest app_ui)
+endif()
+
 set(APP_FILES
     application.cc
     application.h
