@@ -26,9 +26,9 @@ class ExperimentData {
  public:
   uint64_t id_;
   uint64_t cycle_count_;
-  float KHz_;
-  float MPa_;
-  float um_;
+  double KHz_;
+  double MPa_;
+  double um_;
 };
 ////////////////////////////////////////////////////////////////////////////////
 /// helper function
