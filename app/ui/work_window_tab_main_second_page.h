@@ -19,6 +19,7 @@
 #include <string>
 
 #include "app/device/device_com.h"
+#include "app/device/device_exp_ultrasound_settings.h"
 #include "app/device/stload/stload_helper.h"
 #include "app/ui/ui_virtual_wnd_base.h"
 
@@ -113,11 +114,10 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   /// 0 - stop, 1 - start, 2 - pause, <0 - unvalid
   int32_t is_exp_state_;
   std::shared_ptr<anx::device::DeviceComInterface> device_com_ul_;
-  int64_t exp_clip_time_duration_;
-  int64_t exp_clip_time_paused_;
-  int64_t exp_cycle_count_;
-  int64_t exp_freq_fluctuations_range_;
-
+  anx::device::DeviceUltrasoundSettings dus_;
+  /// @note state_ultrasound_exp_clip_ for exp clip time control
+  /// 0 - stop, 1 - start, 2 - pause, <0 - unvalid
+  int32_t state_ultrasound_exp_clip_;
   ExpDataInfo exp_data_info_;
 
   DuiLib::CTabLayoutUI* btn_tablayout_;

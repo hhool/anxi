@@ -87,7 +87,7 @@ if(WIN32)
         device/stload/stload_helper.h
         device/stload/stload_wrapper.cc
         device/stload/stload_wrapper.h)
-    source_group("device_stload" FILES ${DEVICE_STLOAD_FILES})
+    source_group("device/stload" FILES ${DEVICE_STLOAD_FILES})
     list(APPEND APP_SOURCES ${DEVICE_STLOAD_FILES})
 
     if(ANXI_BUILD_STLOAD_SIMULATOR)
@@ -95,10 +95,25 @@ if(WIN32)
             device/stload_simulation/stload_device.cc
             device/stload_simulation/stload_device.def
             device/stload_simulation/stload_device.h)
-        source_group("device_stload_simulator" FILES ${DEVICE_STLOAD_SIMULATOR_FILES})
+        source_group("device/stload_simulator" FILES ${DEVICE_STLOAD_SIMULATOR_FILES})
         add_library(app_stload_simulator SHARED ${DEVICE_STLOAD_SIMULATOR_FILES})
         target_link_libraries(app_stload_simulator app_ui)
         target_compile_definitions(app_stload_simulator PRIVATE STLOAD_SIMULATION_EXPORTS)
+    endif()
+
+    set(DEVICE_ULTRASONIC_FILES
+        device/ultrasonic/ultra_device.cc
+        device/ultrasonic/ultra_device.h)
+    source_group("device/ultrasonic" FILES ${DEVICE_ULTRASONIC_FILES})
+    list(APPEND APP_SOURCES ${DEVICE_ULTRASONIC_FILES})
+
+    if(ANXI_BUILD_UNITTEST)
+        set(APP_DEVICE_ULTRASONIC_UNITTEST_FILES
+            device/ultrasonic/ultra_device_unittest.cc)
+        source_group("device_utral_unittest" FILES ${APP_DEVICE_ULTRASONIC_UNITTEST_FILES})
+        list(APPEND APP_DEVICE_ULTRASONIC_UNITTEST_FILES ${APP_DEVICE_ULTRASONIC_UNITTEST_FILES})
+        add_executable(app_device_ultra_unittest ${APP_DEVICE_ULTRASONIC_UNITTEST_FILES})
+        target_link_libraries(app_device_ultra_unittest gtest_main gtest app_ui)
     endif()
 endif()
 

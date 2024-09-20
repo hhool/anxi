@@ -34,9 +34,9 @@ class DeviceUltrasound {
   int32_t exp_clipping_enable_;
 
   /// @brief  exp clipping time duration.
-  int32_t exp_clip_time_duration_;
+  int64_t exp_clip_time_duration_;
   /// @brief  exp clipping time paused.
-  int32_t exp_clip_time_paused_;
+  int64_t exp_clip_time_paused_;
 
   /// @brief  exp max cycle count.
   int64_t exp_max_cycle_count_;

@@ -88,11 +88,7 @@ WorkWindowSecondPage::WorkWindowSecondPage(
     DuiLib::CPaintManagerUI* paint_manager_ui)
     : pWorkWindow_(pWorkWindow),
       paint_manager_ui_(paint_manager_ui),
-      is_exp_state_(-1),
-      exp_clip_time_duration_(0),
-      exp_clip_time_paused_(0),
-      exp_cycle_count_(0),
-      exp_freq_fluctuations_range_(0) {
+      is_exp_state_(-1) {
   WorkWindowSecondPageGraph* graph_page = new WorkWindowSecondPageGraph(
       pWorkWindow, paint_manager_ui, &exp_data_info_);
   work_window_second_page_graph_virtual_wnd_ = graph_page;
@@ -194,6 +190,48 @@ void WorkWindowSecondPage::OnTimer(TNotifyUI& msg) {
           int read = device_com_ul_->Read(hex, sizeof(hex));
           if (read < 0) {
             std::cout << "ul read error:" << read;
+          }
+        }
+        /////////////////////////////////////////////////////////////////////////
+        /// get current cycle count and total time  cycle_count / x kHZ
+        int64_t exp_max_cycle_count = dus_.exp_max_cycle_count_;
+        for (int32_t i = 0; i < dus_.exp_max_cycle_power_; i++) {
+          exp_max_cycle_count *= 10;
+        }
+        int64_t total_des_time_ms = exp_max_cycle_count / 20;
+        int64_t current_time_ms = anx::common::GetCurrentTimeMillis();
+        int64_t duration = current_time_ms - exp_data_info_.exp_start_time_ms_;
+        if (duration >= total_des_time_ms) {
+          LOG_F(LG_INFO) << "exp stop";
+          exp_stop();
+        }
+        /// exp clipping enabled
+        if (this->dus_.exp_clipping_enable_ == 1) {
+          if (this->dus_.exp_clip_time_duration_ > 0) {
+            int64_t exp_clip_time_duration =
+                this->dus_.exp_clip_time_duration_ * 100;
+            int64_t exp_clip_time_paused =
+                this->dus_.exp_clip_time_paused_ * 100;
+            int64_t duration =
+                current_time_ms - exp_data_info_.exp_start_time_ms_;
+            int64_t duration_total =
+                exp_clip_time_duration + exp_clip_time_paused;
+            int64_t time = duration % duration_total;
+            if (time >= exp_clip_time_duration &&
+                state_ultrasound_exp_clip_ == 1) {
+              // pause ultrasound
+              LOG_F(LG_INFO) << "pause ultrasound";
+              uint8_t hex[8] = {0x01, 0x05, 0x00, 0x02, 0x00, 0x00, 0x6C, 0x0A};
+              device_com_ul_->Write(hex, sizeof(hex));
+              state_ultrasound_exp_clip_ = 2;
+            } else if (time < exp_clip_time_duration &&
+                       state_ultrasound_exp_clip_ == 2) {
+              // resume ultrasound
+              LOG_F(LG_INFO) << "resume ultrasound";
+              uint8_t hex[8] = {0x01, 0x05, 0x00, 0x02, 0x00, 0x01, 0x2D, 0x0A};
+              device_com_ul_->Write(hex, sizeof(hex));
+              state_ultrasound_exp_clip_ = 1;
+            }
           }
         }
       }
@@ -353,8 +391,8 @@ void WorkWindowSecondPage::CheckDeviceComConnectedStatus() {
 void WorkWindowSecondPage::RefreshExpClipTimeControl() {
   int64_t exp_clip_time_duration =
       _ttoll(edit_exp_clip_time_duration_->GetText());
-  if (exp_clip_time_duration_ != exp_clip_time_duration) {
-    exp_clip_time_duration_ = exp_clip_time_duration;
+  if (dus_.exp_clip_time_duration_ != exp_clip_time_duration) {
+    dus_.exp_clip_time_duration_ = exp_clip_time_duration;
     std::string value = ("=");
     value += format_num(exp_clip_time_duration * 100);
     value += "S";
@@ -363,8 +401,8 @@ void WorkWindowSecondPage::RefreshExpClipTimeControl() {
   }
 
   int64_t exp_clip_time_paused = _ttoll(edit_exp_clip_time_paused_->GetText());
-  if (exp_clip_time_paused_ != exp_clip_time_paused) {
-    exp_clip_time_paused_ = exp_clip_time_paused;
+  if (dus_.exp_clip_time_paused_ != exp_clip_time_paused) {
+    dus_.exp_clip_time_paused_ = exp_clip_time_paused;
     std::string value = ("=");
     value += format_num(exp_clip_time_paused * 100);
     value += ("S");
@@ -407,34 +445,34 @@ void WorkWindowSecondPage::UpdateControlFromSettings() {
 }
 
 void WorkWindowSecondPage::SaveSettingsFromControl() {
-  anx::device::DeviceUltrasoundSettings dus;
-  dus.exp_clip_time_duration_ = _ttoi(edit_exp_clip_time_duration_->GetText());
-  dus.exp_clip_time_paused_ = _ttoi(edit_exp_clip_time_paused_->GetText());
-  dus.exp_max_cycle_count_ = _ttoi(edit_max_cycle_count_->GetText());
-  dus.exp_max_cycle_power_ = _ttoi(edit_max_cycle_power_->GetText());
-  dus.exp_frequency_fluctuations_range_ =
+  dus_.exp_clip_time_duration_ = _ttoi(edit_exp_clip_time_duration_->GetText());
+  dus_.exp_clip_time_paused_ = _ttoi(edit_exp_clip_time_paused_->GetText());
+  dus_.exp_max_cycle_count_ = _ttoi(edit_max_cycle_count_->GetText());
+  dus_.exp_max_cycle_power_ = _ttoi(edit_max_cycle_power_->GetText());
+  dus_.exp_frequency_fluctuations_range_ =
       _ttoi(edit_frequency_fluctuations_range_->GetText());
   if (chk_exp_clip_set_->IsSelected()) {
-    dus.exp_clipping_enable_ = 1;
+    dus_.exp_clipping_enable_ = 1;
   } else {
-    dus.exp_clipping_enable_ = 0;
+    dus_.exp_clipping_enable_ = 0;
   }
-  anx::device::SaveDeviceUltrasoundSettingsDefaultResource(dus);
+  anx::device::SaveDeviceUltrasoundSettingsDefaultResource(dus_);
 }
 
 void WorkWindowSecondPage::UpdateExpClipTimeFromControl() {
-  exp_clip_time_duration_ = _ttoi(edit_exp_clip_time_duration_->GetText());
-  exp_clip_time_paused_ = _ttoi(edit_exp_clip_time_paused_->GetText());
+  int64_t exp_clip_time_duration =
+      _ttoi(edit_exp_clip_time_duration_->GetText());
+  int64_t exp_clip_time_paused = _ttoi(edit_exp_clip_time_paused_->GetText());
 
-  // exp_clip_time_duration_ append "S"
+  // exp_clip_time_duration append "S"
   std::string value = ("=");
-  value += format_num(exp_clip_time_duration_ * 100);
+  value += format_num(exp_clip_time_duration * 100);
   value += "S";
   text_exp_clip_time_duration_->SetText(
       anx::common::string2wstring(value).c_str());
-  // exp_clip_time_paused_ append "S"
+  // exp_clip_time_paused append "S"
   value = ("=");
-  value += format_num(exp_clip_time_paused_ * 100);
+  value += format_num(exp_clip_time_paused * 100);
   value += "S";
   text_exp_clip_time_paused_->SetText(
       anx::common::string2wstring(value).c_str());
@@ -508,6 +546,9 @@ int32_t WorkWindowSecondPage::exp_start() {
   UpdateUIWithExpStatus(1);
 
   UpdateExpClipTimeFromControl();
+
+  SaveSettingsFromControl();
+
   is_exp_state_ = 1;
 
   /// @brief reset the database exp_data table.
@@ -532,8 +573,13 @@ int32_t WorkWindowSecondPage::exp_start() {
   exp_data_info_.exp_sample_interval_ms_ = dedss->sampling_interval_ * 100;
 
   // TODO(hhool): sample interval
+  // set the ultrasound on state
+  uint8_t hex[8] = {0x01, 0x05, 0x00, 0x02, 0xFF, 0x00, 0x2D, 0xFA};
+  device_com_ul_->Write(hex, sizeof(hex));
   paint_manager_ui_->SetTimer(btn_exp_start_, kTimerIdSampling,
                               kSamplingInterval);
+  state_ultrasound_exp_clip_ = 1;
+
   DuiLib::TNotifyUI msg;
   msg.pSender = btn_exp_start_;
   msg.sType = kClick;
