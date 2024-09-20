@@ -30,7 +30,6 @@
 #include "app/ui/dialog_com_port_settings.h"
 #include "app/ui/dialog_com_record_2000c.h"
 #include "app/ui/dialog_exp_data_record.h"
-#include "app/ui/ui_chart_label.h"
 #include "app/ui/ui_constants.h"
 #include "app/ui/work_window_menu_design.h"
 #include "app/ui/work_window_menu_store.h"
@@ -416,35 +415,7 @@ LRESULT WorkWindow::OnSysCommand(UINT uMsg,
   return 0;
 }
 
-CControlUI* WorkWindow::CreateControl(LPCTSTR pstrClass) {
-  // compare pstrClass with the control class name
-  if (_tcscmp(pstrClass, _T("ChartLabel")) == 0) {
-    ChartLabelUI* chart_label_ui = new ChartLabelUI();
-    HWND hWnd = CreateWindow(_T("static"), _T("win32"),
-                             WS_VISIBLE | WS_CHILD | WS_BORDER, 0, 0, 0, 0,
-                             m_PaintManager.GetPaintWindow(), NULL, NULL, NULL);
-    chart_label_ui->AttachGraph(hWnd);
-    label_chart_uis_.push_back(chart_label_ui);
-    return chart_label_ui;
-  } else if (_tcscmp(pstrClass, _T("ChartLabel")) == 0) {
-    ChartLabelUI* chart_label_ui = new ChartLabelUI();
-    HWND hWnd = CreateWindow(_T("static"), _T("win32"),
-                             WS_VISIBLE | WS_CHILD | WS_BORDER, 0, 0, 0, 0,
-                             m_PaintManager.GetPaintWindow(), NULL, NULL, NULL);
-    chart_label_ui->AttachGraph(hWnd);
-    return chart_label_ui;
-  }
-  return __super::CreateControl(pstrClass);
-}
-
 LRESULT WorkWindow::OnDestroy(UINT, WPARAM, LPARAM, BOOL& bHandled) {
-  for (auto label_chart_ui : label_chart_uis_) {
-    HWND hwnd = label_chart_ui->DetachGraph();
-    if (hwnd != nullptr) {
-      ::DestroyWindow(hwnd);
-    }
-  }
-  label_chart_uis_.clear();
   bHandled = FALSE;
   return __super::OnDestroy(0, 0, 0, bHandled);
 }

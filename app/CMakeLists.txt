@@ -140,8 +140,6 @@ if(WIN32)
         ui/dialog_static_load_guaranteed_settings.h
         ui/main_window.cc
         ui/main_window.h
-        ui/ui_chart_label.cc
-        ui/ui_chart_label.h
         ui/ui_constants.cc
         ui/ui_constants.h
         ui/ui_virtual_wnd_base.h

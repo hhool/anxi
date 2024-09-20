@@ -36,7 +36,6 @@ class SolutionDesign;
 class PageSolutionDesignBase;
 }  // namespace esolution
 namespace ui {
-class ChartLabelUI;
 class CMenuDesignWnd;
 class CMenuStoreWnd;
 class WorkWindowStatusBar;
@@ -85,8 +84,6 @@ class WorkWindow : public DuiLib::WindowImplBase,
                        WPARAM wParam,
                        LPARAM lParam,
                        BOOL& bHandled) override;
-
-  CControlUI* CreateControl(LPCTSTR pstrClass) override;
 
   LRESULT OnDestroy(UINT /*uMsg*/,
                     WPARAM /*wParam*/,
@@ -170,7 +167,6 @@ class WorkWindow : public DuiLib::WindowImplBase,
   UIVirtualWndBase* work_window_status_bar_virtual_wnd_;
   std::shared_ptr<anx::device::DeviceComInterface> device_com_ul_;
   std::shared_ptr<anx::device::DeviceComInterface> device_com_sl_;
-  std::vector<ChartLabelUI*> label_chart_uis_;
   /// @brief experiment related data
   /// @brief exp status
   /// 0 - stop, 1 - start, 2 - pause, <0 - unvalid
