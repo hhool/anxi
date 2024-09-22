@@ -99,7 +99,6 @@ void DialogComPortSettings::OnPrepare(const DuiLib::TNotifyUI& msg) {
 void DialogComPortSettings::SaveComInfoFromControlAll() {
   SaveComInfoFromControl("ua");
   SaveComInfoFromControl("sl");
-  SaveComInfoFromControl("ac");
 }
 
 void DialogComPortSettings::SaveComInfoFromControl(std::string tail_prefix) {
@@ -189,7 +188,6 @@ std::string DialogComPortSettings::GetParityFromControl(
 void DialogComPortSettings::UpdateControlFromComInfoAll() {
   UpdateControlFromComInfo("ua");
   UpdateControlFromComInfo("sl");
-  UpdateControlFromComInfo("ac");
 }
 
 void DialogComPortSettings::UpdateControlFromComInfo(std::string tail_prefix) {
