@@ -19,6 +19,8 @@
 
 #include "app/db/database_factory.h"
 
+#include "resource.h"
+
 namespace anx {
 namespace app {
 
@@ -56,12 +58,15 @@ void DestroyApp(void* handle_app) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+HINSTANCE g_hInstance_;
+
 Application::Application(HANDLE hinst) : main_window_(nullptr) {
   // Initialize COM
   HINSTANCE hInstance = static_cast<HINSTANCE>(hinst);
   if (hInstance == NULL) {
     hInstance = GetModuleHandle(nullptr);
   }
+  g_hInstance_ = hInstance;
   DuiLib::CPaintManagerUI::SetInstance(hInstance);
 
 #if defined(WIN32) && !defined(UNDER_CE)
@@ -87,6 +92,9 @@ int32_t Application::Run() {
   main_window_ = std::make_unique<ui::MainWindow>();
   main_window_->Create(nullptr, _T("main_window"), UI_WNDSTYLE_FRAME,
                        WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
+  HICON hIcon = ::LoadIcon(g_hInstance_, MAKEINTRESOURCE(IDI_ICON_APP));
+  ::SendMessage(main_window_->GetHWND(), STM_SETICON, IMAGE_ICON, (LPARAM)(UINT)hIcon);
+
   main_window_->CenterWindow();
   main_window_->ShowWindow(true, true);
   DuiLib::CPaintManagerUI::MessageLoop();

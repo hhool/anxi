@@ -173,10 +173,12 @@ endif()
 
 # resource files
 if(WIN32)
+    enable_language("RC")
+    set_source_files_properties(${CMAKE_SOURCE_DIR}/resource.rc LANGUAGE RC)
     set(RES_FILES
         resource.rc)
     source_group("resource" FILES ${RES_FILES})
-    list(APPEND APP_SOURCES resource.rc)
+    #list(APPEND APP_SOURCES resource.rc)
 endif()
 
 # add library
@@ -208,7 +210,7 @@ add_dependencies(app_ui SQLite::SQLite3)
 
 # ##############################################################################
 # add executable
-add_executable(app_exe main.cc)
+add_executable(app_exe main.cc ${RES_FILES})
 add_dependencies(app_exe app_ui)
 target_link_libraries(app_exe app_ui)
 
