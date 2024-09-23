@@ -97,6 +97,18 @@ LRESULT anx::ui::MainWindow::OnClose(UINT uMsg,
   return 0;
 }
 
+LRESULT anx::ui::MainWindow::OnSetFocus(UINT /*uMsg*/,
+                                        WPARAM /*wParam*/,
+                                        LPARAM /*lParam*/,
+                                        BOOL& bHandled) {
+  bHandled = TRUE;
+  /// @note redraw the window when it is shown again.
+  /// @note it is necessary to redraw the window when it is shown again.
+  /// @note otherwise, the window will can't be redrawed completely.
+  ::ShowWindow(m_hWnd, SW_SHOWNORMAL);
+  ::InvalidateRect(m_hWnd, NULL, TRUE);
+  return 0;
+}
 void anx::ui::MainWindow::Switch_Axially_Symmetrical() {
   this->ShowWindow(false, false);
   ui::WorkWindow* work_window = new ui::WorkWindow(

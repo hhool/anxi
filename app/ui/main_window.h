@@ -61,6 +61,7 @@ class MainWindow : public DuiLib::WindowImplBase {
                   LPARAM lParam,
                   BOOL& bHandled) override;
 
+  LRESULT OnSetFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled) override;
  protected:
   void Switch_Axially_Symmetrical();
   void Switch_Stresses_Adjustable();
