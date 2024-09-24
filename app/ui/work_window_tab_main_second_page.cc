@@ -44,6 +44,7 @@
 DUI_BEGIN_MESSAGE_MAP(anx::ui::WorkWindowSecondPage, DuiLib::CNotifyPump)
 DUI_ON_MSGTYPE(DUI_MSGTYPE_CLICK, OnClick)
 DUI_ON_MSGTYPE(DUI_MSGTYPE_TIMER, OnTimer)
+DUI_ON_MSGTYPE(DUI_MSGTYPE_VALUECHANGED, OnValueChanged)
 DUI_END_MESSAGE_MAP()
 
 namespace anx {
@@ -235,6 +236,20 @@ void WorkWindowSecondPage::OnTimer(TNotifyUI& msg) {
   }
 }
 
+void WorkWindowSecondPage::OnValueChanged(TNotifyUI& msg) {
+  if (msg.sType == DUI_MSGTYPE_VALUECHANGED) {
+    if (msg.pSender->GetName() == _T("args_area_value_static_load")) {
+      anx::device::stload::STResult* st_result =
+          reinterpret_cast<anx::device::stload::STResult*>(msg.wParam);
+      if ((st_result->status_ & DSP_CMDEND) == DSP_CMDEND) {
+        LOG_F(LG_INFO) << "static load aircraft stop";
+        OnButtonStaticAircraftStop();
+      }
+      st_load_result_ = *st_result;
+    }
+  }
+}
+
 void WorkWindowSecondPage::Bind() {
   btn_tablayout_ = static_cast<DuiLib::CTabLayoutUI*>(
       paint_manager_ui_->FindControl(_T("tab_graph_data")));
@@ -360,9 +375,11 @@ void WorkWindowSecondPage::CheckDeviceComConnectedStatus() {
     btn_exp_stop_->SetEnabled(true);
     btn_exp_pause_->SetEnabled(true);
 
-    btn_sa_up_->SetEnabled(true);
-    btn_sa_down_->SetEnabled(true);
-    btn_sa_stop_->SetEnabled(true);
+    if (!st_load_is_running_) {
+      btn_sa_up_->SetEnabled(true);
+      btn_sa_down_->SetEnabled(true);
+      btn_sa_stop_->SetEnabled(true);
+    }
     UpdateUIWithExpStatus(is_exp_state_);
   } else {
     if (is_exp_state_ >= 0) {
@@ -371,10 +388,11 @@ void WorkWindowSecondPage::CheckDeviceComConnectedStatus() {
     btn_exp_start_->SetEnabled(false);
     btn_exp_stop_->SetEnabled(false);
     btn_exp_pause_->SetEnabled(false);
-
-    btn_sa_up_->SetEnabled(false);
-    btn_sa_down_->SetEnabled(false);
-    btn_sa_stop_->SetEnabled(false);
+    if (!st_load_is_running_) {
+      btn_sa_up_->SetEnabled(false);
+      btn_sa_down_->SetEnabled(false);
+      btn_sa_stop_->SetEnabled(false);
+    }
     UpdateUIWithExpStatus(is_exp_state_);
   }
 }
@@ -483,11 +501,12 @@ void WorkWindowSecondPage::UpdateUIWithExpStatus(int status) {
     edit_max_cycle_count_->SetEnabled(true);
     edit_max_cycle_power_->SetEnabled(true);
     edit_frequency_fluctuations_range_->SetEnabled(true);
-
-    btn_sa_up_->SetEnabled(true);
-    btn_sa_down_->SetEnabled(true);
-    btn_sa_stop_->SetEnabled(true);
-    btn_aa_setting_->SetEnabled(true);
+    if (!st_load_is_running_) {
+      btn_sa_up_->SetEnabled(true);
+      btn_sa_down_->SetEnabled(true);
+      btn_sa_stop_->SetEnabled(true);
+      btn_aa_setting_->SetEnabled(true);
+    }
   } else if (status == 1) {
     btn_exp_start_->SetEnabled(false);
     layout_exp_resume_->SetVisible(false);
@@ -501,11 +520,12 @@ void WorkWindowSecondPage::UpdateUIWithExpStatus(int status) {
     edit_max_cycle_count_->SetEnabled(false);
     edit_max_cycle_power_->SetEnabled(false);
     edit_frequency_fluctuations_range_->SetEnabled(false);
-
-    btn_sa_up_->SetEnabled(false);
-    btn_sa_down_->SetEnabled(false);
-    btn_sa_stop_->SetEnabled(false);
-    btn_aa_setting_->SetEnabled(false);
+    if (!st_load_is_running_) {
+      btn_sa_up_->SetEnabled(false);
+      btn_sa_down_->SetEnabled(false);
+      btn_sa_stop_->SetEnabled(false);
+      btn_aa_setting_->SetEnabled(false);
+    }
   } else if (status == 2) {
     btn_exp_start_->SetEnabled(false);
     layout_exp_resume_->SetVisible(true);
@@ -519,11 +539,12 @@ void WorkWindowSecondPage::UpdateUIWithExpStatus(int status) {
     edit_max_cycle_count_->SetEnabled(true);
     edit_max_cycle_power_->SetEnabled(true);
     edit_frequency_fluctuations_range_->SetEnabled(true);
-
-    btn_sa_up_->SetEnabled(true);
-    btn_sa_down_->SetEnabled(true);
-    btn_sa_stop_->SetEnabled(true);
-    btn_aa_setting_->SetEnabled(true);
+    if (!st_load_is_running_) {
+      btn_sa_up_->SetEnabled(true);
+      btn_sa_down_->SetEnabled(true);
+      btn_sa_stop_->SetEnabled(true);
+      btn_aa_setting_->SetEnabled(true);
+    }
   } else {
     // TODO(hhool):
   }
@@ -627,6 +648,7 @@ void WorkWindowSecondPage::OnButtonStaticAircraftClear() {
   if (is_exp_state_) {
     return;
   }
+  LOG_F(LG_INFO) << "clear the data";
   if (anx::device::stload::STLoadHelper::st_load_loader_.st_api_.tare_ext1) {
     anx::device::stload::STLoadHelper::st_load_loader_.st_api_.tare_ext1();
   }
@@ -692,31 +714,7 @@ void WorkWindowSecondPage::OnButtonStaticAircraftUp() {
   if (st_load_is_running_) {
     return;
   }
-  int machineType = 4;
-  int nDTCType = 2;
-  int nCommport = 4;
-  int nChannelNo = 2;
-  int rate = 30;
-  int sensorPosition = 0;
-  int TestSpace = 0;
-  int nDataBlockSize = 2;
-  bool isAE = false;
-  float speed = 2.0f / 60.0f;
-
-  // 力传感器P值
-  int lLoad_P = 20;
-  int lLoad_I = 0;
-  int lLoad_D = 0;
-
-  // 位移传感器P值
-  int lPosi_P = 20;
-  int lPosi_I = 0;
-  int lPosi_D = 0;
-
-  // 引伸计P值
-  int lExt_P = 30;
-  int lExt_I = 0;
-  int lExt_D = 0;
+  float speed = 2.0f / 60.0f;\
   std::unique_ptr<anx::device::DeviceLoadStaticSettings> lss =
       anx::device::LoadDeviceLoadStaticSettingsDefaultResource();
   if (lss == nullptr) {
@@ -724,72 +722,13 @@ void WorkWindowSecondPage::OnButtonStaticAircraftUp() {
                _T("错误"), MB_OK);
     return;
   }
-  if (lss->direct_ == 1) {
-    // up
-    anx::device::stload::STLoadHelper::st_load_loader_.st_api_.set_test_dir(1);
-  } else if (lss->direct_ == 2) {
-    // down
-    anx::device::stload::STLoadHelper::st_load_loader_.st_api_.set_test_dir(0);
-  } else {
-    MessageBox(this->pWorkWindow_->GetHWND(), _T("静载机配置文件方向配置错误"),
-               _T("错误"), MB_OK);
-  }
+  anx::device::stload::STLoadHelper::st_load_loader_.st_api_.set_test_dir(1);
   speed = lss->speed_ / 60.0f;
-  BOOL bSuccess =
-      anx::device::stload::STLoadHelper::st_load_loader_.st_api_.on_line(
-          nChannelNo, 0, 0, 0, rate, machineType, nDTCType, sensorPosition,
-          TestSpace, nDataBlockSize, isAE)
-          ? true
-          : false;
-  if (!bSuccess) {
-    MessageBox(this->pWorkWindow_->GetHWND(), L"on_line_error", L"on_line",
-               MB_OK);
-    return;
-  }
-
-  bSuccess =
-      anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
-          CH_LOAD, lLoad_P, lLoad_I, lLoad_D)
-          ? true
-          : false;
-  if (!bSuccess) {
-    MessageBox(this->pWorkWindow_->GetHWND(), L"carry_pid-CH_LOAD_error",
-               L"carry_pid-CH_LOAD", MB_OK);
-    return;
-  }
-
-  bSuccess =
-      anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
-          CH_POSI, lPosi_P, lPosi_I, lPosi_D)
-          ? true
-          : false;
-  if (!bSuccess) {
-    MessageBox(this->pWorkWindow_->GetHWND(), L"carry_pid-CH_POSI_error",
-               L"carry_pid-CH_POSI", MB_OK);
-    return;
-  }
-
-  bSuccess =
-      anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
-          CH_EXTN, lExt_P, lExt_I, lExt_D)
-          ? true
-          : false;
-  if (!bSuccess) {
-    MessageBox(this->pWorkWindow_->GetHWND(), L"carry_pid-CH_EXTN_error",
-               L"carry_pid-CH_EXTN", MB_OK);
-    return;
-  }
-  int ret = MessageBox(this->pWorkWindow_->GetHWND(), L"carry_pid",
-                       L"carry_pid", MB_OKCANCEL);
-  if (ret == IDOK) {
-    // carry_pid
-  } else {
-    return;
-  }
+  float end_value = lss->retention_ * 1.0f;
   /// RUN the static load, the direction is up and the speed is 2.0f / 60.0f
-  bSuccess =
+  bool bSuccess =
       anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_200(
-          2, 2, speed, 5, 1, true, DIR_NO, 0, 1, 0)
+          CTRL_LOAD, END_LOAD, speed, end_value, 1, true, DIR_NO, 0, 1, 0)
           ? true
           : false;
   if (!bSuccess) {
@@ -797,35 +736,15 @@ void WorkWindowSecondPage::OnButtonStaticAircraftUp() {
                _T("carry_200"), MB_OK);
   }
 
+  btn_sa_up_->SetEnabled(false);
+  btn_sa_down_->SetEnabled(false);
+  btn_sa_stop_->SetEnabled(true);
   st_load_is_running_ = true;
 }
 
 void WorkWindowSecondPage::OnButtonStaticAircraftDown() {
-  int machineType = 4;
-  int nDTCType = 2;
-  int nCommport = 4;
-  int nChannelNo = 2;
-  int rate = 30;
-  int sensorPosition = 0;
-  int TestSpace = 0;
-  int nDataBlockSize = 2;
   bool isAE = false;
   float speed = 2.0f / 60.0f;
-
-  // 力传感器P值
-  int lLoad_P = 20;
-  int lLoad_I = 0;
-  int lLoad_D = 0;
-
-  // 位移传感器P值
-  int lPosi_P = 20;
-  int lPosi_I = 0;
-  int lPosi_D = 0;
-
-  // 引伸计P值
-  int lExt_P = 30;
-  int lExt_I = 0;
-  int lExt_D = 0;
   std::unique_ptr<anx::device::DeviceLoadStaticSettings> lss =
       anx::device::LoadDeviceLoadStaticSettingsDefaultResource();
   if (lss == nullptr) {
@@ -833,72 +752,14 @@ void WorkWindowSecondPage::OnButtonStaticAircraftDown() {
                _T("错误"), MB_OK);
     return;
   }
-  if (lss->direct_ == 1) {
-    // up
-    anx::device::stload::STLoadHelper::st_load_loader_.st_api_.set_test_dir(1);
-  } else if (lss->direct_ == 2) {
-    // down
-    anx::device::stload::STLoadHelper::st_load_loader_.st_api_.set_test_dir(0);
-  } else {
-    MessageBox(this->pWorkWindow_->GetHWND(), _T("静载机配置文件方向配置错误"),
-               _T("错误"), MB_OK);
-  }
+  anx::device::stload::STLoadHelper::st_load_loader_.st_api_.set_test_dir(0);
   speed = lss->speed_ / 60.0f;
-  BOOL bSuccess =
-      anx::device::stload::STLoadHelper::st_load_loader_.st_api_.on_line(
-          nChannelNo, 0, 0, 0, rate, machineType, nDTCType, sensorPosition,
-          TestSpace, nDataBlockSize, isAE)
-          ? true
-          : false;
-  if (!bSuccess) {
-    MessageBox(this->pWorkWindow_->GetHWND(), L"on_line_error", L"on_line",
-               MB_OK);
-    return;
-  }
+  float end_value = lss->retention_ * 1.0f;
 
-  bSuccess =
-      anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
-          CH_LOAD, lLoad_P, lLoad_I, lLoad_D)
-          ? true
-          : false;
-  if (!bSuccess) {
-    MessageBox(this->pWorkWindow_->GetHWND(), L"carry_pid-CH_LOAD_error",
-               L"carry_pid-CH_LOAD", MB_OK);
-    return;
-  }
-
-  bSuccess =
-      anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
-          CH_POSI, lPosi_P, lPosi_I, lPosi_D)
-          ? true
-          : false;
-  if (!bSuccess) {
-    MessageBox(this->pWorkWindow_->GetHWND(), L"carry_pid-CH_POSI_error",
-               L"carry_pid-CH_POSI", MB_OK);
-    return;
-  }
-
-  bSuccess =
-      anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
-          CH_EXTN, lExt_P, lExt_I, lExt_D)
-          ? true
-          : false;
-  if (!bSuccess) {
-    MessageBox(this->pWorkWindow_->GetHWND(), L"carry_pid-CH_EXTN_error",
-               L"carry_pid-CH_EXTN", MB_OK);
-    return;
-  }
-  int ret = MessageBox(this->pWorkWindow_->GetHWND(), L"carry_pid",
-                       L"carry_pid", MB_OKCANCEL);
-  if (ret == IDOK) {
-    // carry_pid
-  } else {
-    return;
-  }
   /// RUN the static load, the direction is up and the speed is 2.0f / 60.0f
-  bSuccess =
+ bool bSuccess =
       anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_200(
-          2, 2, speed, 5, 1, true, DIR_NO, 0, 1, 0)
+          CTRL_LOAD, END_LOAD, speed, end_value, 1, true, DIR_NO, 0, 1, 0)
           ? true
           : false;
   if (!bSuccess) {
@@ -906,15 +767,19 @@ void WorkWindowSecondPage::OnButtonStaticAircraftDown() {
                _T("carry_200"), MB_OK);
   }
 
+  btn_sa_up_->SetEnabled(false);
+  btn_sa_down_->SetEnabled(false);
+  btn_sa_stop_->SetEnabled(true);
   st_load_is_running_ = true;
 }
 
 void WorkWindowSecondPage::OnButtonStaticAircraftStop() {
-  if (st_load_is_running_) {
-    // anx::device::stload::STLoadHelper::st_load_loader_.st_api_.end_read();
-    anx::device::stload::STLoadHelper::st_load_loader_.st_api_.stop_run();
-    st_load_is_running_ = false;
-  }
+  // anx::device::stload::STLoadHelper::st_load_loader_.st_api_.end_read();
+  LOG_F(LG_INFO) << "stop the static load";
+  anx::device::stload::STLoadHelper::st_load_loader_.st_api_.stop_run();
+  btn_sa_up_->SetEnabled(true);
+  btn_sa_down_->SetEnabled(true);
+  st_load_is_running_ = false;
 }
 
 void WorkWindowSecondPage::OnDataReceived(

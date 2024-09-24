@@ -143,16 +143,36 @@ class WorkWindow : public DuiLib::WindowImplBase,
   // impliment anx::device::DeviceComListener;
   void OnDataReceived(anx::device::DeviceComInterface* device,
                       const uint8_t* data,
-                      int32_t size) override;
+                      int32_t size) override {
+    if (is_exp_state_) {
+      // TODO(hhool):
+    }
+  }
   void OnDataOutgoing(anx::device::DeviceComInterface* device,
                       const uint8_t* data,
-                      int32_t size) override;
+                      int32_t size) override {
+    if (is_exp_state_) {
+      // TODO(hhool):
+    }
+  }
 
  protected:
-  void OnExpStart();
-  void OnExpStop();
-  void OnExpPause();
-  void OnExpResume();
+  void OnExpStart() {
+    // TODO(hhool):
+    is_exp_state_ = 1;
+  }
+  void OnExpStop() {
+    // TODO(hhool):
+    is_exp_state_ = 0;
+  }
+  void OnExpPause() {
+    // TODO(hhool):
+    is_exp_state_ = 2;
+  }
+  void OnExpResume() {
+    // TODO(hhool):
+    is_exp_state_ = 1;
+  }
 
  protected:
   void ClearArgsFreqNum();

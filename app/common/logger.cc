@@ -166,7 +166,6 @@ void FileLoggerSink::Log(int level, std::string& log) {
   out.append(log);
   out.append("\n");
   file_.write(out.data(), out.size());
-  file_.write("\n", 1);
   file_.flush();
 }
 

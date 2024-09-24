@@ -72,11 +72,6 @@ class DialogStaticLoadGuaranteedSettings : public DuiLib::WindowImplBase {
   CButtonUI* btn_ok_;
   CButtonUI* btn_cancel_;
 
-  COptionUI* opt_direct_up_;
-  COptionUI* opt_direct_down_;
-  COptionUI* opt_action_pull_;
-  COptionUI* opt_action_push_;
-
   CEditUI* edit_speed_;
   CEditUI* edit_retention_;
 };

@@ -48,25 +48,6 @@ namespace anx {
 namespace ui {
 
 namespace {
-std::string format_num(int64_t num) {
-  std::string value;
-  int64_t integer_part = num / 1000;
-  int64_t decimal_part = num % 1000;
-  // remove the 0 at the end of the decimal.
-  while (decimal_part % 10 == 0) {
-    decimal_part /= 10;
-    if (decimal_part == 0) {
-      break;
-    }
-  }
-  // format integer part
-  value += std::to_string(integer_part);
-  if (decimal_part != 0) {
-    value += ".";
-    value += std::to_string(decimal_part);
-  }
-  return value;
-}
 const int32_t kTimerCurrentTimeMsgId = 1;
 const int32_t kTimerCurrentTimePeriod = 50;
 }  // namespace
@@ -217,8 +198,8 @@ WorkWindow::~WorkWindow() {
   tab_main_pages_.clear();
 
   // close devices all
-  CloseDeviceCom(anx::device::kDeviceCom_Ultrasound);
   CloseDeviceCom(anx::device::kDeviceCom_StaticLoad);
+  CloseDeviceCom(anx::device::kDeviceCom_Ultrasound);
 
   anx::device::stload::STLoadHelper::UnInitStLoad();
 }
@@ -261,8 +242,10 @@ void WorkWindow::InitWindow() {
   btn_args_area_value_stress_ratio_ = static_cast<CButtonUI*>(
       m_PaintManager.FindControl(_T("args_area_value_stress_ratio")));
 
-  anx::device::stload::STLoadHelper::st_load_loader_.st_api_.set_dest_wnd(
-      this->GetHWND());
+  BOOL ret =
+      anx::device::stload::STLoadHelper::st_load_loader_.st_api_.set_dest_wnd(
+          this->GetHWND());
+  LOG_F(LG_INFO) << "set dest wnd ret:" << ret;
 }
 
 void WorkWindow::OnFinalMessage(HWND hWnd) {
@@ -372,8 +355,8 @@ void WorkWindow::Notify(DuiLib::TNotifyUI& msg) {
 void WorkWindow::OnClick(DuiLib::TNotifyUI& msg) {
   if (msg.pSender == btn_close_) {
     if (pOwner_ != nullptr) {
-      CloseDeviceCom(anx::device::kDeviceCom_Ultrasound);
       CloseDeviceCom(anx::device::kDeviceCom_StaticLoad);
+      CloseDeviceCom(anx::device::kDeviceCom_Ultrasound);
       this->Close();
       pOwner_->ShowWindow(true, true);
     } else {
@@ -410,8 +393,8 @@ void WorkWindow::OnClick(DuiLib::TNotifyUI& msg) {
     pMenu->Init(msg.pSender, pt);
   } else if (msg.pSender == btn_menu_back_) {
     if (pOwner_ != nullptr) {
-      CloseDeviceCom(anx::device::kDeviceCom_Ultrasound);
       CloseDeviceCom(anx::device::kDeviceCom_StaticLoad);
+      CloseDeviceCom(anx::device::kDeviceCom_Ultrasound);
       Close();
       pOwner_->ShowWindow(true, true);
     } else {
@@ -464,8 +447,8 @@ LRESULT WorkWindow::OnSysCommand(UINT uMsg,
                                  BOOL& bHandled) {
   if (wParam == SC_CLOSE) {
     if (pOwner_ != nullptr) {
-      CloseDeviceCom(anx::device::kDeviceCom_Ultrasound);
       CloseDeviceCom(anx::device::kDeviceCom_StaticLoad);
+      CloseDeviceCom(anx::device::kDeviceCom_Ultrasound);
       this->Close();
       pOwner_->ShowWindow(true, true);
     } else {
@@ -543,9 +526,6 @@ LRESULT WorkWindow::OnNcHitTest(UINT uMsg,
   return HTCLIENT;
 }
 
-#define DLLMSG WM_USER + 4001
-#define DLL_SAMPLE 1
-
 LRESULT WorkWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
   if (uMsg == DLLMSG) {
     LOG_F(LG_INFO) << "uMsg == DLLMSG:" << uMsg << " wParam:" << wParam
@@ -559,27 +539,27 @@ LRESULT WorkWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
           anx::device::stload::STLoadHelper::st_load_loader_.st_api_.get_posi();
       double exten =
           anx::device::stload::STLoadHelper::st_load_loader_.st_api_.get_extn();
+      uint32_t status = anx::device::stload::STLoadHelper::st_load_loader_
+                            .st_api_.get_test_status();
       LOG_F(LG_INFO) << "load:" << load << " pos:" << pos << " exten:" << exten;
       anx::device::stload::STLoadHelper::st_load_loader_.st_api_
           .after_get_sample();
       if (anx::device::stload::STLoadHelper::Is_Stload_Simulation()) {
-        pos = static_cast<float>(rand() % 100);
-        load = static_cast<float>(rand() % 100);
+        pos = static_cast<double>(rand() % 100) * -1.0f;
+        load = static_cast<double>(rand() % 100) * -1.0f;
       }
-      // update static load value to args area view.
-      std::string num_format = format_num(static_cast<int64_t>(pos * 100));
-      btn_args_area_value_static_load_->SetText(
-          anx::common::string2wstring(num_format.c_str()).c_str());
-      // notify third page to update the chart
-      pos = pos * 1000;
-      load = load * 1000;
+      // notify third page to update the data
+      // notify second page to update the chart
       DuiLib::TNotifyUI msg;
       msg.pSender = this->btn_args_area_value_static_load_;
-      msg.sType = kClick;
-
-      msg.lParam = pos;
-      msg.wParam = load;
+      msg.sType = kValueChanged;
+      anx::device::stload::STResult result;
+      result.load_ = load;
+      result.pos_ = pos;
+      result.status_ = status;
+      msg.wParam = reinterpret_cast<WPARAM>(&result);
       tab_main_pages_["WorkWindowThirdPage"]->NotifyPump(msg);
+      tab_main_pages_["WorkWindowSecondPage"]->NotifyPump(msg);
     }
     return 0;
   }
@@ -793,21 +773,16 @@ void WorkWindow::OnMenuDeviceConnectClicked(DuiLib::TNotifyUI& msg) {
   ret = OpenDeviceCom(anx::device::kDeviceCom_StaticLoad);
   if (ret == 0) {
     is_device_stload_connected_ = true;
-  } else if (ret == -1) {
-    // show status bar message
-  } else if (ret == -2) {
-    // show status bar message
-  }
-  if (ret == -1) {
-    // show status bar message
-  } else if (ret == -2) {
+  } else if (ret < 0) {
+    is_device_stload_connected_ = false;
+    MessageBox(*this, _T("静载机连接失败"), _T("连接失败"), MB_OK);
     // show status bar message
   }
 }
 
 void WorkWindow::OnMenuDeviceDisconnectClicked(DuiLib::TNotifyUI& msg) {
-  CloseDeviceCom(anx::device::kDeviceCom_Ultrasound);
   CloseDeviceCom(anx::device::kDeviceCom_StaticLoad);
+  CloseDeviceCom(anx::device::kDeviceCom_Ultrasound);
   is_device_stload_connected_ = false;
   // close static load device.
   // TODO(hhooll): show status bar message
@@ -850,13 +825,21 @@ int32_t WorkWindow::OpenDeviceCom(int32_t device_type) {
       return -1;
     }
     int32_t port = PortNameToInt32(com_settings->GetComName());
-    if (port > 0) {
+    if (port >= 0) {
       bool bSuccess =
           anx::device::stload::STLoadHelper::st_load_loader_.st_api_
                   .open_device(PortNameToInt32(com_settings->GetComName()))
               ? true
               : false;
       if (!bSuccess) {
+        LOG_F(LG_ERROR) << "OpenDevice failed";
+        return -1;
+      }
+      bSuccess = (anx::device::stload::STLoadHelper::STLoadSetup() == 0)
+                     ? true
+                     : false;
+      if (!bSuccess) {
+        LOG_F(LG_ERROR) << "STLoadSetup failed";
         return -1;
       }
     } else {
@@ -875,6 +858,7 @@ void WorkWindow::CloseDeviceCom(int32_t device_type) {
       device_com_ul_->RemoveListener(this);
     }
   } else if (device_type == anx::device::kDeviceCom_StaticLoad) {
+    LOG_F(LG_INFO) << "CloseDeviceCom StaticLoad";
     if (anx::device::stload::STLoadHelper::st_load_loader_.st_api_.stop_run !=
         nullptr) {
       anx::device::stload::STLoadHelper::st_load_loader_.st_api_.stop_run();
@@ -890,50 +874,6 @@ void WorkWindow::CloseDeviceCom(int32_t device_type) {
   } else {
     assert(false && "Invalid device type");
   }
-}
-
-void WorkWindow::OnDataReceived(anx::device::DeviceComInterface* device,
-                                const uint8_t* data,
-                                int32_t size) {
-  if (is_exp_state_) {
-    // TODO(hhool):
-  }
-}
-
-void WorkWindow::OnDataOutgoing(anx::device::DeviceComInterface* device,
-                                const uint8_t* data,
-                                int32_t size) {
-  // TODO(hhool):
-}
-
-void WorkWindow::OnExpStart() {
-  // TODO(hhool):
-  // 1. get solution design from control
-  // 2. start experiment
-  // 3. show status bar message
-  is_exp_state_ = 1;
-}
-
-void WorkWindow::OnExpStop() {
-  // TODO(hhool):
-  // 1. stop experiment
-  // 2. show status bar message
-  is_exp_state_ = 0;
-}
-
-void WorkWindow::OnExpPause() {
-  // TODO(hhool):
-  // 1. pause experiment
-  // 2. show status bar message
-
-  is_exp_state_ = 2;
-}
-
-void WorkWindow::OnExpResume() {
-  // TODO(hhool):
-  // 1. resume experiment
-  // 2. show status bar message
-  is_exp_state_ = 1;
 }
 
 void WorkWindow::ClearArgsFreqNum() {

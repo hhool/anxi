@@ -23,6 +23,7 @@
 #include "app/device/device_com_factory.h"
 #include "app/device/device_com_settings.h"
 #include "app/device/device_exp_load_static_settings.h"
+#include "app/device/stload/stload_helper.h"
 #include "app/esolution/solution_design.h"
 #include "app/esolution/solution_design_default.h"
 #include "app/ui/dialog_about.h"
@@ -35,30 +36,11 @@
 DUI_BEGIN_MESSAGE_MAP(anx::ui::WorkWindowThirdPage, DuiLib::CNotifyPump)
 DUI_ON_MSGTYPE(DUI_MSGTYPE_CLICK, OnClick)
 DUI_ON_MSGTYPE(DUI_MSGTYPE_TIMER, OnTimer)
+DUI_ON_MSGTYPE(DUI_MSGTYPE_VALUECHANGED, OnValueChanged)
 DUI_END_MESSAGE_MAP()
 
 namespace anx {
 namespace ui {
-
-std::string format_num(int64_t num) {
-  std::string value;
-  int64_t integer_part = num / 1000;
-  int64_t decimal_part = num % 1000;
-  // remove the 0 at the end of the decimal.
-  while (decimal_part % 10 == 0) {
-    decimal_part /= 10;
-    if (decimal_part == 0) {
-      break;
-    }
-  }
-  // format integer part
-  value += std::to_string(integer_part);
-  if (decimal_part != 0) {
-    value += ".";
-    value += std::to_string(decimal_part);
-  }
-  return value;
-}
 
 namespace {
 template <typename T>
@@ -273,19 +255,6 @@ void WorkWindowThirdPage::OnClick(TNotifyUI& msg) {
     } else {
       // TODO(hhool): do nothing
     }
-    if (msg.pSender->GetName() == _T("args_area_value_static_load")) {
-      // update the label_displacement_ with random value
-      float pos = msg.lParam / 1000.0f;
-      std::string num_format =
-          format_num(static_cast<int64_t>(pos * 100));
-      label_displacement_->SetText(
-          anx::common::string2wstring(num_format.c_str()).c_str());
-      // update the label_strength_ with random value
-      float load = msg.wParam / 1000.0f;
-      num_format = format_num(static_cast<int64_t>(load * 100));
-      label_strength_->SetText(
-          anx::common::string2wstring(num_format.c_str()).c_str());
-    }
   } else {
     // TODO(hhool): do nothing
   }
@@ -330,7 +299,7 @@ void WorkWindowThirdPage::Bind() {
   paint_manager_ui_->SetTimer(layout, kTimerID, kTimerElapse);
 
   // bind control
-  opt_direct_up_ = static_cast<COptionUI*>(
+  /*opt_direct_up_ = static_cast<COptionUI*>(
       paint_manager_ui_->FindControl(_T("tab_page_three_left_move_up")));
   opt_direct_down_ = static_cast<COptionUI*>(
       paint_manager_ui_->FindControl(_T("tab_page_three_left_move_down")));
@@ -339,7 +308,7 @@ void WorkWindowThirdPage::Bind() {
       paint_manager_ui_->FindControl(_T("tab_page_three_left_pull")));
   opt_action_push_ = static_cast<COptionUI*>(
       paint_manager_ui_->FindControl(_T("tab_page_three_left_push")));
-
+          */
   edit_speed_ = static_cast<CEditUI*>(
       paint_manager_ui_->FindControl(_T("tab_page_three_left_speed")));
 
@@ -413,10 +382,6 @@ void WorkWindowThirdPage::UpdateControlFromSettings() {
   if (lss == nullptr) {
     return;
   }
-  opt_direct_up_->Selected(lss->direct_ == 1);
-  opt_direct_down_->Selected(lss->direct_ == 2);
-  opt_action_pull_->Selected(lss->action_ == 1);
-  opt_action_push_->Selected(lss->action_ == 2);
   edit_speed_->SetText(
       anx::common::string2wstring(std::to_string(lss->speed_).c_str()).c_str());
   edit_retention_->SetText(

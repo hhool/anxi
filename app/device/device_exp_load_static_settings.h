@@ -27,29 +27,10 @@ class DeviceLoadStatic {
   virtual ~DeviceLoadStatic();
 
  public:
-  /// @brief direct 0: none, 1: up, 2: down, 3: left, 4: right
-  int32_t direct_;
-  /// @brief action 0: none, 1: pull, 2: push
-  int32_t action_;
   /// @brief speed
   int32_t speed_;
   /// @brief retention
   int32_t retention_;
-
- public:
-  std::string ValueDirectToString() const;
-  std::string ValueActionToString() const;
-
- public:
-  /// @brief  direct string value to bool
-  /// @param direct_str  none, up, down, left, right
-  /// @return  int32_t 0: none, 1: up, 2: down, 3: left, 4: right
-  static int32_t ValueDirectFromString(const std::string& direct_str);
-
-  /// @brief  action string value to bool
-  /// @param action_str  none, pull, push
-  /// @return  int32_t 0: none, 1: pull, 2: push
-  static int32_t ValueActionFromString(const std::string& action_str);
 };
 
 class DeviceLoadStaticSettings : public DeviceLoadStatic {

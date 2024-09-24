@@ -54,6 +54,7 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   DUI_DECLARE_MESSAGE_MAP()
   void OnClick(TNotifyUI& msg);  // NOLINT
   void OnTimer(TNotifyUI& msg);  // NOLINT
+  void OnValueChanged(TNotifyUI& msg);  // NOLINT
 
  public:
   // implement the base class UIVirtualWndBase virtual function
@@ -136,6 +137,7 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   bool st_load_is_running_ = false;
   int64_t st_start_time_ = 0;
   int64_t st_run_time_ = 0;
+  anx::device::stload::STResult st_load_result_;
   /// @brief exp action releated button
   ///
   /// @brief exp action start button

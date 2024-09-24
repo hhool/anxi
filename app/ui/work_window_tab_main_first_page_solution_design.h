@@ -140,12 +140,12 @@ class WorkWindowFirstPageTh3pointBending : public DuiLib::CNotifyPump,
   WorkWindow* pOwner_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
   std::string t_prefix_;
-  DuiLib::CEditUI* edit_elastic_;
-  DuiLib::CEditUI* edit_density_;
-  DuiLib::CEditUI* edit_max_stress_;
-  DuiLib::CEditUI* edit_stress_ratio_;
-  DuiLib::CEditUI* edit_static_load_;
-  DuiLib::CEditUI* edit_amplitude_;
+  DuiLib::CEditUI* edit_elastic_ = nullptr;
+  DuiLib::CEditUI* edit_density_ = nullptr;
+  DuiLib::CEditUI* edit_max_stress_ = nullptr;
+  DuiLib::CEditUI* edit_stress_ratio_ = nullptr;
+  DuiLib::CEditUI* edit_static_load_ = nullptr;
+  DuiLib::CEditUI* edit_amplitude_ = nullptr;
 };
 
 class WorkWindowFirstPageVibrationBending : public DuiLib::CNotifyPump,

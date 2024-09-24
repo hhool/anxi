@@ -23,6 +23,14 @@
 namespace anx {
 namespace device {
 namespace stload {
+class STResult {
+public:
+	STResult() : pos_(0), load_(0), status_(0) {}
+	double pos_;
+	double load_;
+	uint32_t status_;
+};
+
 class STLoadHelper {
  public:
   static bool InitStLoad();
@@ -30,6 +38,8 @@ class STLoadHelper {
 
   static anx::device::stload::STLoadLoader st_load_loader_;
   static bool Is_Stload_Simulation();
+
+  static int32_t STLoadSetup();
 
  private:
   static bool is_stload_simulation_;
