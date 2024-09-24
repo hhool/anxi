@@ -867,5 +867,23 @@ void WorkWindow::ClearArgsFreqNum() {
   btn_args_area_value_freq_num_->SetText(_T("0"));
 }
 
+void WorkWindow::UpdateArgsArea(int64_t cycle_count,
+                                double freq,
+                                double amplitude,
+                                double static_load) {
+  // update cycle count
+  DuiLib::CDuiString value;
+  value.Format(_T("%d"), cycle_count);
+  btn_args_area_value_freq_num_->SetText(value);
+  // update freq
+  value.Format(_T("%.2f"), freq / kMultiFactor);
+  btn_args_area_value_freq_->SetText(value);
+  // update amplitude
+  value.Format(_T("%.2f"), amplitude / kMultiFactor);
+  btn_args_area_value_amplitude_->SetText(value);
+  // update static load
+  value.Format(_T("%.2f"), static_load / kMultiFactor);
+  btn_args_area_value_static_load_->SetText(value);
+}
 }  // namespace ui
 }  // namespace anx

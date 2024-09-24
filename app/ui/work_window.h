@@ -156,6 +156,10 @@ class WorkWindow : public DuiLib::WindowImplBase,
 
  protected:
   void ClearArgsFreqNum();
+  void UpdateArgsArea(int64_t cycle_count,
+                      double freq,
+                      double amplitude,
+                      double static_load);
 
  private:
   DuiLib::WindowImplBase* pOwner_;

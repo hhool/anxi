@@ -80,6 +80,9 @@ class WorkWindowSecondPageGraph : public DuiLib::CNotifyPump,
   void Bind() override;
   void Unbind() override;
 
+ public:
+  void ClearGraphData();
+
  protected:
   void UpdateGraphCtrl(
       std::string name,

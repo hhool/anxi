@@ -462,9 +462,12 @@ void WorkWindowSecondPageData::OnExpResume() {
   UpdateUIWithExpStatus(1);
   is_exp_state_ = 1;
 }
-/// TODO(hhool): add the function to clear the data
-/// save the data to the file?
+
 void WorkWindowSecondPageData::ClearExpData() {
+  exp_time_interval_num_ = 0;
+  exp_start_date_time_ = time(nullptr);
+
+  UpdateUIWithExpStatus(1);
   list_data_->RemoveAll();
 }
 

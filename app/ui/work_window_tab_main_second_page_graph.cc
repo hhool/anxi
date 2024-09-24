@@ -654,6 +654,41 @@ void WorkWindowSecondPageGraph::Unbind() {
   }
 }
 
+void WorkWindowSecondPageGraph::ClearGraphData() {
+  if (page_graph_amplitude_ctrl_ != nullptr) {
+    page_graph_amplitude_ctrl_->Release();
+    page_graph_amplitude_ctrl_.reset();
+  }
+  if (page_graph_stress_ctrl_ != nullptr) {
+    page_graph_stress_ctrl_->Release();
+    page_graph_stress_ctrl_.reset();
+  }
+  exp_data_info_->exp_data_view_current_start_no_ = 1;
+  exp_data_info_->exp_data_table_no_ = 0;
+  UpdateControlFromSettings();
+  // init the graph control
+  double x_min = anx::common::GetCurrrentDateTime();
+  double x_duration = minutes_to_vartime(graphctrl_sample_total_minutes_);
+  {
+    CActiveXUI* activex = static_cast<CActiveXUI*>(
+        paint_manager_ui_->FindControl(_T("graph_amplitude_canvas")));
+    page_graph_amplitude_ctrl_.reset(
+        new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
+            graph_ctrl_event_.get(), activex, "amp", x_min, x_duration, 15, 6,
+            kYAxisAmpInitialValue, exp_data_info_->mode_ ? false : true));
+    page_graph_amplitude_ctrl_->Init(std::vector<Element2DPoint>());
+  }
+  {
+    CActiveXUI* activex = static_cast<CActiveXUI*>(
+        paint_manager_ui_->FindControl(_T("graph_stress_canvas")));
+    page_graph_stress_ctrl_.reset(
+        new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
+            graph_ctrl_event_.get(), activex, "stress", x_min, x_duration, 8, 6,
+            kYAxisStressInitialValue, exp_data_info_->mode_ ? false : true));
+    page_graph_stress_ctrl_->Init(std::vector<Element2DPoint>());
+  }
+}
+
 void WorkWindowSecondPageGraph::UpdateGraphCtrl(
     std::string name,
     const std::vector<std::map<std::string, std::string>>& result) {

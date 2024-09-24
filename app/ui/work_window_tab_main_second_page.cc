@@ -664,6 +664,31 @@ void WorkWindowSecondPage::OnButtonStaticAircraftReset() {
   // reset the data
   // TODO(hhool): add reset action
   this->pWorkWindow_->ClearArgsFreqNum();
+  // drop the exp_data table
+  anx::db::helper::DropDataTable(anx::db::helper::kDefaultDatabasePathname,
+                                 anx::db::helper::kTableExpData);
+  // create the exp_data table
+  std::string db_filepathname;
+  anx::db::helper::DefaultDatabasePathname(&db_filepathname);
+  auto db = anx::db::DatabaseFactory::Instance()->CreateOrGetDatabase(
+      db_filepathname);
+  db->Execute(anx::db::helper::sql::kCreateTableAmpSqlFormat);
+
+  /// @brief get the exp data sample settings and set the exp start time
+  /// and exp sample interval
+  std::unique_ptr<anx::device::DeviceExpDataSampleSettings> dedss =
+      anx::device::LoadDeviceExpDataSampleSettingsDefaultResource();
+  exp_data_info_.exp_data_table_no_ = 0;
+  exp_data_info_.exp_time_interval_num_ = 0;
+  exp_data_info_.exp_start_time_ms_ = anx::common::GetCurrentTimeMillis();
+  exp_data_info_.exp_sample_interval_ms_ = dedss->sampling_interval_ * 100;
+
+  // clear graph data
+  WorkWindowSecondPageGraph* graph_page =
+      reinterpret_cast<WorkWindowSecondPageGraph*>(
+          work_window_second_page_graph_notify_pump_.get());
+  graph_page->ClearGraphData();
+  // clear the exp data
   WorkWindowSecondPageData* data_page =
       reinterpret_cast<WorkWindowSecondPageData*>(
           work_window_second_page_data_notify_pump_.get());
@@ -931,6 +956,7 @@ void WorkWindowSecondPage::OnDataReceived(
       // TODO(hhool): random KHz, um, MPa
       double um = (rand() % 15) * kMultiFactor;
       double MPa = (rand() % 8) * kMultiFactor;
+      this->pWorkWindow_->UpdateArgsArea(cycle_count, KHz, MPa, um);
       double date = anx::common::GetCurrrentDateTime() * kMultiFactor;
       exp_data_info_.amp_freq_ = KHz;
       exp_data_info_.amp_um_ = um;
