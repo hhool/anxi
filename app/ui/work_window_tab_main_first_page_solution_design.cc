@@ -25,7 +25,6 @@
 #include "app/ui/work_window_menu_design.h"
 #include "app/ui/work_window_menu_store.h"
 
-
 ////////////////////////////////////////////////////////////////////////////////
 namespace anx {
 namespace ui {
@@ -238,6 +237,7 @@ PageSolutionDesignBase::ExpDesignHeaderFromControl() {
 
   std::string name = anx::common::UnicodeToUTF8(value.GetData());
   anx::esolution::ExpDesignHeader exp_design_header;
+  exp_design_header.solution_type_ = design_type_;
   memcpy(exp_design_header.name_, name.data(), 255);
   return std::unique_ptr<anx::esolution::ExpDesignHeader>(
       new anx::esolution::ExpDesignHeader(exp_design_header));
@@ -310,10 +310,15 @@ WorkWindowFirstPageAxiallySymmetrical::WorkWindowFirstPageAxiallySymmetrical(
     : PageSolutionDesignBase(paint_manager_ui,
                              anx::esolution::kSolutionName_Axially_Symmetrical),
       pOwner_(pOwner),
-      paint_manager_ui_(paint_manager_ui) {}
+      paint_manager_ui_(paint_manager_ui),
+      t_prefix_(anx::esolution::ToTailPrefixName(design_type_)) {
+  paint_manager_ui_->AddNotifier(this);
+}
 
 WorkWindowFirstPageAxiallySymmetrical::
     ~WorkWindowFirstPageAxiallySymmetrical() {}
+
+void WorkWindowFirstPageAxiallySymmetrical::Notify(TNotifyUI& msg) {}
 
 void WorkWindowFirstPageAxiallySymmetrical::OnClick(TNotifyUI& msg) {
   if (msg.sType == kClick) {
@@ -321,6 +326,10 @@ void WorkWindowFirstPageAxiallySymmetrical::OnClick(TNotifyUI& msg) {
       // TODO(hhool):
     }
   }
+}
+
+void WorkWindowFirstPageAxiallySymmetrical::InitPage() {
+  PageSolutionDesignBase::InitPage();
 }
 
 void WorkWindowFirstPageAxiallySymmetrical::
@@ -506,12 +515,18 @@ WorkWindownFirstPageStressAjustable::WorkWindownFirstPageStressAjustable(
 
 WorkWindownFirstPageStressAjustable::~WorkWindownFirstPageStressAjustable() {}
 
+void WorkWindownFirstPageStressAjustable::Notify(TNotifyUI& msg) {}
+
 void WorkWindownFirstPageStressAjustable::OnClick(TNotifyUI& msg) {
   if (msg.sType == kClick) {
     if (msg.pSender->GetName() == _T("solution_design_refresh")) {
       // TODO(hhool):
     }
   }
+}
+
+void WorkWindownFirstPageStressAjustable::InitPage() {
+  PageSolutionDesignBase::InitPage();
 }
 
 void WorkWindownFirstPageStressAjustable::
@@ -683,15 +698,114 @@ WorkWindowFirstPageTh3pointBending::WorkWindowFirstPageTh3pointBending(
     : PageSolutionDesignBase(paint_manager_ui,
                              anx::esolution::kSolutionName_Th3point_Bending),
       pOwner_(pOwner),
-      paint_manager_ui_(paint_manager_ui) {}
+      paint_manager_ui_(paint_manager_ui),
+      t_prefix_(anx::esolution::ToTailPrefixName(design_type_)) {
+  paint_manager_ui_->AddNotifier(this);
+}
 
 WorkWindowFirstPageTh3pointBending::~WorkWindowFirstPageTh3pointBending() {}
+
+void WorkWindowFirstPageTh3pointBending::Notify(TNotifyUI& msg) {
+  if (msg.pSender == edit_elastic_) {
+    if (msg.sType == DUI_MSGTYPE_KILLFOCUS) {
+      // check the value of edit_elastic_
+      DuiLib::CDuiString value = edit_elastic_->GetText();
+      float f_elastic_modulus_GPa_ = static_cast<float>(_ttof(value.GetData()));
+      if (f_elastic_modulus_GPa_ <= 0.0f) {
+        // show error message
+        MessageBox(paint_manager_ui_->GetPaintWindow(),
+                   _T("Elastic modulus must be greater than 0.0"), _T("Error"),
+                   MB_OK);
+      }
+    }
+  } else if (msg.pSender == edit_density_) {
+    if (msg.sType == DUI_MSGTYPE_KILLFOCUS) {
+      // check the value of edit_density_
+      DuiLib::CDuiString value = edit_density_->GetText();
+      float f_density_kg_m3_ = static_cast<float>(_ttof(value.GetData()));
+      if (f_density_kg_m3_ <= 0.0f) {
+        // show error message
+        MessageBox(paint_manager_ui_->GetPaintWindow(),
+                   _T("Density must be greater than 0.0"), _T("Error"), MB_OK);
+      }
+    }
+  } else if (msg.pSender == edit_max_stress_) {
+    if (msg.sType == DUI_MSGTYPE_KILLFOCUS) {
+      // check the value of edit_max_stress_
+      DuiLib::CDuiString value = edit_max_stress_->GetText();
+      float f_max_stress_MPa_ = static_cast<float>(_ttof(value.GetData()));
+      if (f_max_stress_MPa_ <= 0.0f) {
+        // show error message
+        MessageBox(paint_manager_ui_->GetPaintWindow(),
+                   _T("Max stress must be greater than 0.0"), _T("Error"),
+                   MB_OK);
+      }
+    }
+  } else if (msg.pSender == edit_stress_ratio_) {
+    if (msg.sType == DUI_MSGTYPE_KILLFOCUS) {
+      // check the value of edit_stress_ratio_
+      DuiLib::CDuiString value = edit_stress_ratio_->GetText();
+      float f_stress_ratio_ = static_cast<float>(_ttof(value.GetData()));
+      if (f_stress_ratio_ <= 0.0f) {
+        // show error message
+        MessageBox(paint_manager_ui_->GetPaintWindow(),
+                   _T("Stress ratio must be greater than 0.0"), _T("Error"),
+                   MB_OK);
+      }
+    }
+  }
+}
 
 void WorkWindowFirstPageTh3pointBending::OnClick(TNotifyUI& msg) {
   if (msg.sType == kClick) {
     if (msg.pSender->GetName() == _T("solution_design_refresh")) {
       // TODO(hhool):
     }
+  }
+}
+
+void WorkWindowFirstPageTh3pointBending::InitPage() {
+  __super::InitPage();
+
+  DuiLib::CDuiString tail_prefix;
+  tail_prefix.Append(
+      (LPCTSTR)(anx::common::string2wstring(t_prefix_.c_str()).c_str()));
+  {
+    DuiLib::CDuiString name_elastic = _T("tm_page_first_left_elastic");
+    name_elastic.Append(tail_prefix);
+    edit_elastic_ = static_cast<DuiLib::CEditUI*>(
+        paint_manager_ui_->FindControl(name_elastic));
+  }
+  {
+    DuiLib::CDuiString name_density = _T("tm_page_first_left_density");
+    name_density.Append(tail_prefix);
+    edit_density_ = static_cast<DuiLib::CEditUI*>(
+        paint_manager_ui_->FindControl(name_density));
+  }
+  {
+    DuiLib::CDuiString name_max_stress = _T("tm_page_first_left_max_stress");
+    name_max_stress.Append(tail_prefix);
+    edit_max_stress_ = static_cast<DuiLib::CEditUI*>(
+        paint_manager_ui_->FindControl(name_max_stress));
+  }
+  {
+    DuiLib::CDuiString name_stress_ratio =
+        _T("tm_page_first_left_ratio_stress");
+    name_stress_ratio.Append(tail_prefix);
+    edit_stress_ratio_ = static_cast<DuiLib::CEditUI*>(
+        paint_manager_ui_->FindControl(name_stress_ratio));
+  }
+  {
+    DuiLib::CDuiString name_static_load = _T("tm_page_first_left_static_load");
+    name_static_load.Append(tail_prefix);
+    edit_static_load_ = static_cast<DuiLib::CEditUI*>(
+        paint_manager_ui_->FindControl(name_static_load));
+  }
+  {
+    DuiLib::CDuiString name_amplitude = _T("tm_page_first_left_amplitude");
+    name_amplitude.Append(tail_prefix);
+    edit_amplitude_ = static_cast<DuiLib::CEditUI*>(
+        paint_manager_ui_->FindControl(name_amplitude));
   }
 }
 
@@ -704,8 +818,9 @@ void WorkWindowFirstPageTh3pointBending::
   anx::esolution::ExpDesignResult* result = solution_design_->result_.get();
 
   // update result
-  DuiLib::CDuiString tail_prefix = _T("");
-  tail_prefix = _T("_th3point");
+  DuiLib::CDuiString tail_prefix;
+  tail_prefix.Append(
+      (LPCTSTR)(anx::common::string2wstring(t_prefix_.c_str()).c_str()));
   anx::esolution::ExpDesignResultTh3pointBending* result_th3point =
       reinterpret_cast<anx::esolution::ExpDesignResultTh3pointBending*>(result);
   {
@@ -780,10 +895,9 @@ void WorkWindowFirstPageTh3pointBending::
 
 std::unique_ptr<anx::esolution::ExpDesignResult>
 anx::ui::WorkWindowFirstPageTh3pointBending::ExpDesignResultFromControl() {
-  std::string t_prefix = anx::esolution::ToTailPrefixName(design_type_);
   DuiLib::CDuiString tail_prefix;
   tail_prefix.Append(
-      (LPCTSTR)(anx::common::string2wstring(t_prefix.c_str()).c_str()));
+      (LPCTSTR)(anx::common::string2wstring(t_prefix_.c_str()).c_str()));
   anx::esolution::ExpDesignResultTh3pointBending exp_design_result_th3point;
   DuiLib::CDuiString name_amplitude = _T("tm_page_first_left_amplitude");
   DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
@@ -867,9 +981,14 @@ WorkWindowFirstPageVibrationBending::WorkWindowFirstPageVibrationBending(
     : PageSolutionDesignBase(paint_manager_ui,
                              anx::esolution::kSolutionName_Vibration_Bending),
       pOwner_(pOwner),
-      paint_manager_ui_(paint_manager_ui) {}
+      paint_manager_ui_(paint_manager_ui),
+      t_prefix_(anx::esolution::ToTailPrefixName(design_type_)) {
+  paint_manager_ui_->AddNotifier(this);
+}
 
 WorkWindowFirstPageVibrationBending::~WorkWindowFirstPageVibrationBending() {}
+
+void WorkWindowFirstPageVibrationBending::Notify(TNotifyUI& msg) {}
 
 void WorkWindowFirstPageVibrationBending::OnClick(TNotifyUI& msg) {
   if (msg.sType == kClick) {
@@ -877,6 +996,10 @@ void WorkWindowFirstPageVibrationBending::OnClick(TNotifyUI& msg) {
       // TODO(hhool):
     }
   }
+}
+
+void WorkWindowFirstPageVibrationBending::InitPage() {
+  __super::InitPage();
 }
 
 void WorkWindowFirstPageVibrationBending::

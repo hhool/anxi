@@ -232,7 +232,7 @@ std::string ExpDesignResultAxially::ToXml(bool close_tag) const {
 //////////////////////////
 // ExpDesignResultStressesAdjustable
 ExpDesignResultStressesAdjustable::ExpDesignResultStressesAdjustable()
-    : ExpDesignResult1(0) {
+    : ExpDesignResult1(anx::esolution::kSolutionName_Stresses_Adjustable) {
   // do something
 }
 
@@ -253,7 +253,7 @@ std::string ExpDesignResultStressesAdjustable::ToXml(bool close_tag) const {
 //////////////////////////
 // ExpDesignResultTh3pointBending
 ExpDesignResultTh3pointBending::ExpDesignResultTh3pointBending()
-    : ExpDesignResult0(2) {
+    : ExpDesignResult0(anx::esolution::kSolutionName_Th3point_Bending) {
   // do something
 }
 
@@ -281,7 +281,7 @@ std::string ExpDesignResultTh3pointBending::ToXml(bool close_tag) const {
 //////////////////////////
 // ExpDesignResultVibrationBending
 ExpDesignResultVibrationBending::ExpDesignResultVibrationBending()
-    : ExpDesignResult0(3) {
+    : ExpDesignResult0(anx::esolution::kSolutionName_Vibration_Bending) {
   // do something
 }
 

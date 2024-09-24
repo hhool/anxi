@@ -38,6 +38,7 @@ namespace anx {
 namespace ui {
 
 class WorkWindowFirstPageAxiallySymmetrical : public DuiLib::CNotifyPump,
+                                              public DuiLib::INotifyUI,
                                               public PageSolutionDesignBase {
  public:
   explicit WorkWindowFirstPageAxiallySymmetrical(
@@ -46,6 +47,9 @@ class WorkWindowFirstPageAxiallySymmetrical : public DuiLib::CNotifyPump,
   ~WorkWindowFirstPageAxiallySymmetrical();
 
  public:
+  void Notify(TNotifyUI& msg) override;
+
+ public:
   DUI_DECLARE_MESSAGE_MAP()
   void OnClick(TNotifyUI& msg);  // NOLINT
 
@@ -54,6 +58,7 @@ class WorkWindowFirstPageAxiallySymmetrical : public DuiLib::CNotifyPump,
       override;
 
  protected:
+  void InitPage() override;
   /// @brief Update the main tab page of work window with
   /// solution_design_.result_
   void UpadateTabMainFirstPageElementViewResult() override;
@@ -64,9 +69,11 @@ class WorkWindowFirstPageAxiallySymmetrical : public DuiLib::CNotifyPump,
  private:
   WorkWindow* pOwner_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
+  std::string t_prefix_;
 };
 
 class WorkWindownFirstPageStressAjustable : public DuiLib::CNotifyPump,
+                                            public DuiLib::INotifyUI,
                                             public PageSolutionDesignBase {
  public:
   explicit WorkWindownFirstPageStressAjustable(
@@ -75,6 +82,9 @@ class WorkWindownFirstPageStressAjustable : public DuiLib::CNotifyPump,
   ~WorkWindownFirstPageStressAjustable();
 
  public:
+  void Notify(TNotifyUI& msg) override;
+
+ public:
   DUI_DECLARE_MESSAGE_MAP()
   void OnClick(TNotifyUI& msg);  // NOLINT
 
@@ -83,6 +93,7 @@ class WorkWindownFirstPageStressAjustable : public DuiLib::CNotifyPump,
       override;
 
  protected:
+  void InitPage() override;
   /// @brief Update the main tab page of work window with
   /// solution_design_.result_
   void UpadateTabMainFirstPageElementViewResult() override;
@@ -93,25 +104,31 @@ class WorkWindownFirstPageStressAjustable : public DuiLib::CNotifyPump,
  private:
   WorkWindow* pOwner_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
+  std::string t_prefix_;
 };
 
 class WorkWindowFirstPageTh3pointBending : public DuiLib::CNotifyPump,
+                                           public DuiLib::INotifyUI,
                                            public PageSolutionDesignBase {
  public:
   explicit WorkWindowFirstPageTh3pointBending(
       WorkWindow* pOwner,
       DuiLib::CPaintManagerUI* paint_manager_ui);
-  ~WorkWindowFirstPageTh3pointBending();
+  ~WorkWindowFirstPageTh3pointBending() override;
+
+ public:
+  void Notify(TNotifyUI& msg) override;
 
  public:
   DUI_DECLARE_MESSAGE_MAP()
-  void OnClick(TNotifyUI& msg); // NOLINT
+  void OnClick(TNotifyUI& msg);  // NOLINT
 
  public:
   std::unique_ptr<anx::esolution::SolutionDesign> SolutionDesignFromPage()
       override;
 
  protected:
+  void InitPage() override;
   /// @brief Update the main tab page of work window with
   /// solution_design_.result_
   void UpadateTabMainFirstPageElementViewResult() override;
@@ -122,9 +139,17 @@ class WorkWindowFirstPageTh3pointBending : public DuiLib::CNotifyPump,
  private:
   WorkWindow* pOwner_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
+  std::string t_prefix_;
+  DuiLib::CEditUI* edit_elastic_;
+  DuiLib::CEditUI* edit_density_;
+  DuiLib::CEditUI* edit_max_stress_;
+  DuiLib::CEditUI* edit_stress_ratio_;
+  DuiLib::CEditUI* edit_static_load_;
+  DuiLib::CEditUI* edit_amplitude_;
 };
 
 class WorkWindowFirstPageVibrationBending : public DuiLib::CNotifyPump,
+                                            public DuiLib::INotifyUI,
                                             public PageSolutionDesignBase {
  public:
   explicit WorkWindowFirstPageVibrationBending(
@@ -133,14 +158,18 @@ class WorkWindowFirstPageVibrationBending : public DuiLib::CNotifyPump,
   ~WorkWindowFirstPageVibrationBending();
 
  public:
+  void Notify(TNotifyUI& msg) override;
+
+ public:
   DUI_DECLARE_MESSAGE_MAP()
-  void OnClick(TNotifyUI& msg); // NOLINT
+  void OnClick(TNotifyUI& msg);  // NOLINT
 
  public:
   std::unique_ptr<anx::esolution::SolutionDesign> SolutionDesignFromPage()
       override;
 
  protected:
+  void InitPage() override;
   /// @brief Update the main tab page of work window with
   /// solution_design_.result_
   void UpadateTabMainFirstPageElementViewResult() override;
@@ -151,6 +180,7 @@ class WorkWindowFirstPageVibrationBending : public DuiLib::CNotifyPump,
  private:
   WorkWindow* pOwner_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
+  std::string t_prefix_;
 };
 
 }  // namespace ui

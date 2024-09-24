@@ -51,7 +51,7 @@ class PageSolutionDesignBase {
   /// InitPage is called by the work window when the page is created
   /// and the page is shown.
   /// InitPage -> SolutionDesignFromPage
-  void InitPage();
+  virtual void InitPage();
 
   /// @brief Load the solution design file from the file path
   /// and set the control data with the solution design

@@ -165,6 +165,10 @@ WorkWindow::~WorkWindow() {
       reinterpret_cast<WorkWindowThirdPage*>(
           tab_main_pages_["WorkWindowThirdPage"].release());
   delete work_window_third_page;
+  {
+    auto it = tab_main_pages_.find("WorkWindowThirdPage");
+    tab_main_pages_.erase(it);
+  }
 
   work_window_second_page_virtual_wnd_->Unbind();
   work_window_second_page_virtual_wnd_ = nullptr;
@@ -172,13 +176,44 @@ WorkWindow::~WorkWindow() {
       reinterpret_cast<WorkWindowSecondPage*>(
           tab_main_pages_["WorkWindowSecondPage"].release());
   delete work_window_second_page;
+  {
+    auto it = tab_main_pages_.find("WorkWindowSecondPage");
+    tab_main_pages_.erase(it);
+  }
 
   work_window_status_bar_virtual_wnd_->Unbind();
   work_window_status_bar_virtual_wnd_ = nullptr;
   WorkWindowStatusBar* work_window_status_bar =
       reinterpret_cast<WorkWindowStatusBar*>(work_window_status_bar_.release());
   delete work_window_status_bar;
+
   // remove tab_main_pages_
+  for (auto& tab_main_page : tab_main_pages_) {
+    PageSolutionDesignBase* base = reinterpret_cast<PageSolutionDesignBase*>(
+        tab_main_page.second.release());
+    if (solution_type_ == anx::esolution::kSolutionName_Axially_Symmetrical) {
+      WorkWindowFirstPageAxiallySymmetrical* page_axially =
+          reinterpret_cast<WorkWindowFirstPageAxiallySymmetrical*>(base);
+      delete page_axially;
+    } else if (solution_type_ ==
+               anx::esolution::kSolutionName_Stresses_Adjustable) {
+      WorkWindownFirstPageStressAjustable* page_stress =
+          reinterpret_cast<WorkWindownFirstPageStressAjustable*>(base);
+      delete page_stress;
+    } else if (solution_type_ ==
+               anx::esolution::kSolutionName_Th3point_Bending) {
+      WorkWindowFirstPageTh3pointBending* page_th3point =
+          reinterpret_cast<WorkWindowFirstPageTh3pointBending*>(base);
+      delete page_th3point;
+    } else if (solution_type_ ==
+               anx::esolution::kSolutionName_Vibration_Bending) {
+      WorkWindowFirstPageVibrationBending* page_vibration =
+          reinterpret_cast<WorkWindowFirstPageVibrationBending*>(base);
+      delete page_vibration;
+    } else {
+      assert(false && "Invalid solution type");
+    }
+  }
   tab_main_pages_.clear();
 
   // close devices all
@@ -312,6 +347,22 @@ void WorkWindow::Notify(DuiLib::TNotifyUI& msg) {
                                     WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
     dialog_com_record_2000c->CenterWindow();
     dialog_com_record_2000c->ShowWindow(true, true);
+  } else if (msg.sType == DUI_MSGTYPE_KILLFOCUS) {
+    DuiLib::CDuiString name = msg.pSender->GetName();
+    std::string name_str = anx::common::wstring2string(name.GetData());
+    LOG_F(LG_INFO) << "name:" << name_str;
+    // compare name_str partion compare with
+    // "tm_page_first_left_max_stress" and "tm_page_first_left_ratio_stress"
+    if (name_str.find("tm_page_first_left_max_stress") != std::string::npos) {
+      DuiLib::CDuiString max_stress = msg.pSender->GetText();
+      btn_args_area_value_max_stress_->SetText(max_stress);
+    } else if (name_str.find("tm_page_first_left_ratio_stress") !=
+               std::string::npos) {
+      DuiLib::CDuiString stress_ratio = msg.pSender->GetText();
+      btn_args_area_value_stress_ratio_->SetText(stress_ratio);
+    } else {
+      // do nothing
+    }
   } else {
     // DuiLib::WindowImplBase::Notify(msg);
     __super::Notify(msg);
@@ -630,6 +681,29 @@ void WorkWindow::UpdateArgsAreaWithSolution() {
                      ->f_eamplitude_);
     btn_args_area_value_amplitude_->SetText(value);
   }
+  {
+    if (design->result_->solution_type_ ==
+        anx::esolution::kSolutionName_Stresses_Adjustable) {
+      DuiLib::CDuiString value;
+      value.Format(
+          _T("%.2f"),
+          reinterpret_cast<anx::esolution::ExpDesignResultStressesAdjustable*>(
+              design->result_.get())
+              ->f_static_load_MPa_);
+      btn_args_area_value_static_load_->SetText(value);
+    } else if (design->result_->solution_type_ ==
+               anx::esolution::kSolutionName_Th3point_Bending) {
+      DuiLib::CDuiString value;
+      value.Format(
+          _T("%.2f"),
+          reinterpret_cast<anx::esolution::ExpDesignResultTh3pointBending*>(
+              design->result_.get())
+              ->f_static_load_MPa_);
+      btn_args_area_value_static_load_->SetText(value);
+    } else {
+      // TODO(hhool): do nothing;
+    }
+  }
 }
 
 int32_t WorkWindow::LoadFileWithDialog() {
@@ -718,7 +792,7 @@ void WorkWindow::OnMenuDeviceConnectClicked(DuiLib::TNotifyUI& msg) {
   }
   ret = OpenDeviceCom(anx::device::kDeviceCom_StaticLoad);
   if (ret == 0) {
-	  is_device_stload_connected_ = true;
+    is_device_stload_connected_ = true;
   } else if (ret == -1) {
     // show status bar message
   } else if (ret == -2) {
@@ -745,7 +819,7 @@ bool WorkWindow::IsDeviceComInterfaceConnected() const {
 }
 
 bool WorkWindow::IsSLDeviceComInterfaceConnected() const {
-	return is_device_stload_connected_;
+  return is_device_stload_connected_;
 }
 
 bool WorkWindow::IsULDeviceComInterfaceConnected() const {
