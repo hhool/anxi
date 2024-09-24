@@ -955,9 +955,6 @@ void WorkWindow::UpdateArgsArea(int64_t cycle_count,
   // update amplitude
   value.Format(_T("%.2f"), amplitude / kMultiFactor);
   btn_args_area_value_amplitude_->SetText(value);
-  // update static load
-  value.Format(_T("%.2f"), static_load / kMultiFactor);
-  btn_args_area_value_static_load_->SetText(value);
 }
 }  // namespace ui
 }  // namespace anx

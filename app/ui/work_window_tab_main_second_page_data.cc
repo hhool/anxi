@@ -184,6 +184,15 @@ void WorkWindowSecondPageData::Notify(TNotifyUI& msg) {
     } else {
       // do nothing
     }
+  } else if (msg.pSender == edit_sample_start_pos_ ||
+             msg.pSender == edit_sample_end_pos_ ||
+             msg.pSender == edit_sample_interval_) {
+    if (msg.sType == DUI_MSGTYPE_TEXTCHANGED) {
+      RefreshSampleTimeControl();
+      SaveSettingsFromControl();
+    }
+  } else {
+    // do nothing
   }
 }
 
@@ -307,13 +316,14 @@ WorkWindowSecondPageData::UpdateExpClipTimeFromControl() {
   sample_start_pos = _ttoll(edit_sample_start_pos_->GetText());
   sample_end_pos = _ttoll(edit_sample_end_pos_->GetText());
   sample_time_interval = _ttoll(edit_sample_interval_->GetText());
-  if (sample_start_pos >= sample_end_pos) {
+  if (sample_start_pos > sample_end_pos) {
     return nullptr;
   }
   if (sample_time_interval <= 0) {
     return nullptr;
   }
-  if (sample_time_interval > (sample_end_pos - sample_start_pos)) {
+  if (sample_time_interval > (sample_end_pos - sample_start_pos) &&
+      sample_end_pos > 0) {
     return nullptr;
   }
   if (option_sample_mode_exp_->IsSelected()) {
@@ -455,10 +465,13 @@ void WorkWindowSecondPageData::OnExpResume() {
 
 void WorkWindowSecondPageData::ClearExpData() {
   exp_time_interval_num_ = 0;
-  exp_start_date_time_ = time(nullptr);
-
-  UpdateUIWithExpStatus(1);
   list_data_->RemoveAll();
+  if (is_exp_state_ == 0) {
+    UpdateUIWithExpStatus(0);
+  } else if (is_exp_state_ == 1) {
+    exp_start_date_time_ = time(nullptr);
+    UpdateUIWithExpStatus(1);
+  }
 }
 
 void anx::ui::WorkWindowSecondPageData::ExportToCSV(int64_t start_time) {

@@ -592,7 +592,7 @@ void WorkWindowSecondPageGraph::Bind() {
         paint_manager_ui_->FindControl(_T("graph_amplitude_canvas")));
     page_graph_amplitude_ctrl_.reset(
         new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
-            graph_ctrl_event_.get(), activex, "amp", x_min, x_duration, 15, 6,
+            graph_ctrl_event_.get(), activex, "amp", x_min, x_duration, y_axsi_amp_total_, 6,
             kYAxisAmpInitialValue, exp_data_info_->mode_ ? false : true));
     page_graph_amplitude_ctrl_->Init(std::vector<Element2DPoint>());
   }
@@ -601,7 +601,7 @@ void WorkWindowSecondPageGraph::Bind() {
         paint_manager_ui_->FindControl(_T("graph_stress_canvas")));
     page_graph_stress_ctrl_.reset(
         new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
-            graph_ctrl_event_.get(), activex, "stress", x_min, x_duration, 8, 6,
+            graph_ctrl_event_.get(), activex, "stress", x_min, x_duration, y_axsi_st_total_, 6,
             kYAxisStressInitialValue, exp_data_info_->mode_ ? false : true));
     page_graph_stress_ctrl_->Init(std::vector<Element2DPoint>());
   }
@@ -653,7 +653,7 @@ void WorkWindowSecondPageGraph::ClearGraphData() {
         paint_manager_ui_->FindControl(_T("graph_amplitude_canvas")));
     page_graph_amplitude_ctrl_.reset(
         new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
-            graph_ctrl_event_.get(), activex, "amp", x_min, x_duration, 15, 6,
+            graph_ctrl_event_.get(), activex, "amp", x_min, x_duration, y_axsi_amp_total_, 6,
             kYAxisAmpInitialValue, exp_data_info_->mode_ ? false : true));
     page_graph_amplitude_ctrl_->Init(std::vector<Element2DPoint>());
   }
@@ -662,7 +662,7 @@ void WorkWindowSecondPageGraph::ClearGraphData() {
         paint_manager_ui_->FindControl(_T("graph_stress_canvas")));
     page_graph_stress_ctrl_.reset(
         new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
-            graph_ctrl_event_.get(), activex, "stress", x_min, x_duration, 8, 6,
+            graph_ctrl_event_.get(), activex, "stress", x_min, x_duration, y_axsi_st_total_, 6,
             kYAxisStressInitialValue, exp_data_info_->mode_ ? false : true));
     page_graph_stress_ctrl_->Init(std::vector<Element2DPoint>());
   }
@@ -697,7 +697,7 @@ void WorkWindowSecondPageGraph::UpdateGraphCtrl(
         paint_manager_ui_->FindControl(_T("graph_amplitude_canvas")));
     page_graph_amplitude_ctrl_.reset(
         new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
-            graph_ctrl_event_.get(), activex, "amp", x_min, x_duration, 15, 6,
+            graph_ctrl_event_.get(), activex, "amp", x_min, x_duration, y_axsi_amp_total_, 6,
             kYAxisAmpInitialValue, true));
     page_graph_amplitude_ctrl_->Init(element_list);
   } else if (name == "stress") {
@@ -726,7 +726,7 @@ void WorkWindowSecondPageGraph::UpdateGraphCtrl(
         paint_manager_ui_->FindControl(_T("graph_stress_canvas")));
     page_graph_stress_ctrl_.reset(
         new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
-            graph_ctrl_event_.get(), activex, "stress", x_min, x_duration, 8, 6,
+            graph_ctrl_event_.get(), activex, "stress", x_min, x_duration, y_axsi_st_total_, 6,
             kYAxisStressInitialValue, true));
     page_graph_stress_ctrl_->Init(element_list);
   }
@@ -967,7 +967,7 @@ void WorkWindowSecondPageGraph::OnExpStart() {
         paint_manager_ui_->FindControl(_T("graph_amplitude_canvas")));
     page_graph_amplitude_ctrl_.reset(
         new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
-            graph_ctrl_event_.get(), activex, "amp", x_min, x_duration, 15, 6,
+            graph_ctrl_event_.get(), activex, "amp", x_min, x_duration, y_axsi_amp_total_, 6,
             kYAxisAmpInitialValue, exp_data_info_->mode_ ? false : true));
     page_graph_amplitude_ctrl_->Init(std::vector<Element2DPoint>());
   }
@@ -976,7 +976,7 @@ void WorkWindowSecondPageGraph::OnExpStart() {
         paint_manager_ui_->FindControl(_T("graph_stress_canvas")));
     page_graph_stress_ctrl_.reset(
         new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
-            graph_ctrl_event_.get(), activex, "stress", x_min, x_duration, 8, 6,
+            graph_ctrl_event_.get(), activex, "stress", x_min, x_duration, y_axsi_st_total_, 6,
             kYAxisStressInitialValue, exp_data_info_->mode_ ? false : true));
     page_graph_stress_ctrl_->Init(std::vector<Element2DPoint>());
   }

@@ -124,6 +124,10 @@ class WorkWindowSecondPageGraph : public DuiLib::CNotifyPump,
   /// @brief amp start time, stress start time.
   int64_t exp_time_interval_num_;
 
+  int32_t y_axsi_amp_total_ = 20;
+
+  int32_t y_axsi_st_total_ = 20;
+
   /// @brief graph time mode pre hour
   DuiLib::COptionUI* opt_graph_time_mode_pre_hour_;
   /// @brief graph time mode now
