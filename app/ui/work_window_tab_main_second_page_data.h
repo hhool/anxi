@@ -67,7 +67,7 @@ class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
   void Unbind() override;
 
  protected:
-  void RefreshSampleTimeControl();
+  void RefreshSampleTimeControl(bool force=false);
   std::unique_ptr<anx::device::DeviceExpDataSampleSettings>
   UpdateExpClipTimeFromControl();
   void UpdateControlFromSettings();

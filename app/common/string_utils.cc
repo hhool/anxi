@@ -130,6 +130,31 @@ std::string wstring2string(std::wstring wstr) {
   delete[] buffer;
   return result;
 }
+
+std::wstring UTF8ToUnicode(const std::string& str) {
+  std::wstring result;
+  int len = ::MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.size(), NULL, 0);
+  TCHAR* buffer = new TCHAR[len + 1];
+  ::MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.size(), buffer, len);
+  buffer[len] = '\0';
+  result.append(buffer);
+  delete[] buffer;
+  return result;
+}
+
+std::string UnicodeToUTF8(const std::wstring& str) {
+  std::string result;
+  int len = ::WideCharToMultiByte(CP_UTF8, 0, str.c_str(), str.size(), NULL, 0,
+                                  NULL, NULL);
+  char* buffer = new char[len + 1];
+  ::WideCharToMultiByte(CP_UTF8, 0, str.c_str(), str.size(), buffer, len, NULL,
+                        NULL);
+  buffer[len] = '\0';
+  result.append(buffer);
+  delete[] buffer;
+  return result;
+}
+
 #elif defined(__linux__)
 std::string WString2String(const std::wstring& wstr) {
   setlocale(LC_ALL, "en_US.UTF-8");
@@ -155,6 +180,14 @@ std::wstring String2WString(const std::string& str) {
   std::wstring wStrRes = wchDest;
   delete[] wchDest;
   return wStrRes;
+}
+
+std::string UTF8ToUnicode(const std::string& str) {
+  return WString2String(String2WString(str));
+}
+
+std::string UnicodeToUTF8(const std::string& str) {
+  return WString2String(String2WString(str));
 }
 #endif
 

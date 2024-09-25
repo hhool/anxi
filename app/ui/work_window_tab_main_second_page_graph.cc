@@ -46,27 +46,6 @@ const int32_t kGraphCtrlSampleTotalMinutesTen = 10;
 const int32_t kGraphCtrlSampleTotalMinutesThirty = 30;
 const int32_t kGraphCtrlSampleTotalMinutesSixty = 60;
 namespace {
-
-std::string format_num(int64_t num) {
-  std::string value;
-  int64_t integer_part = num / 1000;
-  int64_t decimal_part = num % 1000;
-  // remove the 0 at the end of the decimal.
-  while (decimal_part % 10 == 0) {
-    decimal_part /= 10;
-    if (decimal_part == 0) {
-      break;
-    }
-  }
-  // format integer part
-  value += std::to_string(integer_part);
-  if (decimal_part != 0) {
-    value += ".";
-    value += std::to_string(decimal_part);
-  }
-  return value;
-}
-
 const double kYAxisAmpInitialValue = 0.05f;
 
 const double kYAxisStressInitialValue = 0.03f;
@@ -770,14 +749,14 @@ void WorkWindowSecondPageGraph::RefreshExpGraphTitleControl(double vartime) {
   std::string tile_time_str = "底端振幅";
   tile_time_str += time_str;
   DuiLib::CDuiString str_title_with_time_amp =
-      anx::common::string2wstring(tile_time_str.c_str()).c_str();
+      anx::common::UTF8ToUnicode(tile_time_str.c_str()).c_str();
   btn_graph_amplitude_title_->SetText(str_title_with_time_amp);
 
   // update the graph canvas tile with the current time's hour and minute
   tile_time_str = "最大静载";
   tile_time_str += time_str;
   DuiLib::CDuiString str_title_with_time_stress =
-      anx::common::string2wstring(tile_time_str.c_str()).c_str();
+      anx::common::UTF8ToUnicode(tile_time_str.c_str()).c_str();
   btn_graph_stress_title_->SetText(str_title_with_time_stress);
   // update the graph stress canvas title with the current time's hour and
   // minute

@@ -36,22 +36,22 @@ void DialogAbout::InitWindow() {
   std::map<std::string, std::string> about_config = LoadAboutConfig();
   CLabelUI* lb_version =
       static_cast<CLabelUI*>(m_PaintManager.FindControl(_T("ver")));
-  lb_version->SetText(anx::common::string2wstring(about_config["ver"]).c_str());
+  lb_version->SetText(anx::common::UTF8ToUnicode(about_config["ver"]).c_str());
   CLabelUI* lb_in_ver =
       static_cast<CLabelUI*>(m_PaintManager.FindControl(_T("in_ver")));
   lb_in_ver->SetText(
-      anx::common::string2wstring(about_config["in_ver"]).c_str());
+      anx::common::UTF8ToUnicode(about_config["in_ver"]).c_str());
   CLabelUI* lb_soft_name =
       static_cast<CLabelUI*>(m_PaintManager.FindControl(_T("soft_name")));
   lb_soft_name->SetText(
-      anx::common::string2wstring(about_config["soft_name"]).c_str());
+      anx::common::UTF8ToUnicode(about_config["soft_name"]).c_str());
   CLabelUI* lb_copy_right =
       static_cast<CLabelUI*>(m_PaintManager.FindControl(_T("copyright")));
   lb_copy_right->SetText(
-      anx::common::string2wstring(about_config["copyright"]).c_str());
+      anx::common::UTF8ToUnicode(about_config["copyright"]).c_str());
   CLabelUI* lb_phone =
       static_cast<CLabelUI*>(m_PaintManager.FindControl(_T("phone")));
-  lb_phone->SetText(anx::common::string2wstring(about_config["phone"]).c_str());
+  lb_phone->SetText(anx::common::UTF8ToUnicode(about_config["phone"]).c_str());
 }
 
 void DialogAbout::Notify(DuiLib::TNotifyUI& msg) {

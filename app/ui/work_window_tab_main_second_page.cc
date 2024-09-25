@@ -11,7 +11,10 @@
 
 #include "app/ui/work_window_tab_main_second_page.h"
 
+#include <iomanip>
 #include <iostream>
+#include <sstream>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -47,24 +50,12 @@ namespace anx {
 namespace ui {
 namespace {
 
-std::string format_num(int64_t num) {
-  std::string value;
-  int64_t integer_part = num / 1000;
-  int64_t decimal_part = num % 1000;
-  // remove the 0 at the end of the decimal.
-  while (decimal_part % 10 == 0) {
-    decimal_part /= 10;
-    if (decimal_part == 0) {
-      break;
-    }
-  }
-  // format integer part
-  value += std::to_string(integer_part);
-  if (decimal_part != 0) {
-    value += ".";
-    value += std::to_string(decimal_part);
-  }
-  return value;
+template <typename T>
+std::string to_string_with_precision(const T a_value, const int n = 2) {
+  int nn = n;
+  std::ostringstream out;
+  out << std::fixed << std::setprecision(nn) << a_value;
+  return out.str();
 }
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief sampling interval 100ms
@@ -394,7 +385,7 @@ void WorkWindowSecondPage::RefreshExpClipTimeControl() {
   if (dus_.exp_clip_time_duration_ != exp_clip_time_duration) {
     dus_.exp_clip_time_duration_ = exp_clip_time_duration;
     std::string value = ("=");
-    value += format_num(exp_clip_time_duration * 100);
+    value += to_string_with_precision((exp_clip_time_duration * 100) / 1000.0f);
     value += "S";
     text_exp_clip_time_duration_->SetText(
         anx::common::string2wstring(value).c_str());
@@ -404,7 +395,7 @@ void WorkWindowSecondPage::RefreshExpClipTimeControl() {
   if (dus_.exp_clip_time_paused_ != exp_clip_time_paused) {
     dus_.exp_clip_time_paused_ = exp_clip_time_paused;
     std::string value = ("=");
-    value += format_num(exp_clip_time_paused * 100);
+    value += to_string_with_precision((exp_clip_time_paused * 100) / 1000.0f);
     value += ("S");
     text_exp_clip_time_paused_->SetText(
         anx::common::string2wstring(value).c_str());
@@ -466,13 +457,13 @@ void WorkWindowSecondPage::UpdateExpClipTimeFromControl() {
 
   // exp_clip_time_duration append "S"
   std::string value = ("=");
-  value += format_num(exp_clip_time_duration * 100);
+  value += to_string_with_precision((exp_clip_time_duration * 100) / 1000.0f);
   value += "S";
   text_exp_clip_time_duration_->SetText(
       anx::common::string2wstring(value).c_str());
   // exp_clip_time_paused append "S"
   value = ("=");
-  value += format_num(exp_clip_time_paused * 100);
+  value += to_string_with_precision((exp_clip_time_paused * 100) / 1000.0f);
   value += "S";
   text_exp_clip_time_paused_->SetText(
       anx::common::string2wstring(value).c_str());

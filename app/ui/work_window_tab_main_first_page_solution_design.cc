@@ -152,7 +152,7 @@ PageSolutionDesignBase::UpadateTabMainFirstPageElementViewHeaderAndBaseParam() {
     name.assign(header->name_, header->name_ + 255);
 
     std::wstring stemp =
-        anx::common::string2wstring(name);  // Temporary buffer is required
+        anx::common::UTF8ToUnicode(name);  // Temporary buffer is required
     LPCWSTR result = stemp.c_str();
     edit->SetText(result);
   }
@@ -236,7 +236,7 @@ PageSolutionDesignBase::ExpDesignHeaderFromControl() {
       paint_manager_ui_->FindControl(name_specimensa + tail_prefix));
   DuiLib::CDuiString value = edit->GetText().GetData();
 
-  std::string name = anx::common::wstring2string(value.GetData());
+  std::string name = anx::common::UnicodeToUTF8(value.GetData());
   anx::esolution::ExpDesignHeader exp_design_header;
   memcpy(exp_design_header.name_, name.data(), 255);
   return std::unique_ptr<anx::esolution::ExpDesignHeader>(

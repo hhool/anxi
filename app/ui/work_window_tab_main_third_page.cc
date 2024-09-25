@@ -11,6 +11,7 @@
 
 #include "app/ui/work_window_tab_main_third_page.h"
 
+#include <iomanip>
 #include <map>
 #include <memory>
 #include <string>
@@ -60,6 +61,13 @@ std::string format_num(int64_t num) {
 }
 
 namespace {
+template <typename T>
+std::string to_string_with_precision(const T a_value, const int n = 2) {
+  int nn = n;
+  std::ostringstream out;
+  out << std::fixed << std::setprecision(nn) << a_value;
+  return out.str();
+}
 const int32_t kTimerID = 0x1;
 const int32_t kTimerElapse = 1000;
 }  // namespace
@@ -287,6 +295,26 @@ void WorkWindowThirdPage::OnTimer(TNotifyUI& msg) {
   if (msg.wParam == kTimerID) {
     UpdateControlFromSettings();
   } else {
+  }
+}
+
+void WorkWindowThirdPage::OnValueChanged(TNotifyUI& msg) {
+  if (msg.sType == DUI_MSGTYPE_VALUECHANGED) {
+    if (msg.pSender->GetName() == _T("args_area_value_static_load")) {
+      anx::device::stload::STResult* st_result =
+          reinterpret_cast<anx::device::stload::STResult*>(msg.wParam);
+      // update the label_displacement_ with random value
+      double pos = st_result->pos_;
+      // format the number keep 5 decimal
+      std::string num_pos_str = to_string_with_precision(pos, 5);
+      label_displacement_->SetText(
+          anx::common::string2wstring(num_pos_str).c_str());
+      // update the label_strength_ with random value
+      double load = st_result->load_;
+      std::string num_load_str = to_string_with_precision(load, 5);
+      label_strength_->SetText(
+          anx::common::string2wstring(num_load_str).c_str());
+    }
   }
 }
 

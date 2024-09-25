@@ -49,11 +49,14 @@ void MainWindow::InitWindow() {
   std::map<std::string, std::string> app_config = LoadAppConfig();
   CLabelUI* lb_code =
       static_cast<CLabelUI*>(m_PaintManager.FindControl(_T("lb_code")));
-  lb_code->SetText(anx::common::string2wstring(app_config["code"]).c_str());
+  CDuiString lb_text_code =
+      anx::common::UTF8ToUnicode(app_config["code"].c_str()).c_str();
+  lb_code->SetText(lb_text_code);
   CLabelUI* lb_copyright =
       static_cast<CLabelUI*>(m_PaintManager.FindControl(_T("lb_copyright")));
-  lb_copyright->SetText(
-      anx::common::string2wstring(app_config["copyright"]).c_str());
+  CDuiString lb_text_copyright =
+      anx::common::UTF8ToUnicode(app_config["copyright"].c_str()).c_str();
+  lb_copyright->SetText(lb_text_copyright);
 }
 
 void MainWindow::OnFinalMessage(HWND hWnd) {
