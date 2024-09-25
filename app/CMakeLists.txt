@@ -103,7 +103,9 @@ if(WIN32)
 
     set(DEVICE_ULTRASONIC_FILES
         device/ultrasonic/ultra_device.cc
-        device/ultrasonic/ultra_device.h)
+        device/ultrasonic/ultra_device.h
+        device/ultrasonic/ultra_helper.cc
+        device/ultrasonic/ultra_helper.h)
     source_group("device/ultrasonic" FILES ${DEVICE_ULTRASONIC_FILES})
     list(APPEND APP_SOURCES ${DEVICE_ULTRASONIC_FILES})
 

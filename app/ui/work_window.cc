@@ -25,6 +25,7 @@
 #include "app/device/device_com_settings_helper.h"
 #include "app/device/device_exp_data_sample_settings.h"
 #include "app/device/stload/stload_helper.h"
+#include "app/device/ultrasonic/ultra_helper.h"
 #include "app/esolution/solution_design.h"
 #include "app/esolution/solution_design_default.h"
 #include "app/esolution/solution_design_helper.h"
@@ -61,6 +62,7 @@ WorkWindow::WorkWindow(DuiLib::WindowImplBase* pOwner, int32_t solution_type)
   is_device_stload_connected_ = false;
 
   anx::device::stload::STLoadHelper::InitStLoad();
+  anx::device::ultrasonic::UltrasonicHelper::InitUltrasonic();
   // database initial
   // remove database
   anx::db::helper::ClearDatabaseFile(anx::db::helper::kDefaultDatabasePathname);

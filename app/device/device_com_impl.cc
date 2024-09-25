@@ -133,8 +133,9 @@ int32_t ComPortDeviceImpl::Open(const ComPortDevice& com_port) {
       toItas109Parity(com_port.GetComPort().parity),
       toItas109DataBits(com_port.GetComPort().data_bits),
       toItas109StopBits(com_port.GetComPort().stop_bits),
-      toItas109FlowControl(com_port.GetComPort().flow_control),
-      com_port.GetComPort().timeout);
+      toItas109FlowControl(com_port.GetComPort().flow_control));
+
+  native_serialport->setReadIntervalTimeout(com_port.GetComPort().timeout);
 
   if (!native_serialport->open()) {
     return -3;

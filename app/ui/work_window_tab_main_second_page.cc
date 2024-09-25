@@ -30,6 +30,7 @@
 #include "app/device/device_exp_graph_settings.h"
 #include "app/device/device_exp_load_static_settings.h"
 #include "app/device/device_exp_ultrasound_settings.h"
+#include "app/device/ultrasonic/ultra_helper.h"
 #include "app/esolution/solution_design.h"
 #include "app/esolution/solution_design_default.h"
 #include "app/ui/dialog_amplitude_calibration_settings.h"
@@ -160,28 +161,29 @@ void WorkWindowSecondPage::OnTimer(TNotifyUI& msg) {
   if (id_timer == kTimerIdSampling) {
     if (is_exp_state_ == 1) {
       if (device_com_ul_) {
-        // do something
-        std::cout << "exp running" << std::endl;
-        {
-          uint8_t hex[8];
-          hex[0] = 0x01;
-          hex[1] = 0x04;
-          hex[2] = 0x00;
-          hex[3] = 0x01;
-          hex[4] = 0x00;
-          hex[5] = 0x01;
-          hex[6] = 0x60;
-          hex[7] = 0x0A;
-          int written = device_com_ul_->Write(hex, sizeof(hex));
-          if (written < 0) {
-            std::cout << "ul written error:" << written;
+        if (anx::device::ultrasonic::UltrasonicHelper::
+                Is_Ultrasonic_Simulation()) {
+          {
+            uint8_t hex[8];
+            hex[0] = 0x01;
+            hex[1] = 0x04;
+            hex[2] = 0x00;
+            hex[3] = 0x01;
+            hex[4] = 0x00;
+            hex[5] = 0x01;
+            hex[6] = 0x60;
+            hex[7] = 0x0A;
+            int written = device_com_ul_->Write(hex, sizeof(hex));
+            if (written < 0) {
+              LOG_F(LG_ERROR) << "ul write error:" << written;
+            }
           }
-        }
-        {
-          uint8_t hex[64];
-          int read = device_com_ul_->Read(hex, sizeof(hex));
-          if (read < 0) {
-            std::cout << "ul read error:" << read;
+          {
+            uint8_t hex[64];
+            int read = device_com_ul_->Read(hex, sizeof(hex));
+            if (read < 0) {
+              LOG_F(LG_ERROR) << "ul read error:" << read;
+            }
           }
         }
         /////////////////////////////////////////////////////////////////////////
@@ -215,13 +217,17 @@ void WorkWindowSecondPage::OnTimer(TNotifyUI& msg) {
               LOG_F(LG_INFO) << "pause ultrasound";
               uint8_t hex[8] = {0x01, 0x05, 0x00, 0x02, 0x00, 0x00, 0x6C, 0x0A};
               device_com_ul_->Write(hex, sizeof(hex));
+              uint8_t hex_res[64] = {0};
+              device_com_ul_->Read(hex_res, sizeof(hex_res));
               state_ultrasound_exp_clip_ = 2;
             } else if (time < exp_clip_time_duration &&
                        state_ultrasound_exp_clip_ == 2) {
               // resume ultrasound
               LOG_F(LG_INFO) << "resume ultrasound";
-              uint8_t hex[8] = {0x01, 0x05, 0x00, 0x02, 0x00, 0x01, 0x2D, 0x0A};
+              uint8_t hex[8] = {0x01, 0x05, 0x00, 0x02, 0xFF, 0x00, 0x2D, 0xFA};
               device_com_ul_->Write(hex, sizeof(hex));
+              uint8_t hex_res[64] = {0};
+              device_com_ul_->Read(hex_res, sizeof(hex_res));
               state_ultrasound_exp_clip_ = 1;
             }
           }
@@ -588,6 +594,8 @@ int32_t WorkWindowSecondPage::exp_start() {
   // set the ultrasound on state
   uint8_t hex[8] = {0x01, 0x05, 0x00, 0x02, 0xFF, 0x00, 0x2D, 0xFA};
   device_com_ul_->Write(hex, sizeof(hex));
+  uint8_t hex_res[64] = {0};
+  device_com_ul_->Read(hex_res, sizeof(hex_res));
   paint_manager_ui_->SetTimer(btn_exp_start_, kTimerIdSampling,
                               kSamplingInterval);
   state_ultrasound_exp_clip_ = 1;
@@ -714,7 +722,7 @@ void WorkWindowSecondPage::OnButtonStaticAircraftUp() {
   if (st_load_is_running_) {
     return;
   }
-  float speed = 2.0f / 60.0f;\
+  float speed = 2.0f / 60.0f;
   std::unique_ptr<anx::device::DeviceLoadStaticSettings> lss =
       anx::device::LoadDeviceLoadStaticSettingsDefaultResource();
   if (lss == nullptr) {
@@ -757,7 +765,7 @@ void WorkWindowSecondPage::OnButtonStaticAircraftDown() {
   float end_value = lss->retention_ * 1.0f;
 
   /// RUN the static load, the direction is up and the speed is 2.0f / 60.0f
- bool bSuccess =
+  bool bSuccess =
       anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_200(
           CTRL_LOAD, END_LOAD, speed, end_value, 1, true, DIR_NO, 0, 1, 0)
           ? true

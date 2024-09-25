@@ -139,6 +139,26 @@ TEST_F(CRC16Test, CheckCRC16) {
     uint16_t crc = itas109::crc16(data.data(), data.size());
     EXPECT_EQ(crc, 0x9B59);
   }
+  {
+	  // 600 unit 0x02, 0x58
+	  std::vector<uint8_t> data = { 0x01, 0x06, 0x00, 0x19, 0x02, 0x58 };
+	  // 01 06 00 19 02 58 58 97
+	  uint16_t crc = itas109::crc16(data.data(), data.size());
+	  uint8_t high = (crc & 0xFF00) >> 8 ;
+	  uint8_t low = crc & 0xFF;
+	  std::vector<uint8_t> result = { high, low };
+	  EXPECT_EQ(crc, 0x9758);
+  }
+  {
+	  // 400 unit 0x02, 0x58
+	  std::vector<uint8_t> data = { 0x01, 0x06, 0x00, 0x19, 0x01, 0x90 };
+	  // 01 06 00 19 01 90 59 f1
+	  uint16_t crc = itas109::crc16(data.data(), data.size());
+	  uint8_t high = (crc & 0xFF00) >> 8;
+	  uint8_t low = crc & 0xFF;
+	  std::vector<uint8_t> result = { high, low };
+	  EXPECT_EQ(crc, 0xf159);
+  }
   // set amplitude and time of welding
   {
     std::vector<uint8_t> data = {0x01, 0x10, 0x00, 0x18, 0x00, 0x02,
