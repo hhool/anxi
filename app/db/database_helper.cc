@@ -28,28 +28,48 @@ const char* kDefaultDatabasePathname = "db\\anxi.db";
 #else
 const char* kDefaultDatabasePathname = "db/anxi.db";
 #endif
-const char* kTableExpData = "exp_data";
+const char* kTableExpDataGraph = "exp_data_graph";
+const char* kTableExpDataList = "exp_data_list";
 const char* kTableSendData = "send_data";
 const char* kTableNotification = "notification";
 const char* kTableSendNotify = "send_notify";
 
 namespace sql {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-/// @brief Create table amp sql format string for exp data record
-const char* kCreateTableAmpSqlFormat =
-    "CREATE TABLE exp_data (id INTEGER PRIMARY KEY AUTOINCREMENT, cycle "
+/// @brief Create table exp_data_graph sql format string for exp data record
+const char* kCreateTableExpDataGraphSqlFormat =
+    "CREATE TABLE exp_data_graph (id INTEGER PRIMARY KEY AUTOINCREMENT, cycle "
     "INTEGER, "
     "kHz REAL, MPa REAL, um REAL, date REAL)";
 
-const char* kInsertTableAmpSqlFormat =
-    "INSERT INTO exp_data (cycle, kHz, MPa, um, date) VALUES (%d, %f, %f, %f, "
+const char* kInsertTableExpDataGraphSqlFormat =
+    "INSERT INTO exp_data_graph (cycle, kHz, MPa, um, date) VALUES (%d, %f, "
+    "%f, %f, "
     "%f)";
 
-const char* kQueryTableAmpSqlByIdFormat =
-    "SELECT * FROM exp_data WHERE id >= %d AND id <= %d";
+const char* kQueryTableExpDataGraphSqlByIdFormat =
+    "SELECT * FROM exp_data_graph WHERE id >= %d AND id <= %d";
 
-const char* kQueryTableAmpSqlByTimeFormat =
-    "SELECT * FROM exp_data WHERE date >= %f AND date <= %f";
+const char* kQueryTableExpDataGraphSqlByTimeFormat =
+    "SELECT * FROM exp_data_graph WHERE date >= %f AND date <= %f";
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+/// @brief Create table exp_data_list sql format string for exp data record
+const char* kCreateTableExpDataListSqlFormat =
+    "CREATE TABLE exp_data_list (id INTEGER PRIMARY KEY AUTOINCREMENT, cycle "
+    "INTEGER, "
+    "kHz REAL, MPa REAL, um REAL, date REAL)";
+
+const char* kInsertTableExpDataListSqlFormat =
+    "INSERT INTO exp_data_list (cycle, kHz, MPa, um, date) VALUES (%d, %f, "
+    "%f, %f, "
+    "%f)";
+
+const char* kQueryTableExpDataListSqlByIdFormat =
+    "SELECT * FROM exp_data_list WHERE id >= %d AND id <= %d";
+
+const char* kQueryTableExpDataListSqlByTimeFormat =
+    "SELECT * FROM exp_data_list WHERE date >= %f AND date <= %f";
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 /// @brief Create table static load sql format string for exp data record
@@ -130,7 +150,7 @@ void ClearDatabaseFile(const std::string& db_name) {
 
 void InitializeDefaultDataBase() {
   std::vector<std::string> sql;
-  sql.push_back(sql::kCreateTableAmpSqlFormat);
+  sql.push_back(sql::kCreateTableExpDataGraphSqlFormat);
   InitializeDataBase(kDefaultDatabasePathname, sql);
 }
 

@@ -84,14 +84,14 @@ WorkWindowSecondPage::WorkWindowSecondPage(
       paint_manager_ui_(paint_manager_ui),
       is_exp_state_(-1) {
   WorkWindowSecondPageGraph* graph_page = new WorkWindowSecondPageGraph(
-      pWorkWindow, paint_manager_ui, &exp_data_info_);
+      pWorkWindow, paint_manager_ui, &exp_data_graph_info_);
   work_window_second_page_graph_virtual_wnd_ = graph_page;
   work_window_second_page_graph_notify_pump_.reset(graph_page);
   this->AddVirtualWnd(_T("WorkWindowSecondPageGraph"),
                       work_window_second_page_graph_notify_pump_.get());
 
   WorkWindowSecondPageData* data_page = new WorkWindowSecondPageData(
-      pWorkWindow, paint_manager_ui, &exp_data_info_);
+      pWorkWindow, paint_manager_ui, &exp_data_list_info_);
   work_window_second_page_data_virtual_wnd_ = data_page;
   work_window_second_page_data_notify_pump_.reset(data_page);
   this->AddVirtualWnd(_T("WorkWindowSecondPageData"),
@@ -195,7 +195,8 @@ void WorkWindowSecondPage::OnTimer(TNotifyUI& msg) {
         }
         int64_t total_des_time_ms = exp_max_cycle_count / 20;
         int64_t current_time_ms = anx::common::GetCurrentTimeMillis();
-        int64_t duration = current_time_ms - exp_data_info_.exp_start_time_ms_;
+        int64_t duration =
+            current_time_ms - exp_data_graph_info_.exp_start_time_ms_;
         if (duration >= total_des_time_ms) {
           LOG_F(LG_INFO) << "exp stop";
           exp_stop();
@@ -208,7 +209,7 @@ void WorkWindowSecondPage::OnTimer(TNotifyUI& msg) {
             int64_t exp_clip_time_paused =
                 this->dus_.exp_clip_time_paused_ * 100;
             int64_t duration =
-                current_time_ms - exp_data_info_.exp_start_time_ms_;
+                current_time_ms - exp_data_graph_info_.exp_start_time_ms_;
             int64_t duration_total =
                 exp_clip_time_duration + exp_clip_time_paused;
             int64_t time = duration % duration_total;
@@ -353,18 +354,12 @@ void WorkWindowSecondPage::Bind() {
       anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
           anx::device::kDeviceCom_Ultrasound, this);
 
-  work_window_second_page_graph_virtual_wnd_->Bind();
   work_window_second_page_data_virtual_wnd_->Bind();
+  work_window_second_page_graph_virtual_wnd_->Bind();
 }
 
 void WorkWindowSecondPage::Unbind() {
   /// @brief remove the virtual window
-  this->RemoveVirtualWnd(_T("WorkWindowSecondPageData"));
-  work_window_second_page_data_virtual_wnd_->Unbind();
-  WorkWindowSecondPageData* data_page =
-      reinterpret_cast<WorkWindowSecondPageData*>(
-          work_window_second_page_data_notify_pump_.release());
-  delete data_page;
 
   this->RemoveVirtualWnd(_T("WorkWindowSecondPageGraph"));
   work_window_second_page_graph_virtual_wnd_->Unbind();
@@ -372,6 +367,13 @@ void WorkWindowSecondPage::Unbind() {
       reinterpret_cast<WorkWindowSecondPageGraph*>(
           work_window_second_page_graph_notify_pump_.release());
   delete graph_page;
+
+  this->RemoveVirtualWnd(_T("WorkWindowSecondPageData"));
+  work_window_second_page_data_virtual_wnd_->Unbind();
+  WorkWindowSecondPageData* data_page =
+      reinterpret_cast<WorkWindowSecondPageData*>(
+          work_window_second_page_data_notify_pump_.release());
+  delete data_page;
 
   /// @brief save the settings from the control
   SaveSettingsFromControl();
@@ -587,22 +589,30 @@ int32_t WorkWindowSecondPage::exp_start() {
   /// @note the table name is exp_data, delete exp_data table and create a new
   /// one.
   anx::db::helper::DropDataTable(anx::db::helper::kDefaultDatabasePathname,
-                                 anx::db::helper::kTableExpData);
+                                 anx::db::helper::kTableExpDataGraph);
+  anx::db::helper::DropDataTable(anx::db::helper::kDefaultDatabasePathname,
+                                 anx::db::helper::kTableExpDataList);
 
   std::string db_filepathname;
   anx::db::helper::DefaultDatabasePathname(&db_filepathname);
   auto db = anx::db::DatabaseFactory::Instance()->CreateOrGetDatabase(
       db_filepathname);
-  db->Execute(anx::db::helper::sql::kCreateTableAmpSqlFormat);
+  db->Execute(anx::db::helper::sql::kCreateTableExpDataGraphSqlFormat);
+  db->Execute(anx::db::helper::sql::kCreateTableExpDataListSqlFormat);
 
   /// @brief get the exp data sample settings and set the exp start time
   /// and exp sample interval
+  exp_data_graph_info_.exp_data_table_no_ = 0;
+  exp_data_graph_info_.exp_time_interval_num_ = 0;
+  exp_data_graph_info_.exp_start_time_ms_ = anx::common::GetCurrentTimeMillis();
+  exp_data_graph_info_.exp_sample_interval_ms_ = 2000;
+
   std::unique_ptr<anx::device::DeviceExpDataSampleSettings> dedss =
       anx::device::LoadDeviceExpDataSampleSettingsDefaultResource();
-  exp_data_info_.exp_data_table_no_ = 0;
-  exp_data_info_.exp_time_interval_num_ = 0;
-  exp_data_info_.exp_start_time_ms_ = anx::common::GetCurrentTimeMillis();
-  exp_data_info_.exp_sample_interval_ms_ = dedss->sampling_interval_ * 100;
+  exp_data_list_info_.exp_data_table_no_ = 0;
+  exp_data_list_info_.exp_time_interval_num_ = 0;
+  exp_data_list_info_.exp_start_time_ms_ = anx::common::GetCurrentTimeMillis();
+  exp_data_list_info_.exp_sample_interval_ms_ = dedss->sampling_interval_ * 100;
 
   // TODO(hhool): sample interval
   // set the ultrasound on state
@@ -701,23 +711,31 @@ void WorkWindowSecondPage::OnButtonStaticAircraftReset() {
   this->pWorkWindow_->ClearArgsFreqNum();
   // drop the exp_data table
   anx::db::helper::DropDataTable(anx::db::helper::kDefaultDatabasePathname,
-                                 anx::db::helper::kTableExpData);
-  // create the exp_data table
+                                 anx::db::helper::kTableExpDataGraph);
+  anx::db::helper::DropDataTable(anx::db::helper::kDefaultDatabasePathname,
+                                 anx::db::helper::kTableExpDataList);
+
+  // create the exp_data_graph table
   std::string db_filepathname;
   anx::db::helper::DefaultDatabasePathname(&db_filepathname);
   auto db = anx::db::DatabaseFactory::Instance()->CreateOrGetDatabase(
       db_filepathname);
-  db->Execute(anx::db::helper::sql::kCreateTableAmpSqlFormat);
+  db->Execute(anx::db::helper::sql::kCreateTableExpDataGraphSqlFormat);
+  db->Execute(anx::db::helper::sql::kCreateTableExpDataListSqlFormat);
 
   /// @brief get the exp data sample settings and set the exp start time
   /// and exp sample interval
+  exp_data_graph_info_.exp_data_table_no_ = 0;
+  exp_data_graph_info_.exp_time_interval_num_ = 0;
+  exp_data_graph_info_.exp_start_time_ms_ = anx::common::GetCurrentTimeMillis();
+  exp_data_graph_info_.exp_sample_interval_ms_ = 2000;
+
   std::unique_ptr<anx::device::DeviceExpDataSampleSettings> dedss =
       anx::device::LoadDeviceExpDataSampleSettingsDefaultResource();
-  exp_data_info_.exp_data_table_no_ = 0;
-  exp_data_info_.exp_time_interval_num_ = 0;
-  exp_data_info_.exp_start_time_ms_ = anx::common::GetCurrentTimeMillis();
-  exp_data_info_.exp_sample_interval_ms_ = dedss->sampling_interval_ * 100;
-
+  exp_data_list_info_.exp_data_table_no_ = 0;
+  exp_data_list_info_.exp_time_interval_num_ = 0;
+  exp_data_list_info_.exp_start_time_ms_ = anx::common::GetCurrentTimeMillis();
+  exp_data_list_info_.exp_sample_interval_ms_ = dedss->sampling_interval_ * 100;
   // clear graph data
   WorkWindowSecondPageGraph* graph_page =
       reinterpret_cast<WorkWindowSecondPageGraph*>(
@@ -810,73 +828,88 @@ void WorkWindowSecondPage::OnDataReceived(
     int32_t size) {
   // TODO(hhool): process data
   if (is_exp_state_) {
-    std::string hex_str;
-    if (device == device_com_ul_.get()) {
-      // process the data from ultrasound device
-      // 1. parse the data
-      // 2. update the data to the graph
-      // 3. update the data to the data table
-      // output the data as hex to the std::string
-      hex_str = anx::common::ByteArrayToHexString(data, size);
-      std::cout << hex_str << std::endl;
-    }
-    int64_t current_time_ms = anx::common::GetCurrentTimeMillis();
-    int64_t time_diff = current_time_ms - exp_data_info_.exp_start_time_ms_;
-    int64_t time_interval_num =
-        time_diff / exp_data_info_.exp_sample_interval_ms_;
-    if (time_interval_num > exp_data_info_.exp_time_interval_num_) {
-      exp_data_info_.exp_time_interval_num_ = time_interval_num;
-      exp_data_info_.exp_data_table_no_++;
-      // update the data to the database table amp, stress, um
-      // TODO(hhool):
-      int64_t cycle_count = exp_data_info_.exp_data_table_no_ * 500;
-      double KHz = 208.230f * kMultiFactor;
-      // TODO(hhool): random KHz, um, MPa
-      double um = (rand() % 15) * kMultiFactor;
-      double MPa = std::fabsl(st_load_result_.load_) * kMultiFactor;
-      this->pWorkWindow_->UpdateArgsArea(cycle_count, KHz, MPa, um);
-      double date = anx::common::GetCurrrentDateTime() * kMultiFactor;
-      exp_data_info_.amp_freq_ = KHz;
-      exp_data_info_.amp_um_ = um;
-      exp_data_info_.stress_value_ = MPa;
-      // TODO(hhool): save to database
-      // format cycle_count, KHz, MPa, um to the sql string and insert to the
-      // database
-      std::string sql_str = ("INSERT INTO ");
-      sql_str.append(anx::db::helper::kTableExpData);
-      sql_str.append((" (cycle, KHz, MPa, um, date) VALUES ("));
-      sql_str.append(std::to_string(cycle_count));
-      sql_str.append(", ");
-      sql_str.append(std::to_string(KHz));
-      sql_str.append(", ");
-      sql_str.append(std::to_string(MPa));
-      sql_str.append(", ");
-      sql_str.append(std::to_string(um));
-      sql_str.append(", ");
-      sql_str.append(std::to_string(date));
-      sql_str.append(");");
-      LOG_F(LG_INFO) << "\r\n";
-      LOG_F(LG_INFO) << "no:" << exp_data_info_.exp_data_table_no_ << " "
-                     << "cycle:" << cycle_count << " " << "um:" << um << " "
-                     << "MPa:" << MPa << " " << "KHz:" << KHz << " "
-                     << "sql:" << sql_str;
-      anx::db::helper::InsertDataTable(
-          anx::db::helper::kDefaultDatabasePathname,
-          anx::db::helper::kTableExpData, sql_str);
-    }
+    double KHz = 208.230f * kMultiFactor;
+    // TODO(hhool): random KHz, um, MPa
+    double um = (rand() % 15) * kMultiFactor;
+    double MPa = std::fabsl(st_load_result_.load_) * kMultiFactor;
+    double date = anx::common::GetCurrrentDateTime() * kMultiFactor;
+    exp_data_graph_info_.amp_freq_ = KHz;
+    exp_data_graph_info_.amp_um_ = um;
+    exp_data_graph_info_.stress_value_ = MPa;
+    exp_data_list_info_.amp_freq_ = KHz;
+    exp_data_list_info_.amp_um_ = um;
+    exp_data_list_info_.stress_value_ = MPa;
+
+    this->ProcessDataGraph();
+    this->ProcessDataList();
   }
 }
 
-void WorkWindowSecondPage::OnDataOutgoing(
-    anx::device::DeviceComInterface* device,
-    const uint8_t* data,
-    int32_t size) {
-  // TODO(hhool):
-  if (device == device_com_ul_.get()) {
-    // process the data from ultrasound device
-    // 1. parse the data
-    // 2. update the data to the graph
-    // 3. update the data to the data table
+void anx::ui::WorkWindowSecondPage::ProcessDataGraph() {
+  int64_t current_time_ms = anx::common::GetCurrentTimeMillis();
+  int64_t time_diff = current_time_ms - exp_data_graph_info_.exp_start_time_ms_;
+  int64_t time_interval_num =
+      time_diff / exp_data_graph_info_.exp_sample_interval_ms_;
+  if (time_interval_num > exp_data_graph_info_.exp_time_interval_num_) {
+    exp_data_graph_info_.exp_time_interval_num_ = time_interval_num;
+    exp_data_graph_info_.exp_data_table_no_++;
+    // update the data to the database table amp, stress, um
+    // TODO(hhool):
+    int64_t cycle_count = exp_data_graph_info_.exp_data_table_no_ * 500;
+    double date = anx::common::GetCurrrentDateTime() * kMultiFactor;
+    // TODO(hhool): save to database
+    // format cycle_count, KHz, MPa, um to the sql string and insert to the
+    // database
+    std::string sql_str = ("INSERT INTO ");
+    sql_str.append(anx::db::helper::kTableExpDataGraph);
+    sql_str.append((" (cycle, KHz, MPa, um, date) VALUES ("));
+    sql_str.append(std::to_string(cycle_count));
+    sql_str.append(", ");
+    sql_str.append(std::to_string(exp_data_graph_info_.amp_freq_));
+    sql_str.append(", ");
+    sql_str.append(std::to_string(exp_data_graph_info_.stress_value_));
+    sql_str.append(", ");
+    sql_str.append(std::to_string(exp_data_graph_info_.amp_um_));
+    sql_str.append(", ");
+    sql_str.append(std::to_string(date));
+    sql_str.append(");");
+    anx::db::helper::InsertDataTable(anx::db::helper::kDefaultDatabasePathname,
+                                     anx::db::helper::kTableExpDataGraph,
+                                     sql_str);
+  }
+}
+
+void anx::ui::WorkWindowSecondPage::ProcessDataList() {
+  int64_t current_time_ms = anx::common::GetCurrentTimeMillis();
+  int64_t time_diff = current_time_ms - exp_data_list_info_.exp_start_time_ms_;
+  int64_t time_interval_num =
+      time_diff / exp_data_list_info_.exp_sample_interval_ms_;
+  if (time_interval_num > exp_data_list_info_.exp_time_interval_num_) {
+    exp_data_list_info_.exp_time_interval_num_ = time_interval_num;
+    exp_data_list_info_.exp_data_table_no_++;
+    // update the data to the database table amp, stress, um
+    // TODO(hhool):
+    int64_t cycle_count = exp_data_list_info_.exp_data_table_no_ * 500;
+    double date = anx::common::GetCurrrentDateTime() * kMultiFactor;
+    // TODO(hhool): save to database
+    // format cycle_count, KHz, MPa, um to the sql string and insert to the
+    // database
+    std::string sql_str = ("INSERT INTO ");
+    sql_str.append(anx::db::helper::kTableExpDataList);
+    sql_str.append((" (cycle, KHz, MPa, um, date) VALUES ("));
+    sql_str.append(std::to_string(cycle_count));
+    sql_str.append(", ");
+    sql_str.append(std::to_string(exp_data_graph_info_.amp_freq_));
+    sql_str.append(", ");
+    sql_str.append(std::to_string(exp_data_graph_info_.stress_value_));
+    sql_str.append(", ");
+    sql_str.append(std::to_string(exp_data_graph_info_.amp_um_));
+    sql_str.append(", ");
+    sql_str.append(std::to_string(date));
+    sql_str.append(");");
+    anx::db::helper::InsertDataTable(anx::db::helper::kDefaultDatabasePathname,
+                                     anx::db::helper::kTableExpDataList,
+                                     sql_str);
   }
 }
 

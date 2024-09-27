@@ -126,12 +126,21 @@ class WorkWindowSecondWorkWindowSecondPageGraphCtrl {
 
   /// @brief update y_max_ value for the graph control
   /// @param y_max the y_max_ value for the graph control
-  void UpdateYMaxValue(double yMaxValue, bool update=true) {
+  void UpdateYMaxValue(double yMaxValue, bool update = true ) {
      y_max_ = yMaxValue;
     if (update && graph_ctrl_ != nullptr) {
       graph_ctrl_->SetRange(x_min_, x_min_ + x_duration_, y_min_, y_max_);
     }
   }
+
+  /// @brief set data sample count for one graph sample
+  /// @param count the data sample count for one graph sample
+  /// @note 5 sample is one data sample, take average of the 5 sample and put
+  /// it to the graph.
+  void SetDataSampleCountForOneGraphSample(int32_t count) {
+    data_sample_count_for_one_graph_sample_ = count;
+  }
+
  protected:
   void UpateXTimeValue();
   void DumpGraphDataList();

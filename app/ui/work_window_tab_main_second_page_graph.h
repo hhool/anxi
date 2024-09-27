@@ -108,7 +108,9 @@ class WorkWindowSecondPageGraph : public DuiLib::CNotifyPump,
                       int32_t size) override;
   void OnDataOutgoing(anx::device::DeviceComInterface* device,
                       const uint8_t* data,
-                      int32_t size) override;
+                      int32_t size) override {
+    // TODO(hhool): do nothing
+  }
 
  protected:
   void OnExpStart();
@@ -124,7 +126,7 @@ class WorkWindowSecondPageGraph : public DuiLib::CNotifyPump,
   DuiLib::CPaintManagerUI* paint_manager_ui_;
   std::shared_ptr<anx::device::DeviceComInterface> device_com_ul_;
   /// @brief exp related members
-  ExpDataInfo* exp_data_info_;
+  ExpDataInfo* exp_data_graph_info_;
   /// @brief amp start time, stress start time.
   int64_t exp_time_interval_num_;
   /// @brief y axsi max value for amptitude.

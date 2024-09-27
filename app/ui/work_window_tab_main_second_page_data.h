@@ -67,7 +67,7 @@ class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
   void Unbind() override;
 
  protected:
-  void RefreshSampleTimeControl(bool force=false);
+  void RefreshSampleTimeControl(bool force = false);
   std::unique_ptr<anx::device::DeviceExpDataSampleSettings>
   UpdateExpClipTimeFromControl();
   void UpdateControlFromSettings();
@@ -83,7 +83,9 @@ class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
                       int32_t size) override;
   void OnDataOutgoing(anx::device::DeviceComInterface* device,
                       const uint8_t* data,
-                      int32_t size) override;
+                      int32_t size) override {
+    // TODO(hhool): do nothing
+  }
 
  protected:
   void OnExpStart();

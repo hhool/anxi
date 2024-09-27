@@ -69,7 +69,8 @@ WorkWindow::WorkWindow(DuiLib::WindowImplBase* pOwner, int32_t solution_type)
   anx::db::helper::ClearDatabaseFile(anx::db::helper::kDefaultDatabasePathname);
   // initial database
   std::vector<std::string> sqls;
-  sqls.push_back(anx::db::helper::sql::kCreateTableAmpSqlFormat);
+  sqls.push_back(anx::db::helper::sql::kCreateTableExpDataGraphSqlFormat);
+  sqls.push_back(anx::db::helper::sql::kCreateTableExpDataListSqlFormat);
   sqls.push_back(anx::db::helper::sql::kCreateTableSendDataSqlFormat);
   sqls.push_back(anx::db::helper::sql::kCreateTableNotificationSqlFormat);
   sqls.push_back(anx::db::helper::sql::kCreateTableSendNotifySqlFormat);

@@ -52,8 +52,8 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
 
  public:
   DUI_DECLARE_MESSAGE_MAP()
-  void OnClick(TNotifyUI& msg);  // NOLINT
-  void OnTimer(TNotifyUI& msg);  // NOLINT
+  void OnClick(TNotifyUI& msg);         // NOLINT
+  void OnTimer(TNotifyUI& msg);         // NOLINT
   void OnValueChanged(TNotifyUI& msg);  // NOLINT
 
  public:
@@ -98,8 +98,11 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
                       int32_t size) override;
   void OnDataOutgoing(anx::device::DeviceComInterface* device,
                       const uint8_t* data,
-                      int32_t size) override;
-
+                      int32_t size) override {
+    // TODO(hhool): do nothing
+  }
+  void ProcessDataGraph();
+  void ProcessDataList();
  private:
   WorkWindow* pWorkWindow_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
@@ -119,7 +122,8 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   /// @note state_ultrasound_exp_clip_ for exp clip time control
   /// 0 - stop, 1 - start, 2 - pause, <0 - unvalid
   int32_t state_ultrasound_exp_clip_;
-  ExpDataInfo exp_data_info_;
+  ExpDataInfo exp_data_graph_info_;
+  ExpDataInfo exp_data_list_info_;
 
   DuiLib::CTabLayoutUI* btn_tablayout_;
   DuiLib::CButtonUI* btn_tab_graph_;

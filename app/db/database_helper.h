@@ -26,16 +26,22 @@ namespace db {
 namespace helper {
 
 extern const char* kDefaultDatabasePathname;
-extern const char* kTableExpData;
+extern const char* kTableExpDataGraph;
+extern const char* kTableExpDataList;
 extern const char* kTableSendData;
 extern const char* kTableNotification;
 extern const char* kTableSendNotify;
 
 namespace sql {
-extern const char* kCreateTableAmpSqlFormat;
-extern const char* kInsertTableAmpSqlFormat;
-extern const char* kQueryTableAmpSqlByIdFormat;
-extern const char* kQueryTableAmpSqlByTimeFormat;
+extern const char* kCreateTableExpDataGraphSqlFormat;
+extern const char* kInsertTableExpDataGraphSqlFormat;
+extern const char* kQueryTableExpDataGraphSqlByIdFormat;
+extern const char* kQueryTableExpDataGraphSqlByTimeFormat;
+
+extern const char* kCreateTableExpDataListSqlFormat;
+extern const char* kInsertTableExpDataListSqlFormat;
+extern const char* kQueryTableExpDataListSqlByIdFormat;
+extern const char* kQueryTableExpDataListSqlByTimeFormat;
 
 extern const char* kCreateTableSendDataSqlFormat;
 extern const char* kInsertTableSendDataSqlFormat;

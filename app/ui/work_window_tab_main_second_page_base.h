@@ -63,7 +63,7 @@ class ExpDataInfo {
   /// @brief exp start time. in miliseconds
   int64_t exp_start_time_ms_ = 0;
   /// @brief exp data sample interval in miliseconds, 2000ms default
-  int64_t exp_sample_interval_ms_ = 0;
+  int32_t exp_sample_interval_ms_ = 2000;
   /// @brief exp data sample count since exp start time
   int64_t exp_time_interval_num_ = 0;
   /// @brief exp data sample store in database exp table count since exp start

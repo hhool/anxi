@@ -106,12 +106,12 @@ class WorkWindowSecondPageData::ListVirtalDataView
       return;
     }
     std::string sql_str = "SELECT * FROM ";
-    sql_str += anx::db::helper::kTableExpData;
+    sql_str += anx::db::helper::kTableExpDataList;
     sql_str += " WHERE id=";
     sql_str += std::to_string(nRow + 1);
     std::vector<std::map<std::string, std::string>> result;
     anx::db::helper::QueryDataBase(anx::db::helper::kDefaultDatabasePathname,
-                                   anx::db::helper::kTableExpData, sql_str,
+                                   anx::db::helper::kTableExpDataList, sql_str,
                                    &result);
     if (result.size() == 0) {
       return;
@@ -208,8 +208,8 @@ void WorkWindowSecondPageData::OnClick(TNotifyUI& msg) {
     } else if (msg.pSender->GetName() == _T("btn_exp_resume")) {
       OnExpResume();
     }
-  } else if (msg.sType == _T("selectchanged")) {
-    // TODO(hhool): add selectchanged action
+  } else {
+    // TODO(hhool): do nothing
   }
 }
 
@@ -287,11 +287,16 @@ void WorkWindowSecondPageData::Unbind() {
 void WorkWindowSecondPageData::RefreshSampleTimeControl(bool force) {
   std::string value = ("=");
   int32_t sample_time_interval = _ttol(edit_sample_interval_->GetText());
-  if (force || device_exp_data_settings_->sampling_interval_ != sample_time_interval) {
+  if (force ||
+      device_exp_data_settings_->sampling_interval_ != sample_time_interval) {
+    if (sample_time_interval == 0) {
+      return;
+    }
     device_exp_data_settings_->sampling_interval_ = sample_time_interval;
     value += to_string_with_precision((sample_time_interval * 100) / 1000.0f);
     value += "S";
     text_sample_interval_->SetText(anx::common::string2wstring(value).c_str());
+    exp_data_info_->exp_sample_interval_ms_ = sample_time_interval * 100;
   }
 }
 
@@ -403,36 +408,13 @@ void WorkWindowSecondPageData::OnDataReceived(
     anx::device::DeviceComInterface* device,
     const uint8_t* data,
     int32_t size) {
-  // TODO(hhool): process data
-  std::string hex_str;
-  if (device == device_com_ul_.get()) {
-    // process the data from ultrasound device
-    // 1. parse the data
-    // 2. update the data to the graph
-    // 3. update the data to the data table
-    // output the data as hex to the std::string
-    hex_str = anx::common::ByteArrayToHexString(data, size);
-    std::cout << hex_str << std::endl;
-  }
+  assert(device == device_com_ul_.get());
   if (exp_data_info_->exp_time_interval_num_ <= exp_time_interval_num_) {
     return;
   }
   LOG_F(LG_INFO) << "exp_data_table_no_:" << exp_data_info_->exp_data_table_no_;
   exp_time_interval_num_ = exp_data_info_->exp_time_interval_num_;
   list_data_->SetVirtualItemCount(exp_data_info_->exp_data_table_no_);
-}
-
-void WorkWindowSecondPageData::OnDataOutgoing(
-    anx::device::DeviceComInterface* device,
-    const uint8_t* data,
-    int32_t size) {
-  // TODO(hhool):
-  if (device == device_com_ul_.get()) {
-    // process the data from ultrasound device
-    // 1. parse the data
-    // 2. update the data to the graph
-    // 3. update the data to the data table
-  }
 }
 
 void WorkWindowSecondPageData::OnExpStart() {
@@ -466,6 +448,7 @@ void WorkWindowSecondPageData::OnExpResume() {
 void WorkWindowSecondPageData::ClearExpData() {
   exp_time_interval_num_ = 0;
   list_data_->RemoveAll();
+  list_data_->SetVirtualItemCount(0);
   if (is_exp_state_ == 0) {
     UpdateUIWithExpStatus(0);
   } else if (is_exp_state_ == 1) {
@@ -476,12 +459,12 @@ void WorkWindowSecondPageData::ClearExpData() {
 
 void anx::ui::WorkWindowSecondPageData::ExportToCSV(int64_t start_time) {
   std::string sql_str = "SELECT * FROM ";
-  sql_str += anx::db::helper::kTableExpData;
+  sql_str += anx::db::helper::kTableExpDataList;
   sql_str += " ORDER BY date ASC";
   sql_str += ";";
   std::vector<std::map<std::string, std::string>> result;
   anx::db::helper::QueryDataBase(anx::db::helper::kDefaultDatabasePathname,
-                                 anx::db::helper::kTableExpData, sql_str,
+                                 anx::db::helper::kTableExpDataList, sql_str,
                                  &result);
   if (result.size() == 0) {
     return;
