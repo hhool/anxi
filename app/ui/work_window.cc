@@ -37,6 +37,7 @@
 #include "app/ui/work_window_menu_store.h"
 #include "app/ui/work_window_status_bar.h"
 #include "app/ui/work_window_tab_main_first_page_solution_design.h"
+#include "app/ui/work_window_tab_main_page_base.h"
 #include "app/ui/work_window_tab_main_second_page.h"
 #include "app/ui/work_window_tab_main_third_page.h"
 
@@ -546,20 +547,27 @@ LRESULT WorkWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
       LOG_F(LG_INFO) << "load:" << load << " pos:" << pos << " exten:" << exten;
       anx::device::stload::STLoadHelper::st_load_loader_.st_api_
           .after_get_sample();
+
       if (anx::device::stload::STLoadHelper::Is_Stload_Simulation()) {
-        pos = static_cast<double>(rand() % 100) * -1.0f;
-        load = static_cast<double>(rand() % 100) * -1.0f;
+        pos = static_cast<double>(rand() % 100) * 1.0f;
+        load = static_cast<double>(rand() % 100) * 1.0f;
       }
       // notify third page to update the data
       // notify second page to update the chart
       DuiLib::TNotifyUI msg;
       msg.pSender = this->btn_args_area_value_static_load_;
       msg.sType = kValueChanged;
+
+      ENMsgStruct enmsg;
+
       anx::device::stload::STResult result;
       result.load_ = load;
       result.pos_ = pos;
       result.status_ = status;
-      msg.wParam = reinterpret_cast<WPARAM>(&result);
+
+      enmsg.ptr_ = &result;
+      enmsg.type_ = enmsg_type_stload_value_cur;
+      msg.wParam = reinterpret_cast<WPARAM>(&enmsg);
       tab_main_pages_["WorkWindowThirdPage"]->NotifyPump(msg);
       tab_main_pages_["WorkWindowSecondPage"]->NotifyPump(msg);
     }
@@ -686,6 +694,15 @@ void WorkWindow::UpdateArgsAreaWithSolution() {
       // TODO(hhool): do nothing;
     }
   }
+  DuiLib::TNotifyUI msg;
+  msg.pSender = this->btn_args_area_value_static_load_;
+  msg.sType = kValueChanged;
+  ENMsgStruct enmsg;
+  enmsg.ptr_ = design.get();
+  enmsg.type_ = enmsg_type_exp_stress_amp;
+  msg.wParam = reinterpret_cast<WPARAM>(&enmsg);
+  tab_main_pages_["WorkWindowThirdPage"]->NotifyPump(msg);
+  tab_main_pages_["WorkWindowSecondPage"]->NotifyPump(msg);
 }
 
 int32_t WorkWindow::LoadFileWithDialog() {
@@ -767,10 +784,9 @@ int32_t PortNameToInt32(const std::string& port_name) {
 void WorkWindow::OnMenuDeviceConnectClicked(DuiLib::TNotifyUI& msg) {
   // create or get ultrasound device.
   int32_t ret = OpenDeviceCom(anx::device::kDeviceCom_Ultrasound);
-  if (ret == -1) {
-    // TODO(hhool): show status bar message
-  } else if (ret == -2) {
-    // TODO(hhool): show status bar message
+  if (ret == 0) {
+  } else if (ret < 0) {
+    MessageBox(*this, _T("超声连接失败"), _T("连接失败"), MB_OK);
   }
   ret = OpenDeviceCom(anx::device::kDeviceCom_StaticLoad);
   if (ret == 0) {
@@ -778,7 +794,6 @@ void WorkWindow::OnMenuDeviceConnectClicked(DuiLib::TNotifyUI& msg) {
   } else if (ret < 0) {
     is_device_stload_connected_ = false;
     MessageBox(*this, _T("静载机连接失败"), _T("连接失败"), MB_OK);
-    // show status bar message
   }
 }
 
@@ -786,8 +801,6 @@ void WorkWindow::OnMenuDeviceDisconnectClicked(DuiLib::TNotifyUI& msg) {
   CloseDeviceCom(anx::device::kDeviceCom_StaticLoad);
   CloseDeviceCom(anx::device::kDeviceCom_Ultrasound);
   is_device_stload_connected_ = false;
-  // close static load device.
-  // TODO(hhooll): show status bar message
 }
 
 bool WorkWindow::IsDeviceComInterfaceConnected() const {

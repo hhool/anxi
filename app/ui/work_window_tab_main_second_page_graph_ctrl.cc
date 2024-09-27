@@ -179,6 +179,9 @@ WorkWindowSecondWorkWindowSecondPageGraphCtrl::
   sampling_total_minutes_ = vartime_to_minutes(x_duration);
   data_sample_count_for_one_graph_sample_ = 5;
   data_sample_incoming_first_time_ = -1.0f;
+  if (y_grid_step > 10) {
+    y_grid_step_ = 10;
+  }
 }
 
 WorkWindowSecondWorkWindowSecondPageGraphCtrl::

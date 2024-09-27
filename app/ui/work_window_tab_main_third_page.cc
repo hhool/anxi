@@ -32,6 +32,7 @@
 #include "app/ui/work_window.h"
 #include "app/ui/work_window_menu_design.h"
 #include "app/ui/work_window_menu_store.h"
+#include "app/ui/work_window_tab_main_page_base.h"
 
 DUI_BEGIN_MESSAGE_MAP(anx::ui::WorkWindowThirdPage, DuiLib::CNotifyPump)
 DUI_ON_MSGTYPE(DUI_MSGTYPE_CLICK, OnClick)
@@ -270,19 +271,29 @@ void WorkWindowThirdPage::OnTimer(TNotifyUI& msg) {
 void WorkWindowThirdPage::OnValueChanged(TNotifyUI& msg) {
   if (msg.sType == DUI_MSGTYPE_VALUECHANGED) {
     if (msg.pSender->GetName() == _T("args_area_value_static_load")) {
-      anx::device::stload::STResult* st_result =
-          reinterpret_cast<anx::device::stload::STResult*>(msg.wParam);
-      // update the label_displacement_ with random value
-      double pos = st_result->pos_;
-      // format the number keep 5 decimal
-      std::string num_pos_str = to_string_with_precision(pos, 5);
-      label_displacement_->SetText(
-          anx::common::string2wstring(num_pos_str).c_str());
-      // update the label_strength_ with random value
-      double load = st_result->load_;
-      std::string num_load_str = to_string_with_precision(load, 5);
-      label_strength_->SetText(
-          anx::common::string2wstring(num_load_str).c_str());
+      ENMsgStruct* enmsg = reinterpret_cast<ENMsgStruct*>(msg.wParam);
+      if (enmsg == nullptr) {
+        return;
+      }
+      if (enmsg->type_ == enmsg_type_stload_value_cur) {
+        anx::device::stload::STResult* st_result =
+            reinterpret_cast<anx::device::stload::STResult*>(enmsg->ptr_);
+        // update the label_displacement_ with random value
+        double pos = st_result->pos_;
+        // format the number keep 5 decimal
+        std::string num_pos_str = to_string_with_precision(pos, 5);
+        label_displacement_->SetText(
+            anx::common::string2wstring(num_pos_str).c_str());
+        // update the label_strength_ with random value
+        double load = st_result->load_;
+        std::string num_load_str = to_string_with_precision(load, 5);
+        label_strength_->SetText(
+            anx::common::string2wstring(num_load_str).c_str());
+      } else if (enmsg->type_ == enmsg_type_exp_stress_amp) {
+
+	  }
+    } else {
+      // do nothing
     }
   }
 }

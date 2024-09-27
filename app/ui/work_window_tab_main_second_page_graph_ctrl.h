@@ -124,6 +124,14 @@ class WorkWindowSecondWorkWindowSecondPageGraphCtrl {
     return data_sample_incoming_count_;
   }
 
+  /// @brief update y_max_ value for the graph control
+  /// @param y_max the y_max_ value for the graph control
+  void UpdateYMaxValue(double yMaxValue, bool update=true) {
+     y_max_ = yMaxValue;
+    if (update && graph_ctrl_ != nullptr) {
+      graph_ctrl_->SetRange(x_min_, x_min_ + x_duration_, y_min_, y_max_);
+    }
+  }
  protected:
   void UpateXTimeValue();
   void DumpGraphDataList();

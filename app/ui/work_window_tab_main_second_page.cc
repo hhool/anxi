@@ -38,6 +38,7 @@
 #include "app/ui/dialog_static_load_guaranteed_settings.h"
 #include "app/ui/ui_constants.h"
 #include "app/ui/work_window.h"
+#include "app/ui/work_window_tab_main_page_base.h"
 #include "app/ui/work_window_tab_main_second_page_data.h"
 #include "app/ui/work_window_tab_main_second_page_graph.h"
 
@@ -245,13 +246,26 @@ void WorkWindowSecondPage::OnTimer(TNotifyUI& msg) {
 void WorkWindowSecondPage::OnValueChanged(TNotifyUI& msg) {
   if (msg.sType == DUI_MSGTYPE_VALUECHANGED) {
     if (msg.pSender->GetName() == _T("args_area_value_static_load")) {
-      anx::device::stload::STResult* st_result =
-          reinterpret_cast<anx::device::stload::STResult*>(msg.wParam);
-      if ((st_result->status_ & DSP_CMDEND) == DSP_CMDEND) {
-        LOG_F(LG_INFO) << "static load aircraft stop";
-        OnButtonStaticAircraftStop();
+      ENMsgStruct* enmsg = reinterpret_cast<ENMsgStruct*>(msg.wParam);
+      if (enmsg == nullptr) {
+        return;
       }
-      st_load_result_ = *st_result;
+      if (enmsg->type_ == enmsg_type_stload_value_cur) {
+        anx::device::stload::STResult* st_result =
+            reinterpret_cast<anx::device::stload::STResult*>(enmsg->ptr_);
+        if ((st_result->status_ & DSP_CMDEND) == DSP_CMDEND) {
+          LOG_F(LG_INFO) << "static load aircraft stop";
+          OnButtonStaticAircraftStop();
+        }
+        st_load_result_ = *st_result;
+      } else if (enmsg->type_ == enmsg_type_exp_stress_amp) {
+        if (work_window_second_page_graph_notify_pump_ == nullptr) {
+          return;
+        }
+        work_window_second_page_graph_notify_pump_->NotifyPump(msg);
+      }
+    } else {
+      // do nothing
     }
   }
 }
@@ -819,7 +833,7 @@ void WorkWindowSecondPage::OnDataReceived(
       double KHz = 208.230f * kMultiFactor;
       // TODO(hhool): random KHz, um, MPa
       double um = (rand() % 15) * kMultiFactor;
-      double MPa = (rand() % 8) * kMultiFactor;
+      double MPa = std::fabsl(st_load_result_.load_) * kMultiFactor;
       this->pWorkWindow_->UpdateArgsArea(cycle_count, KHz, MPa, um);
       double date = anx::common::GetCurrrentDateTime() * kMultiFactor;
       exp_data_info_.amp_freq_ = KHz;

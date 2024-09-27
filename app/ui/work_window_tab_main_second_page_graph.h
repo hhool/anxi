@@ -65,10 +65,14 @@ class WorkWindowSecondPageGraph : public DuiLib::CNotifyPump,
 
  public:
   DUI_DECLARE_MESSAGE_MAP()
-  void OnClick(TNotifyUI& msg);  // NOLINT
+  void OnClick(TNotifyUI& msg);         // NOLINT
+  void OnValueChanged(TNotifyUI& msg);  // NOLINT
 
  protected:
-  bool OnOptGraphTimeModeChange(void* param);
+  bool OnOptGraphTimeModeChange(void* param) {
+    // TODO(hhool): will be remove
+    return false;
+  }
   bool OnChkGraphAlwaysShowNewChange(void* param);
   bool OnOptGraphTimeRangeChange(void* param);
   bool OnPagePre(void* param);
@@ -123,10 +127,10 @@ class WorkWindowSecondPageGraph : public DuiLib::CNotifyPump,
   ExpDataInfo* exp_data_info_;
   /// @brief amp start time, stress start time.
   int64_t exp_time_interval_num_;
-
-  int32_t y_axsi_amp_total_ = 20;
-
-  int32_t y_axsi_st_total_ = 20;
+  /// @brief y axsi max value for amptitude.
+  int32_t y_axsi_amp_value_max_ = 10;
+  /// @brief y axsi max value for stress.
+  int32_t y_axsi_stload_value_max_ = 10;
 
   /// @brief graph time mode pre hour
   DuiLib::COptionUI* opt_graph_time_mode_pre_hour_;

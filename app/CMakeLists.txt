@@ -201,6 +201,7 @@ if(WIN32)
         ui/work_window_menu_store.h
         ui/work_window_status_bar.cc
         ui/work_window_status_bar.h
+        ui/work_window_tab_main_page_base.h
         ui/work_window_tab_main_first_page_solution_design_base.h
         ui/work_window_tab_main_first_page_solution_design.cc
         ui/work_window_tab_main_first_page_solution_design.h

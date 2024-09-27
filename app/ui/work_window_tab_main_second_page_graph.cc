@@ -24,6 +24,7 @@
 #include "app/device/device_com_settings.h"
 #include "app/device/device_exp_graph_settings.h"
 #include "app/device/device_exp_ultrasound_settings.h"
+#include "app/device/stload/stload_helper.h"
 #include "app/esolution/solution_design.h"
 #include "app/esolution/solution_design_default.h"
 #include "app/ui/dialog_amplitude_calibration_settings.h"
@@ -31,10 +32,12 @@
 #include "app/ui/dmgraph.tlh"
 #include "app/ui/ui_constants.h"
 #include "app/ui/work_window.h"
+#include "app/ui/work_window_tab_main_page_base.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 DUI_BEGIN_MESSAGE_MAP(anx::ui::WorkWindowSecondPageGraph, DuiLib::CNotifyPump)
 DUI_ON_MSGTYPE(DUI_MSGTYPE_CLICK, OnClick)
+DUI_ON_MSGTYPE(DUI_MSGTYPE_VALUECHANGED, OnValueChanged)
 DUI_END_MESSAGE_MAP()
 
 namespace anx {
@@ -54,24 +57,6 @@ const int32_t kTimeGraphButtonId = 2;
 }  // namespace
 
 namespace {
-std::vector<std::map<std::string, std::string>> QueryExpDataItemByStartTime(
-    double start_time,
-    int32_t item_count) {
-  std::string sql_str = " SELECT* FROM ";
-  sql_str += anx::db::helper::kTableExpData;
-  sql_str += " WHERE ";
-  sql_str += " date > ";
-  sql_str += std::to_string(start_time);
-  sql_str += " ORDER BY date ASC";
-  sql_str += " LIMIT ";
-  sql_str += std::to_string(item_count);
-  sql_str += ";";
-  std::vector<std::map<std::string, std::string>> result;
-  anx::db::helper::QueryDataBase(anx::db::helper::kDefaultDatabasePathname,
-                                 anx::db::helper::kTableExpData, sql_str,
-                                 &result);
-  return result;
-}
 
 std::vector<std::map<std::string, std::string>> QueryExpDataItemById(
     int32_t id,
@@ -193,18 +178,66 @@ void WorkWindowSecondPageGraph::OnClick(TNotifyUI& msg) {
     } else if (msg.pSender->GetName() == _T("btn_exp_resume")) {
       OnExpResume();
     }
-  } else if (msg.sType == _T("selectchanged")) {
+  } else {
     // TODO(hhool): add selectchanged action
   }
 }
 
-bool WorkWindowSecondPageGraph::OnOptGraphTimeModeChange(void* param) {
-  // TODO(hhool):
-  TNotifyUI* pMsg = reinterpret_cast<TNotifyUI*>(param);
-  if (pMsg == nullptr) {
-    return false;
+void WorkWindowSecondPageGraph::OnValueChanged(TNotifyUI& msg) {
+  if (msg.sType == DUI_MSGTYPE_VALUECHANGED) {
+    if (msg.pSender->GetName() == _T("args_area_value_static_load")) {
+      ENMsgStruct* enmsg = reinterpret_cast<ENMsgStruct*>(msg.wParam);
+      if (enmsg == nullptr) {
+        return;
+      }
+      if (enmsg->type_ == enmsg_type_stload_value_cur) {
+        anx::device::stload::STResult* st_result =
+            reinterpret_cast<anx::device::stload::STResult*>(enmsg->ptr_);
+
+      } else if (enmsg->type_ == enmsg_type_exp_stress_amp) {
+        anx::esolution::SolutionDesign* design =
+            reinterpret_cast<anx::esolution::SolutionDesign*>(enmsg->ptr_);
+        if (design == nullptr) {
+          return;
+        }
+        double exp_amplitude =
+            reinterpret_cast<anx::esolution::ExpDesignResult0*>(
+                design->result_.get())
+                ->f_eamplitude_;
+        double exp_statc_load_mpa = 0.0f;
+        if (design->result_->solution_type_ ==
+            anx::esolution::kSolutionName_Stresses_Adjustable) {
+          exp_statc_load_mpa =
+              reinterpret_cast<
+                  anx::esolution::ExpDesignResultStressesAdjustable*>(
+                  design->result_.get())
+                  ->f_static_load_MPa_;
+        } else if (design->result_->solution_type_ ==
+                   anx::esolution::kSolutionName_Th3point_Bending) {
+          exp_statc_load_mpa =
+              reinterpret_cast<anx::esolution::ExpDesignResultTh3pointBending*>(
+                  design->result_.get())
+                  ->f_static_load_MPa_;
+        }
+        LOG_F(LG_INFO) << "exp_amplitude:" << exp_amplitude
+                       << " exp_statc_load_mpa:" << exp_statc_load_mpa;
+        if (exp_amplitude > 0.0f) {
+          y_axsi_amp_value_max_ = static_cast<int32_t>(exp_amplitude);
+          if (y_axsi_amp_value_max_ % 10 != 0) {
+            y_axsi_amp_value_max_ = (y_axsi_amp_value_max_ / 10 + 1) * 10;
+          }
+        }
+        if (exp_statc_load_mpa > 0.0f) {
+          y_axsi_stload_value_max_ = static_cast<int32_t>(exp_statc_load_mpa);
+          if (y_axsi_stload_value_max_ % 10 != 0) {
+            y_axsi_stload_value_max_ = (y_axsi_stload_value_max_ / 10 + 1) * 10;
+          }
+        }
+      }
+    } else {
+      // do nothing
+    }
   }
-  return true;
 }
 
 bool WorkWindowSecondPageGraph::OnChkGraphAlwaysShowNewChange(void* param) {
@@ -592,8 +625,9 @@ void WorkWindowSecondPageGraph::Bind() {
         paint_manager_ui_->FindControl(_T("graph_amplitude_canvas")));
     page_graph_amplitude_ctrl_.reset(
         new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
-            graph_ctrl_event_.get(), activex, "amp", x_min, x_duration, y_axsi_amp_total_, 6,
-            kYAxisAmpInitialValue, exp_data_info_->mode_ ? false : true));
+            graph_ctrl_event_.get(), activex, "amp", x_min, x_duration,
+            y_axsi_amp_value_max_, 6, kYAxisAmpInitialValue,
+            exp_data_info_->mode_ ? false : true));
     page_graph_amplitude_ctrl_->Init(std::vector<Element2DPoint>());
   }
   {
@@ -601,8 +635,9 @@ void WorkWindowSecondPageGraph::Bind() {
         paint_manager_ui_->FindControl(_T("graph_stress_canvas")));
     page_graph_stress_ctrl_.reset(
         new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
-            graph_ctrl_event_.get(), activex, "stress", x_min, x_duration, y_axsi_st_total_, 6,
-            kYAxisStressInitialValue, exp_data_info_->mode_ ? false : true));
+            graph_ctrl_event_.get(), activex, "stress", x_min, x_duration,
+            y_axsi_stload_value_max_, 6, kYAxisStressInitialValue,
+            exp_data_info_->mode_ ? false : true));
     page_graph_stress_ctrl_->Init(std::vector<Element2DPoint>());
   }
   // bind the graph title timer
@@ -653,8 +688,9 @@ void WorkWindowSecondPageGraph::ClearGraphData() {
         paint_manager_ui_->FindControl(_T("graph_amplitude_canvas")));
     page_graph_amplitude_ctrl_.reset(
         new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
-            graph_ctrl_event_.get(), activex, "amp", x_min, x_duration, y_axsi_amp_total_, 6,
-            kYAxisAmpInitialValue, exp_data_info_->mode_ ? false : true));
+            graph_ctrl_event_.get(), activex, "amp", x_min, x_duration,
+            y_axsi_amp_value_max_, 6, kYAxisAmpInitialValue,
+            exp_data_info_->mode_ ? false : true));
     page_graph_amplitude_ctrl_->Init(std::vector<Element2DPoint>());
   }
   {
@@ -662,8 +698,9 @@ void WorkWindowSecondPageGraph::ClearGraphData() {
         paint_manager_ui_->FindControl(_T("graph_stress_canvas")));
     page_graph_stress_ctrl_.reset(
         new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
-            graph_ctrl_event_.get(), activex, "stress", x_min, x_duration, y_axsi_st_total_, 6,
-            kYAxisStressInitialValue, exp_data_info_->mode_ ? false : true));
+            graph_ctrl_event_.get(), activex, "stress", x_min, x_duration,
+            y_axsi_stload_value_max_, 6, kYAxisStressInitialValue,
+            exp_data_info_->mode_ ? false : true));
     page_graph_stress_ctrl_->Init(std::vector<Element2DPoint>());
   }
 }
@@ -697,8 +734,8 @@ void WorkWindowSecondPageGraph::UpdateGraphCtrl(
         paint_manager_ui_->FindControl(_T("graph_amplitude_canvas")));
     page_graph_amplitude_ctrl_.reset(
         new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
-            graph_ctrl_event_.get(), activex, "amp", x_min, x_duration, y_axsi_amp_total_, 6,
-            kYAxisAmpInitialValue, true));
+            graph_ctrl_event_.get(), activex, "amp", x_min, x_duration,
+            y_axsi_amp_value_max_, 6, kYAxisAmpInitialValue, true));
     page_graph_amplitude_ctrl_->Init(element_list);
   } else if (name == "stress") {
     if (page_graph_stress_ctrl_ != nullptr) {
@@ -726,8 +763,8 @@ void WorkWindowSecondPageGraph::UpdateGraphCtrl(
         paint_manager_ui_->FindControl(_T("graph_stress_canvas")));
     page_graph_stress_ctrl_.reset(
         new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
-            graph_ctrl_event_.get(), activex, "stress", x_min, x_duration, y_axsi_st_total_, 6,
-            kYAxisStressInitialValue, true));
+            graph_ctrl_event_.get(), activex, "stress", x_min, x_duration,
+            y_axsi_stload_value_max_, 6, kYAxisStressInitialValue, true));
     page_graph_stress_ctrl_->Init(element_list);
   }
 }
@@ -738,7 +775,7 @@ void WorkWindowSecondPageGraph::RefreshExpGraphTitleControl(double vartime) {
   VartimeToTimeinfo(vartime, &timeinfo);
 
   // format the time string like 00:00 and append to the title string
-  // like "最大静载 00:00" and set to the title control. %02d:%02d is
+  // like "静载 00:00" and set to the title control. %02d:%02d is
   // used to format the time string to 00:00 format from the timeinfo
   // struct. The timeinfo struct is filled with the current time info.
   char time_str[256];
@@ -753,7 +790,7 @@ void WorkWindowSecondPageGraph::RefreshExpGraphTitleControl(double vartime) {
   btn_graph_amplitude_title_->SetText(str_title_with_time_amp);
 
   // update the graph canvas tile with the current time's hour and minute
-  tile_time_str = "最大静载";
+  tile_time_str = "静载";
   tile_time_str += time_str;
   DuiLib::CDuiString str_title_with_time_stress =
       anx::common::UTF8ToUnicode(tile_time_str.c_str()).c_str();
@@ -849,10 +886,6 @@ void WorkWindowSecondPageGraph::OnDataReceived(
     hex_str = anx::common::ByteArrayToHexString(data, size);
     std::cout << hex_str << std::endl;
   }
-  /*
-  if (!chk_graph_always_show_new_->IsSelected()) {
-  return;
-  }*/
   if (exp_data_info_->exp_time_interval_num_ <= exp_time_interval_num_) {
     return;
   }
@@ -967,8 +1000,9 @@ void WorkWindowSecondPageGraph::OnExpStart() {
         paint_manager_ui_->FindControl(_T("graph_amplitude_canvas")));
     page_graph_amplitude_ctrl_.reset(
         new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
-            graph_ctrl_event_.get(), activex, "amp", x_min, x_duration, y_axsi_amp_total_, 6,
-            kYAxisAmpInitialValue, exp_data_info_->mode_ ? false : true));
+            graph_ctrl_event_.get(), activex, "amp", x_min, x_duration,
+            y_axsi_amp_value_max_, 6, kYAxisAmpInitialValue,
+            exp_data_info_->mode_ ? false : true));
     page_graph_amplitude_ctrl_->Init(std::vector<Element2DPoint>());
   }
   {
@@ -976,8 +1010,9 @@ void WorkWindowSecondPageGraph::OnExpStart() {
         paint_manager_ui_->FindControl(_T("graph_stress_canvas")));
     page_graph_stress_ctrl_.reset(
         new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
-            graph_ctrl_event_.get(), activex, "stress", x_min, x_duration, y_axsi_st_total_, 6,
-            kYAxisStressInitialValue, exp_data_info_->mode_ ? false : true));
+            graph_ctrl_event_.get(), activex, "stress", x_min, x_duration,
+            y_axsi_stload_value_max_, 6, kYAxisStressInitialValue,
+            exp_data_info_->mode_ ? false : true));
     page_graph_stress_ctrl_->Init(std::vector<Element2DPoint>());
   }
 }

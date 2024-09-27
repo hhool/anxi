@@ -45,7 +45,7 @@ typedef enum {
   view_mode_real = 0,
   /// @brief history view mode of graph ctrl for exp data display
   view_mode_history = 1
-}e_view_mode;
+} e_view_mode;
 
 class ExpDataInfo {
  public:
