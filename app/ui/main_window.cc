@@ -112,6 +112,37 @@ LRESULT anx::ui::MainWindow::OnSetFocus(UINT /*uMsg*/,
   ::InvalidateRect(m_hWnd, NULL, TRUE);
   return 0;
 }
+
+LRESULT anx::ui::MainWindow::OnNcHitTest(UINT uMsg,
+                                         WPARAM wParam,
+                                         LPARAM lParam,
+                                         BOOL& bHandled) {
+  POINT pt;
+  pt.x = GET_X_LPARAM(lParam);
+  pt.y = GET_Y_LPARAM(lParam);
+  ::ScreenToClient(*this, &pt);
+
+  RECT rcClient;
+  ::GetClientRect(*this, &rcClient);
+
+  RECT rcCaption = m_PaintManager.GetCaptionRect();
+  CControlUI* pControl =
+      static_cast<CControlUI*>(m_PaintManager.FindControl(pt));
+  if (pControl && _tcscmp(pControl->GetClass(), DUI_CTR_BUTTON) != 0 &&
+      _tcscmp(pControl->GetClass(), DUI_CTR_OPTION) != 0 &&
+      _tcscmp(pControl->GetClass(), DUI_CTR_TEXT) != 0)
+    return HTCAPTION;
+
+  return HTCLIENT;
+}
+
+LRESULT MainWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
+  if (uMsg == WM_LBUTTONDBLCLK) {
+    return 0;
+  }
+  return __super::HandleMessage(uMsg, wParam, lParam);
+}
+
 void anx::ui::MainWindow::Switch_Axially_Symmetrical() {
   this->ShowWindow(false, false);
   ui::WorkWindow* work_window = new ui::WorkWindow(
@@ -164,29 +195,6 @@ void anx::ui::MainWindow::Switch_ThirdApp() {
   ShellExecute(NULL, _T("open"),
                anx::common::string2wstring(path.c_str()).c_str(), NULL, NULL,
                SW_SHOW);
-}
-
-LRESULT anx::ui::MainWindow::OnNcHitTest(UINT uMsg,
-                                         WPARAM wParam,
-                                         LPARAM lParam,
-                                         BOOL& bHandled) {
-  POINT pt;
-  pt.x = GET_X_LPARAM(lParam);
-  pt.y = GET_Y_LPARAM(lParam);
-  ::ScreenToClient(*this, &pt);
-
-  RECT rcClient;
-  ::GetClientRect(*this, &rcClient);
-
-  RECT rcCaption = m_PaintManager.GetCaptionRect();
-  CControlUI* pControl =
-      static_cast<CControlUI*>(m_PaintManager.FindControl(pt));
-  if (pControl && _tcscmp(pControl->GetClass(), DUI_CTR_BUTTON) != 0 &&
-      _tcscmp(pControl->GetClass(), DUI_CTR_OPTION) != 0 &&
-      _tcscmp(pControl->GetClass(), DUI_CTR_TEXT) != 0)
-    return HTCAPTION;
-
-  return HTCLIENT;
 }
 
 std::vector<std::string> anx::ui::MainWindow::LoadThirdAppList() {

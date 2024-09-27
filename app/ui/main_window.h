@@ -61,17 +61,22 @@ class MainWindow : public DuiLib::WindowImplBase {
                   LPARAM lParam,
                   BOOL& bHandled) override;
 
-  LRESULT OnSetFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled) override;
+  LRESULT OnSetFocus(UINT /*uMsg*/,
+                     WPARAM /*wParam*/,
+                     LPARAM /*lParam*/,
+                     BOOL& bHandled) override;
+
+  LRESULT
+  OnNcHitTest(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled) override;
+
+  LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) override;
+
  protected:
   void Switch_Axially_Symmetrical();
   void Switch_Stresses_Adjustable();
   void Switch_Th3point_Bending();
   void Switch_Vibration_Bending();
   void Switch_ThirdApp();
-
- protected:
-  LRESULT
-  OnNcHitTest(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled) override;
 
  protected:
   std::vector<std::string> LoadThirdAppList();

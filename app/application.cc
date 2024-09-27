@@ -92,8 +92,12 @@ int32_t Application::Run() {
   main_window_ = std::make_unique<ui::MainWindow>();
   main_window_->Create(nullptr, _T("main_window"), UI_WNDSTYLE_FRAME,
                        WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
+  ::SetWindowLong(main_window_->GetHWND(), GWL_STYLE,
+                  ::GetWindowLong(main_window_->GetHWND(), GWL_STYLE) &
+                      ~WS_MAXIMIZEBOX & ~WS_THICKFRAME);
   HICON hIcon = ::LoadIcon(g_hInstance_, MAKEINTRESOURCE(IDI_ICON_APP));
-  ::SendMessage(main_window_->GetHWND(), STM_SETICON, IMAGE_ICON, (LPARAM)(UINT)hIcon);
+  ::SendMessage(main_window_->GetHWND(), STM_SETICON, IMAGE_ICON,
+                (LPARAM)(UINT)hIcon);
 
   main_window_->CenterWindow();
   main_window_->ShowWindow(true, true);
