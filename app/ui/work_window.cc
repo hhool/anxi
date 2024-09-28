@@ -296,7 +296,6 @@ void WorkWindow::Notify(DuiLib::TNotifyUI& msg) {
     dialog_comport_settings->ShowModal();
   } else if (msg.sType == kMenu_Design_Modify_Addr) {
     // TODO(hhool):
-    MessageBox(*this, msg.sType, msg.sType, MB_OK);
   } else if (msg.sType == kMenu_Design_Read_Solution) {
     int32_t ret = LoadFileWithDialog();
     if (ret < 0) {

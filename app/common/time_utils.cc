@@ -103,11 +103,10 @@ double GetCurrrentDateTime() {
   SYSTEMTIME st;
   GetLocalTime(&st);
   /// @note use SystemTimeToVariantTime to convert the time to double
-  /// @note only the time part is used, the date part is ignored.
   DATE dt;
-  st.wYear = 1899;
-  st.wMonth = 12;
-  st.wDay = 30;
+  st.wYear = st.wYear;
+  st.wMonth = st.wMonth;
+  st.wDay = st.wDay;
   st.wHour = st.wHour;
   st.wMilliseconds = 0;
   st.wDayOfWeek = 0;

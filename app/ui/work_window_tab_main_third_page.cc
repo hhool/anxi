@@ -454,9 +454,6 @@ void WorkWindowThirdPage::OnDataOutgoing(
     anx::device::DeviceComInterface* device,
     const uint8_t* data,
     int32_t size) {
-  // TODO(hhool): review the implementation
-  if (device == device_com_ul_.get()) {
-  }
   if (check_box_display_send_->IsSelected()) {
     std::string hex_str;
     hex_str = anx::common::ByteArrayToHexString(data, size);
