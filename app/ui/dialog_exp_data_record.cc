@@ -158,6 +158,10 @@ void DialogExpDataRecord::InitWindow() {
   SYSTEMTIME max_sys_time = UnixTimeToSystemTime(max_time);
   start_date_time_->SetTime(&min_sys_time);
   end_date_time_->SetTime(&max_sys_time);
+  start_date_time_->SetFocus();
+  start_date_time_->UpdateText();
+  end_date_time_->SetFocus();
+  end_date_time_->UpdateText();
 
   /// show the first item detail
   if (exp_data_list_->GetCount() > 0) {
@@ -169,6 +173,7 @@ void DialogExpDataRecord::InitWindow() {
   /// bind list item click event
   exp_data_list_->OnNotify +=
       ::MakeDelegate(this, &DialogExpDataRecord::OnListItemClick);
+  exp_data_list_->SetFocus();
 }
 
 void DialogExpDataRecord::Notify(DuiLib::TNotifyUI& msg) {
