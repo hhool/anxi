@@ -424,6 +424,7 @@ void WorkWindowSecondPageData::OnExpStart() {
 
   UpdateUIWithExpStatus(1);
   list_data_->RemoveAll();
+  list_data_->SetVirtualItemCount(0);
 }
 
 void WorkWindowSecondPageData::OnExpStop() {

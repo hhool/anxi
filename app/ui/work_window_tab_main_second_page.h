@@ -124,6 +124,7 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   int32_t state_ultrasound_exp_clip_;
   ExpDataInfo exp_data_graph_info_;
   ExpDataInfo exp_data_list_info_;
+  std::unique_ptr<anx::device::DeviceExpDataSampleSettings> dedss_;
 
   DuiLib::CTabLayoutUI* btn_tablayout_;
   DuiLib::CButtonUI* btn_tab_graph_;

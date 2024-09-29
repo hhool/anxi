@@ -607,12 +607,13 @@ int32_t WorkWindowSecondPage::exp_start() {
   exp_data_graph_info_.exp_start_time_ms_ = anx::common::GetCurrentTimeMillis();
   exp_data_graph_info_.exp_sample_interval_ms_ = 2000;
 
-  std::unique_ptr<anx::device::DeviceExpDataSampleSettings> dedss =
-      anx::device::LoadDeviceExpDataSampleSettingsDefaultResource();
+  dedss_ =
+      std::move(anx::device::LoadDeviceExpDataSampleSettingsDefaultResource());
   exp_data_list_info_.exp_data_table_no_ = 0;
   exp_data_list_info_.exp_time_interval_num_ = 0;
   exp_data_list_info_.exp_start_time_ms_ = anx::common::GetCurrentTimeMillis();
-  exp_data_list_info_.exp_sample_interval_ms_ = dedss->sampling_interval_ * 100;
+  exp_data_list_info_.exp_sample_interval_ms_ =
+      dedss_->sampling_interval_ * 100;
 
   // TODO(hhool): sample interval
   // set the ultrasound on state
@@ -730,12 +731,12 @@ void WorkWindowSecondPage::OnButtonStaticAircraftReset() {
   exp_data_graph_info_.exp_start_time_ms_ = anx::common::GetCurrentTimeMillis();
   exp_data_graph_info_.exp_sample_interval_ms_ = 2000;
 
-  std::unique_ptr<anx::device::DeviceExpDataSampleSettings> dedss =
-      anx::device::LoadDeviceExpDataSampleSettingsDefaultResource();
+  dedss_ = anx::device::LoadDeviceExpDataSampleSettingsDefaultResource();
   exp_data_list_info_.exp_data_table_no_ = 0;
   exp_data_list_info_.exp_time_interval_num_ = 0;
   exp_data_list_info_.exp_start_time_ms_ = anx::common::GetCurrentTimeMillis();
-  exp_data_list_info_.exp_sample_interval_ms_ = dedss->sampling_interval_ * 100;
+  exp_data_list_info_.exp_sample_interval_ms_ =
+      dedss_->sampling_interval_ * 100;
   // clear graph data
   WorkWindowSecondPageGraph* graph_page =
       reinterpret_cast<WorkWindowSecondPageGraph*>(
@@ -882,8 +883,21 @@ void anx::ui::WorkWindowSecondPage::ProcessDataGraph() {
 void anx::ui::WorkWindowSecondPage::ProcessDataList() {
   int64_t current_time_ms = anx::common::GetCurrentTimeMillis();
   int64_t time_diff = current_time_ms - exp_data_list_info_.exp_start_time_ms_;
-  int64_t time_interval_num =
-      time_diff / exp_data_list_info_.exp_sample_interval_ms_;
+  assert(dedss_ != nullptr);
+  if (time_diff < (dedss_->sampling_start_pos_ * 100)) {
+    return;
+  }
+  time_diff -= dedss_->sampling_start_pos_ * 100;
+  int64_t time_interval_num = time_diff / (dedss_->sampling_interval_ * 100);
+  if (dedss_->sampling_end_pos_ > dedss_->sampling_start_pos_) {
+    int32_t sampling_start_end_diff =
+        dedss_->sampling_end_pos_ - dedss_->sampling_start_pos_;
+    int64_t sampling_start_end_diff_ms = sampling_start_end_diff * 100;
+    if (time_diff > sampling_start_end_diff_ms) {
+      LOG_F(LG_INFO) << "exp data list stop";
+      return;
+    }
+  }
   if (time_interval_num > exp_data_list_info_.exp_time_interval_num_) {
     exp_data_list_info_.exp_time_interval_num_ = time_interval_num;
     exp_data_list_info_.exp_data_table_no_++;
