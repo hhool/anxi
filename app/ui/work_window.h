@@ -84,7 +84,8 @@ class WorkWindow : public DuiLib::WindowImplBase,
                        WPARAM wParam,
                        LPARAM lParam,
                        BOOL& bHandled) override;
-
+  static ULONG DeviceCallback(PVOID Context, ULONG Type, PVOID Setting);
+  LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled) override;
   LRESULT OnDestroy(UINT /*uMsg*/,
                     WPARAM /*wParam*/,
                     LPARAM /*lParam*/,

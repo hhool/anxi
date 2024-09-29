@@ -265,6 +265,12 @@ void WorkWindowSecondPage::OnValueChanged(TNotifyUI& msg) {
         }
         work_window_second_page_graph_notify_pump_->NotifyPump(msg);
       }
+    } else if (msg.pSender->GetName() == _T("args_area_value_amplitude")) {
+      if (msg.wParam == PBT_APMQUERYSUSPEND) {
+        exp_stop();
+      } else {
+        // do nothing
+      }
     } else {
       // do nothing
     }

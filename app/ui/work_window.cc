@@ -41,6 +41,9 @@
 #include "app/ui/work_window_tab_main_second_page.h"
 #include "app/ui/work_window_tab_main_third_page.h"
 
+#include <powrprof.h>
+#pragma comment(lib, "Powrprof.lib")
+
 DUI_BEGIN_MESSAGE_MAP(anx::ui::WorkWindow, DuiLib::WindowImplBase)
 DUI_ON_MSGTYPE(DUI_MSGTYPE_CLICK, OnClick)
 DUI_ON_MSGTYPE(DUI_MSGTYPE_SELECTCHANGED, OnSelectChanged)
@@ -475,7 +478,41 @@ LRESULT WorkWindow::OnSysCommand(UINT uMsg,
   return 0;
 }
 
+ULONG WorkWindow::DeviceCallback(PVOID Context,
+                                        ULONG Type,
+                                        PVOID Setting) {
+  WorkWindow* pthis = reinterpret_cast<WorkWindow*>(Context);
+  if (Type == PBT_APMSUSPEND) {
+    if (pthis->is_exp_state_ != 0) {
+      DuiLib::TNotifyUI msg;
+      msg.sType = kValueChanged;
+      msg.pSender = pthis->btn_args_area_value_amplitude_;
+      msg.wParam = PBT_APMQUERYSUSPEND;
+      pthis->tab_main_pages_["WorkWindowThirdPage"]->NotifyPump(msg);
+      pthis->tab_main_pages_["WorkWindowSecondPage"]->NotifyPump(msg);
+      return 0;
+    }
+  } else if (Type == PBT_APMRESUMESUSPEND) {
+    cout << "open" << endl;
+  }
+  return ERROR_SUCCESS;
+}
+
+static HPOWERNOTIFY g_power_notify_handle = NULL;
+LRESULT WorkWindow::OnCreate(UINT uMsg,
+                             WPARAM wParam,
+                             LPARAM lParam,
+                             BOOL& bHandled) {
+  DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS params;
+  params.Callback = DeviceCallback;
+  params.Context = this;
+  PowerRegisterSuspendResumeNotification(DEVICE_NOTIFY_CALLBACK, &params,
+                                         &g_power_notify_handle);
+  return __super::OnCreate(uMsg, wParam, lParam, bHandled);
+}
+
 LRESULT WorkWindow::OnDestroy(UINT, WPARAM, LPARAM, BOOL& bHandled) {
+  PowerUnregisterSuspendResumeNotification(g_power_notify_handle);
   bHandled = FALSE;
   return __super::OnDestroy(0, 0, 0, bHandled);
 }
@@ -572,6 +609,8 @@ LRESULT WorkWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
       tab_main_pages_["WorkWindowSecondPage"]->NotifyPump(msg);
     }
     return 0;
+  } else {
+    // TODO(hhool): do nothing
   }
   return __super::HandleMessage(uMsg, wParam, lParam);
 }
