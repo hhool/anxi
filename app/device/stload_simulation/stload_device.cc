@@ -60,28 +60,9 @@ class Worker : public anx::common::Runnable {
       // Sleep 40ms
       usleep(40 * 1000);
 #endif
-      if (g_device_com_sl_ != nullptr) {
-        // Read data from device
-        uint8_t hex[64] = {0};
-        int ret = g_device_com_sl_->Read(hex, 64);
-        if (ret > 0) {
-          // Parse data
-          std::string str = anx::common::ByteArrayToHexString(hex, 64);
-          printf("Read data: %s\n", str.c_str());
-        }
-		// check if thread should be stopped
-		if (is_interrupt()) {
-			break;
-		}
-        // Write data to device
-        uint8_t hex_write[64] = {0};
-        int ret_write = g_device_com_sl_->Write(hex_write, 64);
-        if (ret_write > 0) {
-          // Parse data
-          std::string str_write =
-              anx::common::ByteArrayToHexString(hex_write, 64);
-          printf("Write data: %s\n", str_write.c_str());
-        }
+      // check if thread should be stopped
+      if (is_interrupt()) {
+        break;
       }
     }
   }
@@ -130,41 +111,11 @@ BOOL CALL CarryPID(long channel, long Kp, long Ki, long Kd) {  // NOLINT
 
 BOOL CALL OpenDevice(long uUnit) {  // NOLINT
   printf("OpenDevice\n");
-  g_device_com_sl_ =
-      anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
-          anx::device::kDeviceCom_StaticLoad, nullptr);
-  if (g_device_com_sl_ == nullptr) {
-    return FALSE;
-  }
-#if defined(_WIN32)
-  std::string port;
-  port = std::string("COM") + std::to_string(uUnit);
-  anx::device::ComPort com;
-  com.baud_rate = 9600;
-  com.data_bits = 8;
-  com.stop_bits = 1;
-  com.parity = 0;
-  com.flow_control = 1;
-  com.timeout = 1000;
-  anx::device::ComSettings com_settings(anx::device::kDeviceCom_StaticLoad,
-                                        port.c_str(), com);
-  if (g_device_com_sl_->Open(com_settings)) {
-    return FALSE;
-  }
-#else
-  // TODO(hhool): unimplemented
-#endif
   return TRUE;
 }
 
 BOOL CALL CloseDevice() {
   printf("CloseDevice\n");
-  if (g_device_com_sl_ == nullptr) {
-    return FALSE;
-  }
-  g_device_com_sl_->Close();
-  g_device_com_sl_.reset();
-  anx::device::DeviceComFactory::ReleaseInstance();
   return TRUE;
 }
 

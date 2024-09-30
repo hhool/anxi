@@ -60,10 +60,12 @@ const int32_t kTimerCurrentTimePeriod = 50;
 WorkWindow::WorkWindow(DuiLib::WindowImplBase* pOwner, int32_t solution_type)
     : pOwner_(pOwner), solution_type_(solution_type) {
   // initial device com
-  device_com_ul_ =
+  std::shared_ptr<anx::device::DeviceComInterface> device_com_ul =
       anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
           anx::device::kDeviceCom_Ultrasound, this);
+  ultra_device_.reset(new anx::device::UltraDevice(device_com_ul.get()));
   is_device_stload_connected_ = false;
+  is_device_ultra_connected_ = false;
 
   anx::device::stload::STLoadHelper::InitStLoad();
   anx::device::ultrasonic::UltrasonicHelper::InitUltrasonic();
@@ -236,6 +238,8 @@ void WorkWindow::InitWindow() {
   btn_menu_back_ =
       static_cast<CButtonUI*>(m_PaintManager.FindControl(_T("menu_btn_back")));
 
+  h_layout_args_area_ = static_cast<CHorizontalLayoutUI*>(
+      m_PaintManager.FindControl(_T("work_args_area")));
   btn_args_area_value_freq_ = static_cast<CButtonUI*>(
       m_PaintManager.FindControl(_T("args_area_value_freq")));
   btn_args_area_value_freq_num_ = static_cast<CButtonUI*>(
@@ -297,8 +301,6 @@ void WorkWindow::Notify(DuiLib::TNotifyUI& msg) {
                                     WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
     dialog_comport_settings->CenterWindow();
     dialog_comport_settings->ShowModal();
-  } else if (msg.sType == kMenu_Design_Modify_Addr) {
-    // TODO(hhool):
   } else if (msg.sType == kMenu_Design_Read_Solution) {
     int32_t ret = LoadFileWithDialog();
     if (ret < 0) {
@@ -319,9 +321,9 @@ void WorkWindow::Notify(DuiLib::TNotifyUI& msg) {
       return;
     } else if (ret == 0) {
       MessageBox(*this, _T("保存成功"), _T("保存成功"), MB_OK);
+    } else {
+      // do nothing
     }
-  } else if (msg.sType == kMenu_Design_Exit) {
-    // TODO(hhool): kMenu_Store_ExpRecord
   } else if (msg.sType == kMenu_Store_ExpRecord) {
     DialogExpDataRecord* dialog_exp_data_record = new DialogExpDataRecord();
     dialog_exp_data_record->Create(*this, _T("dialog_exp_data_record"),
@@ -407,7 +409,7 @@ void WorkWindow::OnClick(DuiLib::TNotifyUI& msg) {
       PostQuitMessage(0);
     }
   } else {
-    // TODO(hhool):
+    // TODO(hhool): do nothing
   }
 }
 
@@ -478,9 +480,7 @@ LRESULT WorkWindow::OnSysCommand(UINT uMsg,
   return 0;
 }
 
-ULONG WorkWindow::DeviceCallback(PVOID Context,
-                                        ULONG Type,
-                                        PVOID Setting) {
+ULONG WorkWindow::DeviceCallback(PVOID Context, ULONG Type, PVOID Setting) {
   WorkWindow* pthis = reinterpret_cast<WorkWindow*>(Context);
   if (Type == PBT_APMSUSPEND) {
     if (pthis->is_exp_state_ != 0) {
@@ -568,8 +568,6 @@ LRESULT WorkWindow::OnNcHitTest(UINT uMsg,
 
 LRESULT WorkWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
   if (uMsg == DLLMSG) {
-    LOG_F(LG_INFO) << "uMsg == DLLMSG:" << uMsg << " wParam:" << wParam
-                   << " lParam:" << lParam;
     if (lParam == DLL_SAMPLE) {
       anx::device::stload::STLoadHelper::st_load_loader_.st_api_
           .before_get_sample();
@@ -581,18 +579,34 @@ LRESULT WorkWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
           anx::device::stload::STLoadHelper::st_load_loader_.st_api_.get_extn();
       uint32_t status = anx::device::stload::STLoadHelper::st_load_loader_
                             .st_api_.get_test_status();
-      LOG_F(LG_INFO) << "load:" << load << " pos:" << pos << " exten:" << exten;
       anx::device::stload::STLoadHelper::st_load_loader_.st_api_
           .after_get_sample();
 
       if (anx::device::stload::STLoadHelper::Is_Stload_Simulation()) {
         pos = static_cast<double>(rand() % 100) * 1.0f;
         load = static_cast<double>(rand() % 100) * 1.0f;
+        std::unique_ptr<anx::esolution::SolutionDesign> design =
+            solution_design_base_->SolutionDesignFromPage();
+        if (design != nullptr) {
+          if (design->result_->solution_type_ ==
+              anx::esolution::kSolutionName_Stresses_Adjustable) {
+            load = reinterpret_cast<
+                       anx::esolution::ExpDesignResultStressesAdjustable*>(
+                       design->result_.get())
+                       ->f_static_load_MPa_;
+          } else if (design->result_->solution_type_ ==
+                     anx::esolution::kSolutionName_Th3point_Bending) {
+            load = reinterpret_cast<
+                       anx::esolution::ExpDesignResultTh3pointBending*>(
+                       design->result_.get())
+                       ->f_static_load_MPa_;
+          }
+        }
       }
       // notify third page to update the data
       // notify second page to update the chart
       DuiLib::TNotifyUI msg;
-      msg.pSender = this->btn_args_area_value_static_load_;
+      msg.pSender = this->h_layout_args_area_;
       msg.sType = kValueChanged;
 
       ENMsgStruct enmsg;
@@ -734,7 +748,7 @@ void WorkWindow::UpdateArgsAreaWithSolution() {
     }
   }
   DuiLib::TNotifyUI msg;
-  msg.pSender = this->btn_args_area_value_static_load_;
+  msg.pSender = this->h_layout_args_area_;
   msg.sType = kValueChanged;
   ENMsgStruct enmsg;
   enmsg.ptr_ = design.get();
@@ -824,7 +838,9 @@ void WorkWindow::OnMenuDeviceConnectClicked(DuiLib::TNotifyUI& msg) {
   // create or get ultrasound device.
   int32_t ret = OpenDeviceCom(anx::device::kDeviceCom_Ultrasound);
   if (ret == 0) {
+    is_device_ultra_connected_ = true;
   } else if (ret < 0) {
+    is_device_ultra_connected_ = false;
     MessageBox(*this, _T("超声连接失败"), _T("连接失败"), MB_OK);
   }
   ret = OpenDeviceCom(anx::device::kDeviceCom_StaticLoad);
@@ -840,10 +856,12 @@ void WorkWindow::OnMenuDeviceDisconnectClicked(DuiLib::TNotifyUI& msg) {
   CloseDeviceCom(anx::device::kDeviceCom_StaticLoad);
   CloseDeviceCom(anx::device::kDeviceCom_Ultrasound);
   is_device_stload_connected_ = false;
+  is_device_ultra_connected_ = false;
 }
 
 bool WorkWindow::IsDeviceComInterfaceConnected() const {
-  return (device_com_ul_ != nullptr && device_com_ul_->isOpened()) ||
+  return (ultra_device_ != nullptr && ultra_device_->isOpened() &&
+          is_device_ultra_connected_) ||
          (is_device_stload_connected_);
 }
 
@@ -852,22 +870,37 @@ bool WorkWindow::IsSLDeviceComInterfaceConnected() const {
 }
 
 bool WorkWindow::IsULDeviceComInterfaceConnected() const {
-  return device_com_ul_ != nullptr && device_com_ul_->isOpened();
+  return ultra_device_ != nullptr && ultra_device_->isOpened() &&
+         is_device_ultra_connected_;
 }
 
 int32_t WorkWindow::OpenDeviceCom(int32_t device_type) {
   if (device_type == anx::device::kDeviceCom_Ultrasound) {
-    if (!device_com_ul_->isOpened()) {
+    if (!ultra_device_->isOpened()) {
       std::unique_ptr<anx::device::ComSettings> com_settings =
           anx::device::LoadDeviceComSettingsDefaultResourceWithType(
               device_type);
       if (com_settings == nullptr) {
         return -1;
       }
-      if (device_com_ul_->Open(*(reinterpret_cast<anx::device::ComPortDevice*>(
-              com_settings.get()))) != 0) {
+      if (ultra_device_->Open(*com_settings.get()) != 0) {
         return -2;
       }
+      int32_t max_power = ultra_device_->GetMaxPower();
+      if (max_power < 0) {
+        return -3;
+      }
+      int32_t current_power = ultra_device_->GetCurrentPower();
+      if (current_power < 0) {
+        return -4;
+      }
+      int32_t initial_freq = ultra_device_->GetCurrentFreq();
+      if (initial_freq < 0) {
+        return -5;
+      }
+      DuiLib::CDuiString value;
+      value.Format(_T("%.3f"), initial_freq / 1000.0f);
+      btn_args_area_value_freq_->SetText(value);
     } else {
       return -3;
     }
@@ -907,9 +940,9 @@ int32_t WorkWindow::OpenDeviceCom(int32_t device_type) {
 
 void WorkWindow::CloseDeviceCom(int32_t device_type) {
   if (device_type == anx::device::kDeviceCom_Ultrasound) {
-    if (device_com_ul_ != nullptr) {
-      device_com_ul_->Close();
-      device_com_ul_->RemoveListener(this);
+    if (ultra_device_ != nullptr) {
+      ultra_device_->GetPortDevice()->RemoveListener(this);
+      ultra_device_->Close();
     }
   } else if (device_type == anx::device::kDeviceCom_StaticLoad) {
     LOG_F(LG_INFO) << "CloseDeviceCom StaticLoad";
@@ -930,6 +963,26 @@ void WorkWindow::CloseDeviceCom(int32_t device_type) {
   }
 }
 
+void WorkWindow::OnExpStart() {
+  is_exp_state_ = 1;
+
+  std::unique_ptr<anx::esolution::SolutionDesign> design =
+      solution_design_base_->SolutionDesignFromPage();
+  if (design == nullptr) {
+    LOG_F(LG_ERROR) << "SolutionDesignFromPage failed";
+    return;
+  }
+  DuiLib::TNotifyUI msg;
+  msg.pSender = this->h_layout_args_area_;
+  msg.sType = kValueChanged;
+  ENMsgStruct enmsg;
+  enmsg.ptr_ = design.get();
+  enmsg.type_ = enmsg_type_exp_stress_amp;
+  msg.wParam = reinterpret_cast<WPARAM>(&enmsg);
+  tab_main_pages_["WorkWindowThirdPage"]->NotifyPump(msg);
+  tab_main_pages_["WorkWindowSecondPage"]->NotifyPump(msg);
+}
+
 void WorkWindow::ClearArgsFreqNum() {
   // clear freq num
   btn_args_area_value_freq_num_->SetText(_T("0"));
@@ -943,12 +996,6 @@ void WorkWindow::UpdateArgsArea(int64_t cycle_count,
   DuiLib::CDuiString value;
   value.Format(_T("%d"), cycle_count);
   btn_args_area_value_freq_num_->SetText(value);
-  // update freq
-  value.Format(_T("%.2f"), freq / kMultiFactor);
-  btn_args_area_value_freq_->SetText(value);
-  // update amplitude
-  value.Format(_T("%.2f"), amplitude / kMultiFactor);
-  btn_args_area_value_amplitude_->SetText(value);
 }
 }  // namespace ui
 }  // namespace anx

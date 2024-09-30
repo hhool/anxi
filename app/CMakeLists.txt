@@ -50,11 +50,6 @@ set(DB_FILES
 source_group("db" FILES ${DB_FILES})
 list(APPEND APP_SOURCES ${DB_FILES})
 
-set(DOCUMENT_FILES
-    document/document_interface.h)
-source_group("document" FILES ${DOCUMENT_FILES})
-list(APPEND APP_SOURCES ${DOCUMENT_FILES})
-
 set(DEVICE_FILES
     device/device_com_factory.cc
     device/device_com_factory.h
@@ -244,7 +239,8 @@ if(WIN32)
     set(RES_FILES
         resource.rc)
     source_group("resource" FILES ${RES_FILES})
-    #list(APPEND APP_SOURCES resource.rc)
+
+    # list(APPEND APP_SOURCES resource.rc)
 endif()
 
 # add library

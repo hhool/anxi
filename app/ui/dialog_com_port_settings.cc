@@ -105,6 +105,7 @@ void DialogComPortSettings::SaveComInfoFromControl(std::string tail_prefix) {
   std::string data_bits = GetDataBitsFromControl(tail_prefix);
   std::string stop_bits = GetStopBitsFromControl(tail_prefix);
   std::string parity = GetParityFromControl(tail_prefix);
+  std::string flow_control = GetFlowControlFromControl(tail_prefix);
 
   // update com settings
   // convert string to int
@@ -113,9 +114,8 @@ void DialogComPortSettings::SaveComInfoFromControl(std::string tail_prefix) {
   com_port.data_bits = anx::device::ComPort::ValueDataBitsFromString(data_bits);
   com_port.stop_bits = anx::device::ComPort::ValueStopBitsFromString(stop_bits);
   com_port.parity = anx::device::ComPort::ValueParityFromString(parity);
-  // TODO(hhool):
   com_port.flow_control =
-      anx::device::ComPort::ValueFlowControlFromString("hardware");
+      anx::device::ComPort::ValueFlowControlFromString(flow_control);
   int32_t device_com_type = TailPrefixToDeviceComType(tail_prefix);
 
   anx::device::ComSettings com_settings(device_com_type, com_port_name,
@@ -183,6 +183,18 @@ std::string DialogComPortSettings::GetParityFromControl(
   return anx::common::wstring2string(s.GetData());
 }
 
+std::string DialogComPortSettings::GetFlowControlFromControl(
+    std::string tail_prefix) {
+  DuiLib::CDuiString name = _T("flow_control_");
+  DuiLib::CDuiString prefix;
+  prefix.Append(
+      (LPCTSTR)(anx::common::string2wstring(tail_prefix.c_str()).c_str()));
+  DuiLib::CEditUI* flow_control_edit =
+      static_cast<DuiLib::CEditUI*>(m_PaintManager.FindControl(name + prefix));
+  DuiLib::CDuiString s = flow_control_edit->GetText().GetData();
+  return anx::common::wstring2string(s.GetData());
+}
+
 void DialogComPortSettings::UpdateControlFromComInfoAll() {
   UpdateControlFromComInfo("ua");
   UpdateControlFromComInfo("sl");
@@ -202,6 +214,8 @@ void DialogComPortSettings::UpdateControlFromComInfo(std::string tail_prefix) {
                          com_settings->GetComPort().ValueStopBitsToString());
     SetParityToControl(tail_prefix,
                        com_settings->GetComPort().ValueParityToString());
+    SetFlowControlToControl(
+        tail_prefix, com_settings->GetComPort().ValueFlowControlToString());
   }
 }
 
@@ -310,6 +324,28 @@ void DialogComPortSettings::SetParityToControl(std::string tail_prefix,
     if (s.CompareNoCase(anx::common::string2wstring(parity.c_str()).c_str()) ==
         0) {
       parity_edit->SelectItem(i);
+      return;
+    }
+  }
+}
+
+void DialogComPortSettings::SetFlowControlToControl(std::string tail_prefix,
+                                                    std::string flow_control) {
+  DuiLib::CDuiString name = _T("flow_control_");
+  DuiLib::CDuiString prefix;
+  prefix.Append(
+      (LPCTSTR)(anx::common::string2wstring(tail_prefix.c_str()).c_str()));
+  DuiLib::CComboUI* flow_control_edit =
+      static_cast<DuiLib::CComboUI*>(m_PaintManager.FindControl(name + prefix));
+  if (flow_control_edit == nullptr) {
+    return;
+  }
+  int count = flow_control_edit->GetCount();
+  for (int i = 0; i < count; i++) {
+    DuiLib::CDuiString s = flow_control_edit->GetItemAt(i)->GetText();
+    if (s.CompareNoCase(
+            anx::common::string2wstring(flow_control.c_str()).c_str()) == 0) {
+      flow_control_edit->SelectItem(i);
       return;
     }
   }

@@ -125,8 +125,9 @@ class WorkWindowSecondPageGraph::GraphCtrlEvent
         1;
     pWorkWindowSecondPageGraph_->btn_next_page_->SetEnabled(false);
     pWorkWindowSecondPageGraph_->btn_pre_page_->SetEnabled(true);
-    LOG_F(LG_INFO) << "OnGraphCtrlEvent: " << action << " "
-                   << pWorkWindowSecondPageGraph_->exp_data_graph_info_->ToString();
+    LOG_F(LG_INFO)
+        << "OnGraphCtrlEvent: " << action << " "
+        << pWorkWindowSecondPageGraph_->exp_data_graph_info_->ToString();
     // get the current x min value. update the graph title with the current x
     // (x==vartime) min value.
     double x_min = pOwner->GetXMinOfAxis();
@@ -152,7 +153,6 @@ WorkWindowSecondPageGraph::WorkWindowSecondPageGraph(
 
 WorkWindowSecondPageGraph::~WorkWindowSecondPageGraph() {
   paint_manager_ui_->KillTimer(btn_pre_page_, kTimeGraphButtonId);
-  device_com_ul_.reset();
 }
 
 void WorkWindowSecondPageGraph::Notify(DuiLib::TNotifyUI& msg) {
@@ -179,13 +179,13 @@ void WorkWindowSecondPageGraph::OnClick(TNotifyUI& msg) {
       OnExpResume();
     }
   } else {
-    // TODO(hhool): add selectchanged action
+    // TODO(hhool): do nothing
   }
 }
 
 void WorkWindowSecondPageGraph::OnValueChanged(TNotifyUI& msg) {
   if (msg.sType == DUI_MSGTYPE_VALUECHANGED) {
-    if (msg.pSender->GetName() == _T("args_area_value_static_load")) {
+    if (msg.pSender->GetName() == _T("work_args_area")) {
       ENMsgStruct* enmsg = reinterpret_cast<ENMsgStruct*>(msg.wParam);
       if (enmsg == nullptr) {
         return;
@@ -222,13 +222,18 @@ void WorkWindowSecondPageGraph::OnValueChanged(TNotifyUI& msg) {
         LOG_F(LG_INFO) << "exp_amplitude:" << exp_amplitude
                        << " exp_statc_load_mpa:" << exp_statc_load_mpa;
         if (exp_amplitude > 0.0f) {
+          // make exp_amplitude to the nearest y_axsi_amp_value_max_ value
+          // 80% of the y_axsi_amp_value_max_
           y_axsi_amp_value_max_ = static_cast<int32_t>(exp_amplitude);
+          y_axsi_amp_value_max_ = static_cast<int32_t>(exp_amplitude);
+          y_axsi_amp_value_max_ = static_cast<int32_t>(y_axsi_amp_value_max_ * 1.2f);
           if (y_axsi_amp_value_max_ % 10 != 0) {
             y_axsi_amp_value_max_ = (y_axsi_amp_value_max_ / 10 + 1) * 10;
           }
         }
         if (exp_statc_load_mpa > 0.0f) {
           y_axsi_stload_value_max_ = static_cast<int32_t>(exp_statc_load_mpa);
+          y_axsi_stload_value_max_ = static_cast<int32_t>(y_axsi_stload_value_max_ * 1.2f);
           if (y_axsi_stload_value_max_ % 10 != 0) {
             y_axsi_stload_value_max_ = (y_axsi_stload_value_max_ / 10 + 1) * 10;
           }
@@ -255,7 +260,8 @@ bool WorkWindowSecondPageGraph::OnChkGraphAlwaysShowNewChange(void* param) {
       int32_t data_sample_count =
           minutes_to_data_sample_count(graphctrl_sample_total_minutes);
       int32_t id = exp_data_graph_info_->exp_data_view_current_start_no_;
-      while (id + data_sample_count < exp_data_graph_info_->exp_data_table_no_) {
+      while (id + data_sample_count <
+             exp_data_graph_info_->exp_data_table_no_) {
         id += data_sample_count;
       }
       std::vector<std::map<std::string, std::string>> result =
@@ -276,7 +282,7 @@ bool WorkWindowSecondPageGraph::OnChkGraphAlwaysShowNewChange(void* param) {
       this->UpdateGraphCtrl("stress", result);
 
       /// @note update vartime and update the graph title
-      double vartime = std::stod(result[0]["date"]) / kMultiFactor;
+      double vartime = std::stod(result[0]["date"]);
       RefreshExpGraphTitleControl(vartime);
 
       /// always show new
@@ -333,7 +339,6 @@ bool WorkWindowSecondPageGraph::OnOptGraphTimeRangeChange(void* param) {
   }
   graphctrl_sample_total_minutes_ = graphctrl_sample_total_minutes;
   assert(page_graph_amplitude_ctrl_ != nullptr);
-  // TODO(hhool): reset the graph control
   // 1. get the current x min value. the current x min value is the start time.
   double x_min = page_graph_amplitude_ctrl_->GetXMinOfAxis();
   double x_duration = minutes_to_vartime(graphctrl_sample_total_minutes);
@@ -353,7 +358,8 @@ bool WorkWindowSecondPageGraph::OnOptGraphTimeRangeChange(void* param) {
   if (result.size() <= 0) {
     return true;
   }
-  exp_data_graph_info_->exp_data_view_current_start_no_ = std::stoi(result[0]["id"]);
+  exp_data_graph_info_->exp_data_view_current_start_no_ =
+      std::stoi(result[0]["id"]);
   assert(exp_data_graph_info_->exp_data_view_current_start_no_ % 10 == 1);
   if (exp_data_graph_info_->exp_data_view_current_start_no_ % 10 != 1) {
     return true;
@@ -362,8 +368,8 @@ bool WorkWindowSecondPageGraph::OnOptGraphTimeRangeChange(void* param) {
   /// @note update auto refresh check box to false
   /// @note update the mode to 1 history view for the graph control
   bool is_last_page = false;
-  if ((exp_data_graph_info_->exp_data_view_current_start_no_ + data_sample_count) >
-      exp_data_graph_info_->exp_data_table_no_) {
+  if ((exp_data_graph_info_->exp_data_view_current_start_no_ +
+       data_sample_count) > exp_data_graph_info_->exp_data_table_no_) {
     is_last_page = true;
   }
   bool is_first_page = false;
@@ -376,7 +382,7 @@ bool WorkWindowSecondPageGraph::OnOptGraphTimeRangeChange(void* param) {
   this->UpdateGraphCtrl("stress", result);
 
   /// @note update vartime and update the graph title
-  double vartime = std::stod(result[0]["date"]) / kMultiFactor;
+  double vartime = std::stod(result[0]["date"]);
   RefreshExpGraphTitleControl(vartime);
 
   /// @note update auto refresh check box to false
@@ -431,7 +437,8 @@ bool WorkWindowSecondPageGraph::OnPagePre(void* param) {
   if (result.size() <= 0) {
     return true;
   }
-  exp_data_graph_info_->exp_data_view_current_start_no_ = std::stoi(result[0]["id"]);
+  exp_data_graph_info_->exp_data_view_current_start_no_ =
+      std::stoi(result[0]["id"]);
   assert(exp_data_graph_info_->exp_data_view_current_start_no_ % 10 == 1);
   if (exp_data_graph_info_->exp_data_view_current_start_no_ % 10 != 1) {
     return false;
@@ -440,7 +447,7 @@ bool WorkWindowSecondPageGraph::OnPagePre(void* param) {
   this->UpdateGraphCtrl("stress", result);
 
   /// @note update vartime and update the graph title
-  double vartime = std::stod(result[0]["date"]) / kMultiFactor;
+  double vartime = std::stod(result[0]["date"]);
   RefreshExpGraphTitleControl(vartime);
 
   /// @note update the graph control with the data from the database.
@@ -497,7 +504,8 @@ bool WorkWindowSecondPageGraph::OnPageNext(void* param) {
   /// @note update the current no to the next page no and update the graph data
   /// from the database and update the graph control. and update the next page
   /// button status.
-  exp_data_graph_info_->exp_data_view_current_start_no_ = std::stoi(result[0]["id"]);
+  exp_data_graph_info_->exp_data_view_current_start_no_ =
+      std::stoi(result[0]["id"]);
   assert(exp_data_graph_info_->exp_data_view_current_start_no_ % 10 == 1);
   if (exp_data_graph_info_->exp_data_view_current_start_no_ % 10 != 1) {
     return false;
@@ -510,7 +518,7 @@ bool WorkWindowSecondPageGraph::OnPageNext(void* param) {
   this->UpdateGraphCtrl("stress", result);
 
   /// @note update vartime and update the graph title
-  double vartime = std::stod(result[0]["date"]) / kMultiFactor;
+  double vartime = std::stod(result[0]["date"]);
   RefreshExpGraphTitleControl(vartime);
 
   /// @note update the graph control with the data from the database.
@@ -541,9 +549,11 @@ bool WorkWindowSecondPageGraph::OnTimer(void* param) {
 
 void WorkWindowSecondPageGraph::Bind() {
   /// @brief device com interface initialization
-  device_com_ul_ =
+  std::shared_ptr<anx::device::DeviceComInterface> device_com_ul =
       anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
           anx::device::kDeviceCom_Ultrasound, this);
+  ultra_device_ =
+      reinterpret_cast<anx::device::UltraDevice*>(device_com_ul->Device());
   /////////////////////////////////////////////////////////////////////////////
   /// @brief graph time mode pre hour
   opt_graph_time_mode_pre_hour_ = static_cast<DuiLib::COptionUI*>(
@@ -666,9 +676,10 @@ void WorkWindowSecondPageGraph::Unbind() {
     page_graph_stress_ctrl_->Release();
     page_graph_stress_ctrl_.reset();
   }
-  if (device_com_ul_ != nullptr) {
-    device_com_ul_->RemoveListener(this);
-    device_com_ul_ = nullptr;
+
+  if (ultra_device_ != nullptr) {
+    ultra_device_->GetPortDevice()->RemoveListener(this);
+    ultra_device_ = nullptr;
   }
 }
 
@@ -725,13 +736,13 @@ void WorkWindowSecondPageGraph::UpdateGraphCtrl(
     int32_t item_count = result.size();
     for (int32_t i = 0; i < item_count; i++) {
       const std::map<std::string, std::string>& item = result[i];
-      double x = std::stod(item.at("date")) / kMultiFactor;
-      double y = std::stod(item.at("um")) / kMultiFactor;
+      double x = std::stod(item.at("date"));
+      double y = std::stod(item.at("um"));
       int32_t id = std::stoi(item.at("id"));
       element_list.push_back(Element2DPoint(x, y, id));
     }
     const std::map<std::string, std::string>& item = result[0];
-    double x_min = std::stod(item.at("date")) / kMultiFactor;
+    double x_min = std::stod(item.at("date"));
     double x_duration =
         minutes_to_vartime(this->graphctrl_sample_total_minutes_);
     x_min -= kVartime2Seconds;
@@ -756,13 +767,13 @@ void WorkWindowSecondPageGraph::UpdateGraphCtrl(
     int32_t item_count = result.size();
     for (int32_t i = 0; i < item_count; i++) {
       const std::map<std::string, std::string>& item = result[i];
-      double x = std::stod(item.at("date")) / kMultiFactor;
-      double y = std::stod(item.at("MPa")) / kMultiFactor;
+      double x = std::stod(item.at("date"));
+      double y = std::stod(item.at("MPa"));
       int32_t id = std::stoi(item.at("id"));
       element_list.push_back(Element2DPoint(x, y, id));
     }
     const std::map<std::string, std::string>& item = result[0];
-    double x_min = std::stod(item.at("date")) / kMultiFactor;
+    double x_min = std::stod(item.at("date"));
     double x_duration =
         minutes_to_vartime(this->graphctrl_sample_total_minutes_);
     x_min -= kVartime2Seconds;
@@ -857,7 +868,8 @@ void WorkWindowSecondPageGraph::RefreshPreNextControl() {
   // get the total data sample count
   int32_t total_data_sample_count = exp_data_graph_info_->exp_data_table_no_;
   // get the graph sample display in the graph control min record no
-  int32_t min_disaplay_no = exp_data_graph_info_->exp_data_view_current_start_no_;
+  int32_t min_disaplay_no =
+      exp_data_graph_info_->exp_data_view_current_start_no_;
   bool is_first_page = true;
   if (min_disaplay_no > 1) {
     is_first_page = false;
@@ -887,11 +899,12 @@ void WorkWindowSecondPageGraph::OnDataReceived(
     anx::device::DeviceComInterface* device,
     const uint8_t* data,
     int32_t size) {
-  if (exp_data_graph_info_->exp_time_interval_num_ <= exp_time_interval_num_) {
+  if (exp_time_interval_num_ < 0 ||
+      exp_data_graph_info_->exp_time_interval_num_ <= exp_time_interval_num_) {
     return;
   }
   exp_time_interval_num_ = exp_data_graph_info_->exp_time_interval_num_;
-  // TODO(hhool): update the data to graph
+  /// update the data to graph
   page_graph_amplitude_ctrl_->ProcessDataSampleIncoming(
       exp_data_graph_info_->amp_um_);  // NOLINT
   page_graph_stress_ctrl_->ProcessDataSampleIncoming(
@@ -1010,7 +1023,7 @@ void WorkWindowSecondPageGraph::OnExpStart() {
 }
 
 void WorkWindowSecondPageGraph::OnExpStop() {
-  exp_time_interval_num_ = 0;
+  exp_time_interval_num_ = -1;
 }
 
 void WorkWindowSecondPageGraph::OnExpPause() {}

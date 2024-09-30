@@ -79,6 +79,7 @@ class DialogComPortSettings : public DuiLib::WindowImplBase {
   std::string GetDataBitsFromControl(std::string tail_prefix);
   std::string GetStopBitsFromControl(std::string tail_prefix);
   std::string GetParityFromControl(std::string tail_prefix);
+  std::string GetFlowControlFromControl(std::string tail_prefix);
 
   void UpdateControlFromComInfoAll();
   void UpdateControlFromComInfo(std::string tail_prefix);
@@ -89,6 +90,8 @@ class DialogComPortSettings : public DuiLib::WindowImplBase {
   void SetDataBitsToControl(std::string tail_prefix, std::string data_bits);
   void SetStopBitsToControl(std::string tail_prefix, std::string stop_bits);
   void SetParityToControl(std::string tail_prefix, std::string parity);
+  void SetFlowControlToControl(std::string tail_prefix,
+                               std::string flow_control);
 
  private:
   CButtonUI* btn_close_;

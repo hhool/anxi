@@ -14,7 +14,8 @@
 
 #include <stdint.h>
 
-namespace itas109 {
+namespace anx {
+namespace common {
 /**
  * @brief crc16 checksum calculation function
  *
@@ -24,6 +25,8 @@ namespace itas109 {
  */
 
 uint16_t crc16(const uint8_t* data, uint32_t length);
-}  // namespace itas109
+
+}  // namespace common
+}  // namespace anx
 
 #endif  // APP_COMMON_CRC16_H_

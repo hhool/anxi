@@ -64,7 +64,6 @@ std::string to_string_with_precision(const T a_value, const int n = 2) {
 /// @brief sampling interval 100ms
 /// @note 10Hz sampling frequency
 /// @details 1000ms / 100ms = 10Hz sampling frequency
-/// TODO(hhool):
 const int32_t kSamplingInterval = 100;
 
 /// @brief timer id for sampling
@@ -100,7 +99,6 @@ WorkWindowSecondPage::WorkWindowSecondPage(
 
 WorkWindowSecondPage::~WorkWindowSecondPage() {
   paint_manager_ui_->KillTimer(btn_exp_start_, 1);
-  device_com_ul_.reset();
 }
 
 void WorkWindowSecondPage::OnClick(TNotifyUI& msg) {
@@ -136,10 +134,8 @@ void WorkWindowSecondPage::OnClick(TNotifyUI& msg) {
     } else if (msg.pSender == this->btn_sa_up_) {
       OnButtonStaticAircraftUp();
     } else if (msg.pSender == this->btn_sa_down_) {
-      // TODO(hhool): add down action
       OnButtonStaticAircraftDown();
     } else if (msg.pSender == this->btn_sa_stop_) {
-      // TODO(hhool): add stop action
       OnButtonStaticAircraftStop();
     } else if (msg.pSender == this->btn_aa_setting_) {
       DialogAmplitudeCalibrationSettings*
@@ -150,10 +146,9 @@ void WorkWindowSecondPage::OnClick(TNotifyUI& msg) {
           UI_WNDSTYLE_FRAME, WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
       dialog_amplitude_calibration_settings->CenterWindow();
       dialog_amplitude_calibration_settings->ShowModal();
-      // TODO(hhool): refresh the tab main third page.
     }
-  } else if (msg.sType == _T("selectchanged")) {
-    // TODO(hhool): add selectchanged action
+  } else {
+    // TODO(hhool): do nothing
   }
 }
 
@@ -161,31 +156,21 @@ void WorkWindowSecondPage::OnTimer(TNotifyUI& msg) {
   uint32_t id_timer = msg.wParam;
   if (id_timer == kTimerIdSampling) {
     if (is_exp_state_ == 1) {
-      if (device_com_ul_) {
-        if (anx::device::ultrasonic::UltrasonicHelper::
-                Is_Ultrasonic_Simulation()) {
-          {
-            uint8_t hex[8];
-            hex[0] = 0x01;
-            hex[1] = 0x04;
-            hex[2] = 0x00;
-            hex[3] = 0x01;
-            hex[4] = 0x00;
-            hex[5] = 0x01;
-            hex[6] = 0x60;
-            hex[7] = 0x0A;
-            int written = device_com_ul_->Write(hex, sizeof(hex));
-            if (written < 0) {
-              LOG_F(LG_ERROR) << "ul write error:" << written;
-            }
-          }
-          {
-            uint8_t hex[64];
-            int read = device_com_ul_->Read(hex, sizeof(hex));
-            if (read < 0) {
-              LOG_F(LG_ERROR) << "ul read error:" << read;
-            }
-          }
+      if (ultra_device_) {
+        cur_freq_ = ultra_device_->GetCurrentFreq();
+        cur_power_ = ultra_device_->GetCurrentPower();
+        if (cur_freq_ < 0 || cur_power_ < 0) {
+          LOG_F(LG_ERROR) << "exp_stop: cur_freq:" << cur_freq_
+                          << " cur_power:" << cur_power_;
+          exp_stop();
+          return;
+        }
+        if (fabs(cur_freq_ - initial_frequency_) >
+            dus_.exp_frequency_fluctuations_range_) {
+          LOG_F(LG_ERROR) << "exp_stop: frequency fluctuation:" << cur_freq_
+                          << " initial frequency:" << initial_frequency_;
+          exp_stop();
+          return;
         }
         /////////////////////////////////////////////////////////////////////////
         /// get current cycle count and total time  cycle_count / x kHZ
@@ -198,9 +183,12 @@ void WorkWindowSecondPage::OnTimer(TNotifyUI& msg) {
         int64_t duration =
             current_time_ms - exp_data_graph_info_.exp_start_time_ms_;
         if (duration >= total_des_time_ms) {
-          LOG_F(LG_INFO) << "exp stop";
+          LOG_F(LG_ERROR) << "exp_stop: duration:" << duration
+                          << " total_des_time_ms:" << total_des_time_ms;
           exp_stop();
+          return;
         }
+
         /// exp clipping enabled
         if (this->dus_.exp_clipping_enable_ == 1) {
           if (this->dus_.exp_clip_time_duration_ > 0) {
@@ -217,19 +205,13 @@ void WorkWindowSecondPage::OnTimer(TNotifyUI& msg) {
                 state_ultrasound_exp_clip_ == 1) {
               // pause ultrasound
               LOG_F(LG_INFO) << "pause ultrasound";
-              uint8_t hex[8] = {0x01, 0x05, 0x00, 0x02, 0x00, 0x00, 0x6C, 0x0A};
-              device_com_ul_->Write(hex, sizeof(hex));
-              uint8_t hex_res[64] = {0};
-              device_com_ul_->Read(hex_res, sizeof(hex_res));
+              ultra_device_->StopUltra();
               state_ultrasound_exp_clip_ = 2;
             } else if (time < exp_clip_time_duration &&
                        state_ultrasound_exp_clip_ == 2) {
               // resume ultrasound
               LOG_F(LG_INFO) << "resume ultrasound";
-              uint8_t hex[8] = {0x01, 0x05, 0x00, 0x02, 0xFF, 0x00, 0x2D, 0xFA};
-              device_com_ul_->Write(hex, sizeof(hex));
-              uint8_t hex_res[64] = {0};
-              device_com_ul_->Read(hex_res, sizeof(hex_res));
+              ultra_device_->StartUltra();
               state_ultrasound_exp_clip_ = 1;
             }
           }
@@ -246,7 +228,7 @@ void WorkWindowSecondPage::OnTimer(TNotifyUI& msg) {
 
 void WorkWindowSecondPage::OnValueChanged(TNotifyUI& msg) {
   if (msg.sType == DUI_MSGTYPE_VALUECHANGED) {
-    if (msg.pSender->GetName() == _T("args_area_value_static_load")) {
+    if (msg.pSender->GetName() == _T("work_args_area")) {
       ENMsgStruct* enmsg = reinterpret_cast<ENMsgStruct*>(msg.wParam);
       if (enmsg == nullptr) {
         return;
@@ -260,10 +242,44 @@ void WorkWindowSecondPage::OnValueChanged(TNotifyUI& msg) {
         }
         st_load_result_ = *st_result;
       } else if (enmsg->type_ == enmsg_type_exp_stress_amp) {
-        if (work_window_second_page_graph_notify_pump_ == nullptr) {
+        anx::esolution::SolutionDesign* design =
+            reinterpret_cast<anx::esolution::SolutionDesign*>(enmsg->ptr_);
+        if (design == nullptr) {
           return;
         }
-        work_window_second_page_graph_notify_pump_->NotifyPump(msg);
+        double exp_max_stress = design->base_param_->f_max_stress_MPa_;
+        double exp_amplitude =
+            reinterpret_cast<anx::esolution::ExpDesignResult0*>(
+                design->result_.get())
+                ->f_eamplitude_;
+        double exp_statc_load_mpa = 0.0f;
+        if (design->result_->solution_type_ ==
+            anx::esolution::kSolutionName_Stresses_Adjustable) {
+          exp_statc_load_mpa =
+              reinterpret_cast<
+                  anx::esolution::ExpDesignResultStressesAdjustable*>(
+                  design->result_.get())
+                  ->f_static_load_MPa_;
+        } else if (design->result_->solution_type_ ==
+                   anx::esolution::kSolutionName_Th3point_Bending) {
+          exp_statc_load_mpa =
+              reinterpret_cast<anx::esolution::ExpDesignResultTh3pointBending*>(
+                  design->result_.get())
+                  ->f_static_load_MPa_;
+        }
+        LOG_F(LG_INFO) << "exp_amplitude:" << exp_amplitude
+                       << " exp_statc_load_mpa:" << exp_statc_load_mpa
+                       << "exp_max_stress:" << exp_max_stress;
+        exp_max_stress_MPa_ = exp_max_stress;
+        exp_amplitude_ = exp_amplitude;
+        exp_statc_load_mpa_ = exp_statc_load_mpa;
+        st_load_result_.load_ = exp_statc_load_mpa_;
+        if (work_window_second_page_graph_notify_pump_ != nullptr) {
+          work_window_second_page_graph_notify_pump_->NotifyPump(msg);
+        }
+        if (work_window_second_page_data_notify_pump_ != nullptr) {
+          work_window_second_page_data_notify_pump_->NotifyPump(msg);
+        }
       }
     } else if (msg.pSender->GetName() == _T("args_area_value_amplitude")) {
       if (msg.wParam == PBT_APMQUERYSUSPEND) {
@@ -308,12 +324,6 @@ void WorkWindowSecondPage::Bind() {
   layout_exp_resume_ = static_cast<DuiLib::CHorizontalLayoutUI*>(
       paint_manager_ui_->FindControl(_T("layout_exp_resume")));
 
-  // disable the exp start button
-  btn_exp_start_->SetEnabled(false);
-  btn_exp_stop_->SetEnabled(false);
-  btn_exp_pause_->SetEnabled(false);
-  layout_exp_resume_->SetVisible(false);
-
   /// @brief Static aircraft action releated button
   btn_sa_up_ = static_cast<DuiLib::CButtonUI*>(
       paint_manager_ui_->FindControl(_T("btn_sa_up")));
@@ -324,11 +334,6 @@ void WorkWindowSecondPage::Bind() {
   /// @brief AA releated button
   btn_aa_setting_ = static_cast<DuiLib::CButtonUI*>(
       paint_manager_ui_->FindControl(_T("btn_aa_setting")));
-
-  // disable aircraft action button
-  btn_sa_up_->SetEnabled(false);
-  btn_sa_down_->SetEnabled(false);
-  btn_sa_stop_->SetEnabled(false);
 
   /// @brief exp clip set checkbox
   chk_exp_clip_set_ = static_cast<DuiLib::CCheckBoxUI*>(
@@ -356,12 +361,16 @@ void WorkWindowSecondPage::Bind() {
   paint_manager_ui_->SetTimer(btn_exp_start_, kTimerIdRefresh, 1000);
 
   // create or get ultrasound device.
-  device_com_ul_ =
+  std::shared_ptr<anx::device::DeviceComInterface> device_com_ul =
       anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
           anx::device::kDeviceCom_Ultrasound, this);
-
+  ultra_device_ =
+      reinterpret_cast<anx::device::UltraDevice*>(device_com_ul->Device());
   work_window_second_page_data_virtual_wnd_->Bind();
   work_window_second_page_graph_virtual_wnd_->Bind();
+
+  // disable the exp start button
+  UpdateUIButton();
 }
 
 void WorkWindowSecondPage::Unbind() {
@@ -388,46 +397,32 @@ void WorkWindowSecondPage::Unbind() {
   paint_manager_ui_->KillTimer(btn_exp_start_, kTimerIdSampling);
   paint_manager_ui_->KillTimer(btn_exp_start_, kTimerIdRefresh);
 
-  if (device_com_ul_ != nullptr) {
-    device_com_ul_->RemoveListener(this);
-    device_com_ul_ = nullptr;
+  if (ultra_device_ != nullptr) {
+    ultra_device_->GetPortDevice()->RemoveListener(this);
+    ultra_device_ = nullptr;
   }
 }
 
 void WorkWindowSecondPage::CheckDeviceComConnectedStatus() {
-  if (pWorkWindow_->IsDeviceComInterfaceConnected()) {
+  /// exp_start, exp_stop, exp_pause, exp_resume button state
+  /// if the device com interface is connected then enable the exp_start button
+  /// else disable the exp_start button and exp_stop button and exp_pause button
+  if (pWorkWindow_->IsULDeviceComInterfaceConnected()) {
     if (is_exp_state_ < 0) {
       is_exp_state_ = 0;
     }
-    btn_exp_start_->SetEnabled(true);
-    btn_exp_stop_->SetEnabled(true);
-    btn_exp_pause_->SetEnabled(true);
-
-    if (!st_load_is_running_) {
-      btn_sa_up_->SetEnabled(true);
-      btn_sa_down_->SetEnabled(true);
-      btn_sa_stop_->SetEnabled(true);
-    }
-    UpdateUIWithExpStatus(is_exp_state_);
+    UpdateUIButton();
   } else {
     if (is_exp_state_ >= 0) {
       is_exp_state_ = -1;
     }
-    btn_exp_start_->SetEnabled(false);
-    btn_exp_stop_->SetEnabled(false);
-    btn_exp_pause_->SetEnabled(false);
-    if (!st_load_is_running_) {
-      btn_sa_up_->SetEnabled(false);
-      btn_sa_down_->SetEnabled(false);
-      btn_sa_stop_->SetEnabled(false);
-    }
-    UpdateUIWithExpStatus(is_exp_state_);
+    UpdateUIButton();
   }
 }
 
 void WorkWindowSecondPage::RefreshExpClipTimeControl() {
-  int64_t exp_clip_time_duration =
-      _ttoll(edit_exp_clip_time_duration_->GetText());
+  int32_t exp_clip_time_duration =
+      _ttoi(edit_exp_clip_time_duration_->GetText());
   if (dus_.exp_clip_time_duration_ != exp_clip_time_duration) {
     dus_.exp_clip_time_duration_ = exp_clip_time_duration;
     std::string value = ("=");
@@ -437,7 +432,7 @@ void WorkWindowSecondPage::RefreshExpClipTimeControl() {
         anx::common::string2wstring(value).c_str());
   }
 
-  int64_t exp_clip_time_paused = _ttoll(edit_exp_clip_time_paused_->GetText());
+  int32_t exp_clip_time_paused = _ttoi(edit_exp_clip_time_paused_->GetText());
   if (dus_.exp_clip_time_paused_ != exp_clip_time_paused) {
     dus_.exp_clip_time_paused_ = exp_clip_time_paused;
     std::string value = ("=");
@@ -515,66 +510,112 @@ void WorkWindowSecondPage::UpdateExpClipTimeFromControl() {
       anx::common::string2wstring(value).c_str());
 }
 
-void WorkWindowSecondPage::UpdateUIWithExpStatus(int status) {
-  if (status == 0) {
-    btn_exp_start_->SetEnabled(true);
-    layout_exp_resume_->SetVisible(false);
-    layout_exp_pause_->SetVisible(true);
+void WorkWindowSecondPage::UpdateUIButton() {
+  // check the device com connected status
+  // enable btn sa up and down
+  // if the device com interface is connected and the exp is not running
+  // and the static load is not running then enable the sa up and down button
+  // else disable the sa up and down button
+  // sa_stop button state is the opposite of sa_up and sa_down button
+  // if sa_up and sa_down button is enabled then sa_stop button is disabled
+  // if sa_up and sa_down button is disabled then sa_stop button is enabled
+  bool is_st_device_com_interface_connected =
+      pWorkWindow_->IsSLDeviceComInterfaceConnected();
+  bool sa_up_down_enable = true;
+  if (!is_st_device_com_interface_connected) {
+    sa_up_down_enable = false;
+  } else {
+    if (is_exp_state_ == 1) {
+      sa_up_down_enable = false;
+    } else if (st_load_is_running_) {
+      sa_up_down_enable = false;
+    } else {
+      // sa_up_down_enable = true;
+    }
+  }
+  bool sa_stop_enable = false;
+  if (!is_st_device_com_interface_connected) {
+    sa_stop_enable = false;
+  } else {
+    if (st_load_is_running_) {
+      sa_stop_enable = true;
+    } else {
+      // sa_stop_enable = false;
+    }
+  }
+  bool sa_clear_enable = true;
+  if (!is_st_device_com_interface_connected) {
+    sa_clear_enable = false;
+  } else {
+    sa_clear_enable = true;
+  }
+  btn_sa_up_->SetEnabled(sa_up_down_enable);
+  btn_sa_down_->SetEnabled(sa_up_down_enable);
+  btn_sa_stop_->SetEnabled(sa_stop_enable);
+  btn_sa_clear_->SetEnabled(sa_clear_enable);
+
+  bool is_ul_device_com_interface_connected =
+      pWorkWindow_->IsULDeviceComInterfaceConnected();
+  // check the device com connected status
+  if (!is_ul_device_com_interface_connected) {
+    btn_sa_reset_->SetEnabled(false);
+    btn_exp_start_->SetEnabled(false);
     btn_exp_pause_->SetEnabled(false);
     btn_exp_stop_->SetEnabled(false);
-
-    chk_exp_clip_set_->SetEnabled(true);
-    edit_exp_clip_time_duration_->SetEnabled(true);
-    edit_exp_clip_time_paused_->SetEnabled(true);
-    edit_max_cycle_count_->SetEnabled(true);
-    edit_max_cycle_power_->SetEnabled(true);
-    edit_frequency_fluctuations_range_->SetEnabled(true);
-    if (!st_load_is_running_) {
-      btn_sa_up_->SetEnabled(true);
-      btn_sa_down_->SetEnabled(true);
-      btn_sa_stop_->SetEnabled(true);
-      btn_aa_setting_->SetEnabled(true);
-    }
-  } else if (status == 1) {
-    btn_exp_start_->SetEnabled(false);
     layout_exp_resume_->SetVisible(false);
     layout_exp_pause_->SetVisible(true);
-    btn_exp_pause_->SetEnabled(true);
-    btn_exp_stop_->SetEnabled(true);
-
     chk_exp_clip_set_->SetEnabled(false);
     edit_exp_clip_time_duration_->SetEnabled(false);
     edit_exp_clip_time_paused_->SetEnabled(false);
     edit_max_cycle_count_->SetEnabled(false);
     edit_max_cycle_power_->SetEnabled(false);
     edit_frequency_fluctuations_range_->SetEnabled(false);
-    if (!st_load_is_running_) {
-      btn_sa_up_->SetEnabled(false);
-      btn_sa_down_->SetEnabled(false);
-      btn_sa_stop_->SetEnabled(false);
-      btn_aa_setting_->SetEnabled(false);
-    }
-  } else if (status == 2) {
-    btn_exp_start_->SetEnabled(false);
-    layout_exp_resume_->SetVisible(true);
-    layout_exp_pause_->SetVisible(false);
-    btn_exp_pause_->SetEnabled(false);
-    btn_exp_stop_->SetEnabled(true);
-
-    chk_exp_clip_set_->SetEnabled(true);
-    edit_exp_clip_time_duration_->SetEnabled(true);
-    edit_exp_clip_time_paused_->SetEnabled(true);
-    edit_max_cycle_count_->SetEnabled(true);
-    edit_max_cycle_power_->SetEnabled(true);
-    edit_frequency_fluctuations_range_->SetEnabled(true);
-    if (!st_load_is_running_) {
-      btn_sa_up_->SetEnabled(true);
-      btn_sa_down_->SetEnabled(true);
-      btn_sa_stop_->SetEnabled(true);
-      btn_aa_setting_->SetEnabled(true);
-    }
   } else {
-    // TODO(hhool):
+    if (is_exp_state_ == 0) {
+      btn_sa_reset_->SetEnabled(true);
+      btn_exp_start_->SetEnabled(true);
+      layout_exp_resume_->SetVisible(false);
+      layout_exp_pause_->SetVisible(true);
+      btn_exp_pause_->SetEnabled(false);
+      btn_exp_stop_->SetEnabled(false);
+
+      chk_exp_clip_set_->SetEnabled(true);
+      edit_exp_clip_time_duration_->SetEnabled(true);
+      edit_exp_clip_time_paused_->SetEnabled(true);
+      edit_max_cycle_count_->SetEnabled(true);
+      edit_max_cycle_power_->SetEnabled(true);
+      edit_frequency_fluctuations_range_->SetEnabled(true);
+    } else if (is_exp_state_ == 1) {
+      btn_sa_reset_->SetEnabled(false);
+      btn_exp_start_->SetEnabled(false);
+      layout_exp_resume_->SetVisible(false);
+      layout_exp_pause_->SetVisible(true);
+      btn_exp_pause_->SetEnabled(true);
+      btn_exp_stop_->SetEnabled(true);
+
+      chk_exp_clip_set_->SetEnabled(false);
+      edit_exp_clip_time_duration_->SetEnabled(false);
+      edit_exp_clip_time_paused_->SetEnabled(false);
+      edit_max_cycle_count_->SetEnabled(false);
+      edit_max_cycle_power_->SetEnabled(false);
+      edit_frequency_fluctuations_range_->SetEnabled(false);
+    } else if (is_exp_state_ == 2) {
+      btn_sa_reset_->SetEnabled(true);
+      btn_exp_start_->SetEnabled(false);
+      layout_exp_resume_->SetVisible(true);
+      layout_exp_pause_->SetVisible(false);
+      btn_exp_pause_->SetEnabled(false);
+      btn_exp_stop_->SetEnabled(true);
+
+      chk_exp_clip_set_->SetEnabled(true);
+      edit_exp_clip_time_duration_->SetEnabled(true);
+      edit_exp_clip_time_paused_->SetEnabled(true);
+      edit_max_cycle_count_->SetEnabled(true);
+      edit_max_cycle_power_->SetEnabled(true);
+      edit_frequency_fluctuations_range_->SetEnabled(true);
+    } else {
+      // TODO(hhool):
+    }
   }
 }
 
@@ -583,13 +624,11 @@ int32_t WorkWindowSecondPage::exp_start() {
     return 0;
   }
 
-  UpdateUIWithExpStatus(1);
+  UpdateUIButton();
 
   UpdateExpClipTimeFromControl();
 
   SaveSettingsFromControl();
-
-  is_exp_state_ = 1;
 
   /// @brief reset the database exp_data table.
   /// @note the table name is exp_data, delete exp_data table and create a new
@@ -621,14 +660,30 @@ int32_t WorkWindowSecondPage::exp_start() {
   exp_data_list_info_.exp_sample_interval_ms_ =
       dedss_->sampling_interval_ * 100;
 
-  // TODO(hhool): sample interval
   // set the ultrasound on state
-  uint8_t hex[8] = {0x01, 0x05, 0x00, 0x02, 0xFF, 0x00, 0x2D, 0xFA};
-  device_com_ul_->Write(hex, sizeof(hex));
-  uint8_t hex_res[64] = {0};
-  device_com_ul_->Read(hex_res, sizeof(hex_res));
+  int32_t ret = 0;
+  if (this->dus_.exp_clipping_enable_) {
+    ret = ultra_device_->SetWedingTime(this->dus_.exp_clip_time_duration_);
+  } else {
+    ret = ultra_device_->SetWedingTime(0);
+  }
+  if (ret < 0) {
+    is_exp_state_ = 0;
+    return -1;
+  }
+  cur_freq_ = initial_frequency_ = ultra_device_->GetCurrentFreq();
+  cur_power_ = initial_power_ = ultra_device_->GetCurrentPower();
+  if (initial_frequency_ < 0 || initial_power_ < 0) {
+    is_exp_state_ = 0;
+    return -1;
+  }
+  if (ultra_device_->StartUltra() < 0) {
+    is_exp_state_ = 0;
+    return -1;
+  }
   paint_manager_ui_->SetTimer(btn_exp_start_, kTimerIdSampling,
                               kSamplingInterval);
+
   state_ultrasound_exp_clip_ = 1;
 
   DuiLib::TNotifyUI msg;
@@ -636,12 +691,14 @@ int32_t WorkWindowSecondPage::exp_start() {
   msg.sType = kClick;
   work_window_second_page_data_notify_pump_->NotifyPump(msg);
   work_window_second_page_graph_notify_pump_->NotifyPump(msg);
+
+  is_exp_state_ = 1;
   return 0;
 }
 
 void WorkWindowSecondPage::exp_pause() {
   is_exp_state_ = 2;
-  UpdateUIWithExpStatus(2);
+  UpdateUIButton();
   DuiLib::TNotifyUI msg;
   msg.pSender = btn_exp_pause_;
   msg.sType = kClick;
@@ -652,7 +709,16 @@ void WorkWindowSecondPage::exp_pause() {
 void WorkWindowSecondPage::exp_resume() {
   is_exp_state_ = 1;
 
-  UpdateUIWithExpStatus(1);
+  UpdateUIButton();
+
+  UpdateExpClipTimeFromControl();
+
+  SaveSettingsFromControl();
+
+  dedss_ =
+      std::move(anx::device::LoadDeviceExpDataSampleSettingsDefaultResource());
+  exp_data_list_info_.exp_sample_interval_ms_ =
+      dedss_->sampling_interval_ * 100;
 
   DuiLib::TNotifyUI msg;
   msg.pSender = btn_exp_resume_;
@@ -665,10 +731,9 @@ void WorkWindowSecondPage::exp_stop() {
   if (!is_exp_state_) {
     return;
   }
-
-  UpdateUIWithExpStatus(0);
-
   is_exp_state_ = 0;
+  exp_data_pre_duration_exponential_ = 0;
+  UpdateUIButton();
 
   // notify the exp stop
   DuiLib::TNotifyUI msg;
@@ -683,7 +748,6 @@ void WorkWindowSecondPage::exp_stop() {
 
 void WorkWindowSecondPage::OnButtonStaticAircraftClear() {
   // clear the data
-  // TODO(hhool): clear the data
   if (is_exp_state_) {
     return;
   }
@@ -714,7 +778,6 @@ void WorkWindowSecondPage::OnButtonStaticAircraftSetting() {
 
 void WorkWindowSecondPage::OnButtonStaticAircraftReset() {
   // reset the data
-  // TODO(hhool): add reset action
   this->pWorkWindow_->ClearArgsFreqNum();
   // drop the exp_data table
   anx::db::helper::DropDataTable(anx::db::helper::kDefaultDatabasePathname,
@@ -834,25 +897,28 @@ void WorkWindowSecondPage::OnDataReceived(
     const uint8_t* data,
     int32_t size) {
   // TODO(hhool): process data
-  if (is_exp_state_) {
-    double KHz = 208.230f * kMultiFactor;
+  if (is_exp_state_ > 0) {
+    double KHz = cur_freq_ * 1.0f;
     // TODO(hhool): random KHz, um, MPa
-    double um = (rand() % 15) * kMultiFactor;
-    double MPa = std::fabsl(st_load_result_.load_) * kMultiFactor;
-    double date = anx::common::GetCurrrentDateTime() * kMultiFactor;
+    double um = exp_amplitude_;
+    double MPa = std::fabsl(exp_statc_load_mpa_);
+    double date = anx::common::GetCurrrentDateTime();
     exp_data_graph_info_.amp_freq_ = KHz;
     exp_data_graph_info_.amp_um_ = um;
     exp_data_graph_info_.stress_value_ = MPa;
+
     exp_data_list_info_.amp_freq_ = KHz;
     exp_data_list_info_.amp_um_ = um;
-    exp_data_list_info_.stress_value_ = MPa;
+    exp_data_list_info_.stress_value_ = exp_max_stress_MPa_;
 
     this->ProcessDataGraph();
-    this->ProcessDataList();
+    if (ultra_device_->IsUltraStarted()) {
+      this->ProcessDataList();
+    }
   }
 }
 
-void anx::ui::WorkWindowSecondPage::ProcessDataGraph() {
+void WorkWindowSecondPage::ProcessDataGraph() {
   int64_t current_time_ms = anx::common::GetCurrentTimeMillis();
   int64_t time_diff = current_time_ms - exp_data_graph_info_.exp_start_time_ms_;
   int64_t time_interval_num =
@@ -861,10 +927,10 @@ void anx::ui::WorkWindowSecondPage::ProcessDataGraph() {
     exp_data_graph_info_.exp_time_interval_num_ = time_interval_num;
     exp_data_graph_info_.exp_data_table_no_++;
     // update the data to the database table amp, stress, um
-    // TODO(hhool):
-    int64_t cycle_count = exp_data_graph_info_.exp_data_table_no_ * 500;
-    double date = anx::common::GetCurrrentDateTime() * kMultiFactor;
-    // TODO(hhool): save to database
+    int64_t cycle_count =
+        exp_data_graph_info_.exp_data_table_no_ * cur_freq_ * 2;
+    double date = anx::common::GetCurrrentDateTime();
+    // save to database
     // format cycle_count, KHz, MPa, um to the sql string and insert to the
     // database
     std::string sql_str = ("INSERT INTO ");
@@ -886,15 +952,22 @@ void anx::ui::WorkWindowSecondPage::ProcessDataGraph() {
   }
 }
 
-void anx::ui::WorkWindowSecondPage::ProcessDataList() {
+void WorkWindowSecondPage::ProcessDataList() {
   int64_t current_time_ms = anx::common::GetCurrentTimeMillis();
   int64_t time_diff = current_time_ms - exp_data_list_info_.exp_start_time_ms_;
   assert(dedss_ != nullptr);
-  if (time_diff < (dedss_->sampling_start_pos_ * 100)) {
-    return;
+  if (dedss_->sample_mode_ == 1) {
+    if (time_diff < (dedss_->sampling_start_pos_ * 100)) {
+      return;
+    }
+    time_diff -= dedss_->sampling_start_pos_ * 100;
   }
-  time_diff -= dedss_->sampling_start_pos_ * 100;
-  int64_t time_interval_num = time_diff / (dedss_->sampling_interval_ * 100);
+  int64_t time_interval_num;
+  if (dedss_->sample_mode_ == 0) {
+    time_interval_num = time_diff / 100;
+  } else {
+    time_interval_num = time_diff / (dedss_->sampling_interval_ * 100);
+  }
   if (dedss_->sampling_end_pos_ > dedss_->sampling_start_pos_) {
     int32_t sampling_start_end_diff =
         dedss_->sampling_end_pos_ - dedss_->sampling_start_pos_;
@@ -904,14 +977,46 @@ void anx::ui::WorkWindowSecondPage::ProcessDataList() {
       return;
     }
   }
+
+  this->pWorkWindow_->UpdateArgsArea(
+      time_diff * static_cast<int32_t>(exp_data_list_info_.amp_freq_ / 1000.f));
+
+  // check the time interval num
+  if (dedss_->sample_mode_ == 0) {
+    if (exp_data_pre_duration_exponential_ == 0) {
+      if (time_interval_num > 0) {
+        exp_data_pre_duration_exponential_ = time_interval_num;
+      } else {
+        return;
+      }
+    } else if ((time_interval_num % exp_data_pre_duration_exponential_) != 0) {
+      return;
+    } else if (time_interval_num / exp_data_pre_duration_exponential_ < 10) {
+      return;
+    } else {
+      exp_data_pre_duration_exponential_ *= 10;
+    }
+  } else {
+    // do nothing
+    // linear dedss_->sample_mode_ == 1
+  }
   if (time_interval_num > exp_data_list_info_.exp_time_interval_num_) {
     exp_data_list_info_.exp_time_interval_num_ = time_interval_num;
     exp_data_list_info_.exp_data_table_no_++;
     // update the data to the database table amp, stress, um
-    // TODO(hhool):
-    int64_t cycle_count = exp_data_list_info_.exp_data_table_no_ * 500;
-    double date = anx::common::GetCurrrentDateTime() * kMultiFactor;
-    // TODO(hhool): save to database
+    int64_t cycle_count =
+        exp_data_list_info_.exp_data_table_no_ * cur_freq_ *
+        static_cast<int32_t>((dedss_->sampling_interval_ * 100) / 1000.f);
+    if (dedss_->sample_mode_ == 0) {
+      int multiplier = 1;
+      for (int i = 1; i < exp_data_list_info_.exp_data_table_no_; i++) {
+        multiplier *= 10;
+      }
+      cycle_count = static_cast<int64_t>(multiplier *
+                                         exp_data_list_info_.amp_freq_ / 10.f);
+    }
+    double date = anx::common::GetCurrrentDateTime();
+    // 1. save to database
     // format cycle_count, KHz, MPa, um to the sql string and insert to the
     // database
     std::string sql_str = ("INSERT INTO ");
@@ -919,11 +1024,11 @@ void anx::ui::WorkWindowSecondPage::ProcessDataList() {
     sql_str.append((" (cycle, KHz, MPa, um, date) VALUES ("));
     sql_str.append(std::to_string(cycle_count));
     sql_str.append(", ");
-    sql_str.append(std::to_string(exp_data_graph_info_.amp_freq_));
+    sql_str.append(to_string_with_precision(exp_data_list_info_.amp_freq_, 0));
     sql_str.append(", ");
-    sql_str.append(std::to_string(exp_data_graph_info_.stress_value_));
+    sql_str.append(std::to_string(exp_data_list_info_.stress_value_));
     sql_str.append(", ");
-    sql_str.append(std::to_string(exp_data_graph_info_.amp_um_));
+    sql_str.append(std::to_string(exp_data_list_info_.amp_um_));
     sql_str.append(", ");
     sql_str.append(std::to_string(date));
     sql_str.append(");");

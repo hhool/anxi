@@ -24,12 +24,16 @@
 #include "app/device/device_com_factory.h"
 #include "app/device/device_com_settings.h"
 #include "app/device/device_exp_data_sample_settings.h"
+#include "app/esolution/solution_design.h"
+#include "app/esolution/solution_design_default.h"
 #include "app/ui/ui_constants.h"
 #include "app/ui/work_window.h"
+#include "app/ui/work_window_tab_main_page_base.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 DUI_BEGIN_MESSAGE_MAP(anx::ui::WorkWindowSecondPageData, DuiLib::CNotifyPump)
 DUI_ON_MSGTYPE(DUI_MSGTYPE_CLICK, OnClick)
+DUI_ON_MSGTYPE(DUI_MSGTYPE_VALUECHANGED, OnValueChanged)
 DUI_END_MESSAGE_MAP()
 
 namespace anx {
@@ -130,20 +134,23 @@ class WorkWindowSecondPageData::ListVirtalDataView
           pHBox->GetItemAt(1)->GetInterface(DUI_CTR_LABEL));
       pText->SetText(dui_string);
 
-      double kHz = std::stod(result[0]["kHz"].c_str()) / kMultiFactor;
-      dui_string = std::to_wstring(kHz).c_str();
+      double kHz = std::stod(result[0]["kHz"].c_str());
+      std::string str_kHz = to_string_with_precision(kHz, 3);
+      dui_string = anx::common::UTF8ToUnicode(str_kHz).c_str();
       pText = static_cast<DuiLib::CLabelUI*>(
           pHBox->GetItemAt(2)->GetInterface(DUI_CTR_LABEL));
       pText->SetText(dui_string);
 
-      double Mpa = std::stod(result[0]["MPa"].c_str()) / kMultiFactor;
-      dui_string = std::to_wstring(Mpa).c_str();
+      double Mpa = std::stod(result[0]["MPa"].c_str());
+      std::string str_Mpa = to_string_with_precision(Mpa, 6);
+      dui_string = anx::common::UTF8ToUnicode(str_Mpa).c_str();
       pText = static_cast<DuiLib::CLabelUI*>(
           pHBox->GetItemAt(3)->GetInterface(DUI_CTR_LABEL));
       pText->SetText(dui_string);
 
-      double um = std::stod(result[0]["um"].c_str()) / kMultiFactor;
-      dui_string = std::to_wstring(um).c_str();
+      double um = std::stod(result[0]["um"].c_str());
+      std::string str_um = to_string_with_precision(um, 6);
+      dui_string = anx::common::UTF8ToUnicode(str_um).c_str();
       pText = static_cast<DuiLib::CLabelUI*>(
           pHBox->GetItemAt(4)->GetInterface(DUI_CTR_LABEL));
       pText->SetText(dui_string);
@@ -213,6 +220,69 @@ void WorkWindowSecondPageData::OnClick(TNotifyUI& msg) {
   }
 }
 
+void WorkWindowSecondPageData::OnValueChanged(TNotifyUI& msg) {
+  if (msg.sType == DUI_MSGTYPE_VALUECHANGED) {
+    if (msg.pSender->GetName() == _T("work_args_area")) {
+      ENMsgStruct* enmsg = reinterpret_cast<ENMsgStruct*>(msg.wParam);
+      if (enmsg == nullptr) {
+        return;
+      }
+      if (enmsg->type_ == enmsg_type_exp_stress_amp) {
+        anx::esolution::SolutionDesign* design =
+            reinterpret_cast<anx::esolution::SolutionDesign*>(enmsg->ptr_);
+        if (design == nullptr) {
+          return;
+        }
+        double exp_amplitude =
+            reinterpret_cast<anx::esolution::ExpDesignResult0*>(
+                design->result_.get())
+                ->f_eamplitude_;
+        double exp_statc_load_mpa = 0.0f;
+        if (design->result_->solution_type_ ==
+            anx::esolution::kSolutionName_Stresses_Adjustable) {
+          exp_statc_load_mpa =
+              reinterpret_cast<
+                  anx::esolution::ExpDesignResultStressesAdjustable*>(
+                  design->result_.get())
+                  ->f_static_load_MPa_;
+        } else if (design->result_->solution_type_ ==
+                   anx::esolution::kSolutionName_Th3point_Bending) {
+          exp_statc_load_mpa =
+              reinterpret_cast<anx::esolution::ExpDesignResultTh3pointBending*>(
+                  design->result_.get())
+                  ->f_static_load_MPa_;
+        }
+        LOG_F(LG_INFO) << "exp_amplitude:" << exp_amplitude
+                       << " exp_statc_load_mpa:" << exp_statc_load_mpa;
+        // TODO(hhool):
+        if (exp_amplitude > 0.0f) {
+        }
+        if (exp_statc_load_mpa > 0.0f) {
+        }
+      }
+    } else {
+      // do nothing
+    }
+  }
+}
+
+bool WorkWindowSecondPageData::OnOptDataSampleChange(void* param) {
+  if (param == nullptr) {
+    return false;
+  }
+  DuiLib::COptionUI* pOpt = reinterpret_cast<DuiLib::COptionUI*>(param);
+  if (pOpt == nullptr) {
+    return false;
+  }
+  if (pOpt == option_sample_mode_exp_) {
+    device_exp_data_settings_->sample_mode_ = 0;
+  } else if (pOpt == option_sample_mode_linear_) {
+    device_exp_data_settings_->sample_mode_ = 1;
+  }
+  SaveSettingsFromControl();
+  return true;
+}
+
 bool WorkWindowSecondPageData::OnTimer(void* param) {
   TNotifyUI* pMsg = reinterpret_cast<TNotifyUI*>(param);
   if (pMsg == nullptr) {
@@ -233,9 +303,11 @@ bool WorkWindowSecondPageData::OnTimer(void* param) {
 
 void WorkWindowSecondPageData::Bind() {
   /// @brief device com interface initialization
-  device_com_ul_ =
+  std::shared_ptr<anx::device::DeviceComInterface> device_com_ul =
       anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
           anx::device::kDeviceCom_Ultrasound, this);
+  ultra_device_ =
+      reinterpret_cast<anx::device::UltraDevice*>(device_com_ul->Device());
   /// @brief sample mode option button exp
   option_sample_mode_exp_ = static_cast<DuiLib::COptionUI*>(
       paint_manager_ui_->FindControl(_T("opt_sampling_exponent")));
@@ -270,6 +342,10 @@ void WorkWindowSecondPageData::Bind() {
                               1000);
   text_sample_interval_->OnNotify +=
       ::MakeDelegate(this, &WorkWindowSecondPageData::OnTimer);
+  option_sample_mode_exp_->OnNotify +=
+      ::MakeDelegate(this, &WorkWindowSecondPageData::OnOptDataSampleChange);
+  option_sample_mode_linear_->OnNotify +=
+      ::MakeDelegate(this, &WorkWindowSecondPageData::OnOptDataSampleChange);
 }
 
 void WorkWindowSecondPageData::Unbind() {
@@ -278,9 +354,9 @@ void WorkWindowSecondPageData::Unbind() {
 
   paint_manager_ui_->KillTimer(text_sample_interval_, kTimerIdRefreshControl);
 
-  if (device_com_ul_ != nullptr) {
-    device_com_ul_->RemoveListener(this);
-    device_com_ul_ = nullptr;
+  if (ultra_device_ != nullptr) {
+    ultra_device_->GetPortDevice()->RemoveListener(this);
+    ultra_device_ = nullptr;
   }
 }
 
@@ -376,7 +452,7 @@ void WorkWindowSecondPageData::SaveSettingsFromControl() {
   }
 }
 
-void anx::ui::WorkWindowSecondPageData::UpdateUIWithExpStatus(int status) {
+void WorkWindowSecondPageData::UpdateUIWithExpStatus(int status) {
   if (status == 0) {
     // stop
     edit_sample_start_pos_->SetEnabled(true);
@@ -408,8 +484,11 @@ void WorkWindowSecondPageData::OnDataReceived(
     anx::device::DeviceComInterface* device,
     const uint8_t* data,
     int32_t size) {
-  assert(device == device_com_ul_.get());
   if (exp_data_info_->exp_time_interval_num_ <= exp_time_interval_num_) {
+    return;
+  }
+  if (!ultra_device_->IsUltraStarted()) {
+    LOG_F(LG_INFO) << "is not run";
     return;
   }
   LOG_F(LG_INFO) << "exp_data_table_no_:" << exp_data_info_->exp_data_table_no_;
@@ -458,7 +537,7 @@ void WorkWindowSecondPageData::ClearExpData() {
   }
 }
 
-void anx::ui::WorkWindowSecondPageData::ExportToCSV(int64_t start_time) {
+void WorkWindowSecondPageData::ExportToCSV(int64_t start_time) {
   std::string sql_str = "SELECT * FROM ";
   sql_str += anx::db::helper::kTableExpDataList;
   sql_str += " ORDER BY date ASC";
@@ -476,9 +555,9 @@ void anx::ui::WorkWindowSecondPageData::ExportToCSV(int64_t start_time) {
     anx::expdata::ExperimentData data;
     data.id_ = std::stoi(item["id"]);
     data.cycle_count_ = std::stoi(item["cycle"]);
-    data.KHz_ = std::stod(item["kHz"]) / kMultiFactor;
-    data.MPa_ = std::stod(item["MPa"]) / kMultiFactor;
-    data.um_ = std::stod(item["um"]) / kMultiFactor;
+    data.KHz_ = std::stod(item["kHz"]);
+    data.MPa_ = std::stod(item["MPa"]);
+    data.um_ = std::stod(item["um"]);
     exp_datas.push_back(data);
   }
   // TODO(hhool): auto save the data to the file

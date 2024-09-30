@@ -6,7 +6,8 @@
 
 #include "app/common/crc16.h"
 
-namespace itas109 {
+namespace anx {
+namespace common {
 uint16_t crc16(const uint8_t* buf, uint32_t length) {
   static const uint16_t table[256] = {
       0x0000, 0xC0C1, 0xC181, 0x0140, 0xC301, 0x03C0, 0x0280, 0xC241, 0xC601,
@@ -51,4 +52,5 @@ uint16_t crc16(const uint8_t* buf, uint32_t length) {
   return crc;
 }
 
-}  // namespace itas109
+}  // namespace common
+}  // namespace anx

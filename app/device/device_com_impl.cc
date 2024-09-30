@@ -13,6 +13,8 @@
 
 #include <iostream>
 
+#include "app/common/logger.h"
+
 #include "third_party/CSerialPort/source/include/CSerialPort/SerialPort.h"
 #include "third_party/CSerialPort/source/include/CSerialPort/SerialPortInfo.h"
 
@@ -94,7 +96,7 @@ ComPortDeviceImpl::~ComPortDeviceImpl() {
 }
 
 void ComPortDeviceImpl::AddListener(DeviceComListener* listener) {
-  std::cout << "ComPortDeviceImpl::AddListener" << std::endl;
+  LOG_F(LG_INFO) << "listener added: " << listener;
   // find the listener from the list
   for (auto& it : listeners_) {
     if (it == listener) {
@@ -105,7 +107,7 @@ void ComPortDeviceImpl::AddListener(DeviceComListener* listener) {
 }
 
 void ComPortDeviceImpl::RemoveListener(DeviceComListener* listener) {
-  std::cout << "ComPortDeviceImpl::RemoveListener" << std::endl;
+  LOG_F(LG_INFO) << "listen remove:" << listener;
   // find the listener from the list
   for (auto it = listeners_.begin(); it != listeners_.end(); ++it) {
     if (*it == listener) {
@@ -116,7 +118,6 @@ void ComPortDeviceImpl::RemoveListener(DeviceComListener* listener) {
 }
 
 int32_t ComPortDeviceImpl::Open(const ComPortDevice& com_port) {
-  std::cout << "ComPortDeviceImpl::Open" << std::endl;
   if (com_port.GetComPort().baud_rate == 0) {
     return -1;
   }
@@ -140,11 +141,11 @@ int32_t ComPortDeviceImpl::Open(const ComPortDevice& com_port) {
   if (!native_serialport->open()) {
     return -3;
   }
+  com_port_device_ = com_port;
   return 0;
 }
 
 bool ComPortDeviceImpl::isOpened() {
-  std::cout << "ComPortDeviceImpl::IsOpen" << std::endl;
   if (native_serialport_ == nullptr) {
     return false;
   }
@@ -155,7 +156,6 @@ bool ComPortDeviceImpl::isOpened() {
 }
 
 void ComPortDeviceImpl::Close() {
-  std::cout << "ComPortDeviceImpl::Close" << std::endl;
   if (native_serialport_ == nullptr) {
     return;
   }
@@ -166,7 +166,6 @@ void ComPortDeviceImpl::Close() {
 }
 
 int32_t ComPortDeviceImpl::Read(uint8_t* buffer, int32_t size) {
-  std::cout << "ComPortDeviceImpl::Read" << std::endl;
   if (native_serialport_ == nullptr) {
     return -1;
   }
@@ -183,7 +182,6 @@ int32_t ComPortDeviceImpl::Read(uint8_t* buffer, int32_t size) {
 }
 
 int32_t ComPortDeviceImpl::Write(const uint8_t* buffer, int32_t size) {
-  std::cout << "ComPortDeviceImpl::Write" << std::endl;
   if (native_serialport_ == nullptr) {
     return -1;
   }
@@ -204,7 +202,7 @@ int32_t ComPortDeviceImpl::WriteRead(const uint8_t* write_buffer,
                                      int32_t write_size,
                                      uint8_t* read_buffer,
                                      int32_t read_size) {
-  std::cout << "ComPortDeviceImpl::WriteRead" << std::endl;
+  // TODO(hhool): implement this function
   return 0;
 }
 

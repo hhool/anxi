@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "app/device/device_com.h"
+#include "app/device/ultrasonic/ultra_device.h"
 #include "app/ui/ui_virtual_wnd_base.h"
 #include "app/ui/work_window_tab_main_second_page_graph_ctrl.h"
 #include "third_party\duilib\source\DuiLib\UIlib.h"
@@ -125,10 +126,11 @@ class WorkWindowSecondPageGraph : public DuiLib::CNotifyPump,
   std::unique_ptr<GraphCtrlEventInterface> graph_ctrl_event_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
   std::shared_ptr<anx::device::DeviceComInterface> device_com_ul_;
+  anx::device::UltraDevice* ultra_device_;
   /// @brief exp related members
   ExpDataInfo* exp_data_graph_info_;
   /// @brief amp start time, stress start time.
-  int64_t exp_time_interval_num_;
+  int64_t exp_time_interval_num_ = -1;
   /// @brief y axsi max value for amptitude.
   int32_t y_axsi_amp_value_max_ = 10;
   /// @brief y axsi max value for stress.

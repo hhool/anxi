@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "app/device/device_com.h"
+#include "app/device/ultrasonic/ultra_device.h"
 #include "app/expdata/experiment_data_base.h"
 #include "app/ui/ui_virtual_wnd_base.h"
 
@@ -57,9 +58,11 @@ class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
  public:
   DUI_DECLARE_MESSAGE_MAP()
   void OnClick(TNotifyUI& msg);  // NOLINT
+  void OnValueChanged(TNotifyUI& msg);  // NOLINT
 
  protected:
   bool OnTimer(void* param);
+  bool OnOptDataSampleChange(void* param);
 
  public:
   // implement the base class UIVirtualWndBase virtual function
@@ -104,7 +107,7 @@ class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
  private:
   WorkWindow* pWorkWindow_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
-  std::shared_ptr<anx::device::DeviceComInterface> device_com_ul_;
+  anx::device::UltraDevice* ultra_device_;
   std::unique_ptr<anx::device::DeviceExpDataSampleSettings>
       device_exp_data_settings_;
   ExpDataInfo* exp_data_info_;

@@ -17,6 +17,7 @@
 #include <string>
 
 #include "app/device/device_com.h"
+#include "app/device/ultrasonic/ultra_device.h"
 #include "app/ui/ui_virtual_wnd_base.h"
 #include "app/ui/work_window_tab_main_first_page_solution_design_base.h"
 
@@ -85,7 +86,10 @@ class WorkWindow : public DuiLib::WindowImplBase,
                        LPARAM lParam,
                        BOOL& bHandled) override;
   static ULONG DeviceCallback(PVOID Context, ULONG Type, PVOID Setting);
-  LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled) override;
+  LRESULT OnCreate(UINT uMsg,
+                   WPARAM wParam,
+                   LPARAM lParam,
+                   BOOL& bHandled) override;
   LRESULT OnDestroy(UINT /*uMsg*/,
                     WPARAM /*wParam*/,
                     LPARAM /*lParam*/,
@@ -158,10 +162,7 @@ class WorkWindow : public DuiLib::WindowImplBase,
   }
 
  protected:
-  void OnExpStart() {
-    // TODO(hhool):
-    is_exp_state_ = 1;
-  }
+  void OnExpStart();
   void OnExpStop() {
     // TODO(hhool):
     is_exp_state_ = 0;
@@ -178,9 +179,9 @@ class WorkWindow : public DuiLib::WindowImplBase,
  protected:
   void ClearArgsFreqNum();
   void UpdateArgsArea(int64_t cycle_count,
-                      double freq,
-                      double amplitude,
-                      double static_load);
+                      double freq = -1.0f,
+                      double amplitude = -1.0f,
+                      double static_load = -1.0);
 
  private:
   DuiLib::WindowImplBase* pOwner_;
@@ -191,7 +192,8 @@ class WorkWindow : public DuiLib::WindowImplBase,
   UIVirtualWndBase* work_window_third_page_virtual_wnd_;
   std::unique_ptr<DuiLib::CNotifyPump> work_window_status_bar_;
   UIVirtualWndBase* work_window_status_bar_virtual_wnd_;
-  std::shared_ptr<anx::device::DeviceComInterface> device_com_ul_;
+  std::unique_ptr<anx::device::UltraDevice> ultra_device_;
+  bool is_device_ultra_connected_ = false;
   bool is_device_stload_connected_ = false;
   /// @brief experiment related data
   /// @brief exp status
@@ -210,6 +212,7 @@ class WorkWindow : public DuiLib::WindowImplBase,
   CButtonUI* btn_menu_design_store_;
   CButtonUI* btn_menu_back_;
 
+  CHorizontalLayoutUI* h_layout_args_area_;
   CButtonUI* btn_args_area_value_freq_;
   CButtonUI* btn_args_area_value_freq_num_;
   CButtonUI* btn_args_area_value_amplitude_;

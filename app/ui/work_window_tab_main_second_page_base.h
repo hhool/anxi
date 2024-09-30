@@ -69,13 +69,13 @@ class ExpDataInfo {
   /// @brief exp data sample store in database exp table count since exp start
   /// time
   int32_t exp_data_table_no_ = 0;
-  /// @brief real value multiply by kMultiFactor,
+  /// @brief real value
   ///  store in database REAL
   double amp_freq_ = 0.0f;
-  /// @brief real value multiply by kMultiFactor,
+  /// @brief real value
   ///  store in database REAL
   double amp_um_ = 0.0f;
-  /// @brief real value multiply by kMultiFactor,
+  /// @brief real value
   ///  store in database REAL
   double stress_value_ = 0.0f;
 

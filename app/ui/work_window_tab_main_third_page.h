@@ -17,6 +17,7 @@
 #include <vector>
 
 #include "app/device/device_com.h"
+#include "app/device/ultrasonic/ultra_device.h"
 #include "app/ui/ui_virtual_wnd_base.h"
 
 #include "third_party\duilib\source\DuiLib\UIlib.h"
@@ -50,9 +51,9 @@ class WorkWindowThirdPage : public DuiLib::CNotifyPump,
 
  public:
   DUI_DECLARE_MESSAGE_MAP()
-  void OnClick(TNotifyUI& msg);  // NOLINT
-  void OnTimer(TNotifyUI& msg);  // NOLINT
-  void OnValueChanged(TNotifyUI& msg); // NOLINT
+  void OnClick(TNotifyUI& msg);         // NOLINT
+  void OnTimer(TNotifyUI& msg);         // NOLINT
+  void OnValueChanged(TNotifyUI& msg);  // NOLINT
 
  public:
   // implement the base class UIVirtualWndBase virtual function
@@ -74,7 +75,7 @@ class WorkWindowThirdPage : public DuiLib::CNotifyPump,
  private:
   WorkWindow* pWorkWindow_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
-  std::shared_ptr<anx::device::DeviceComInterface> device_com_ul_;
+  anx::device::UltraDevice* ultra_device_;
   uint32_t send_table_no_ = 0;
   uint32_t recv_table_no_ = 0;
   uint32_t recv_notify_table_no_ = 0;

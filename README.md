@@ -44,5 +44,3 @@ $ regsvr32 out/bin/Release/dmgraph.dll
 ```bash
 $ ./out/bin/Release/anxi
 ```
-
-## Screenshot

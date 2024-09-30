@@ -270,7 +270,7 @@ void WorkWindowThirdPage::OnTimer(TNotifyUI& msg) {
 
 void WorkWindowThirdPage::OnValueChanged(TNotifyUI& msg) {
   if (msg.sType == DUI_MSGTYPE_VALUECHANGED) {
-    if (msg.pSender->GetName() == _T("args_area_value_static_load")) {
+    if (msg.pSender->GetName() == _T("work_args_area")) {
       ENMsgStruct* enmsg = reinterpret_cast<ENMsgStruct*>(msg.wParam);
       if (enmsg == nullptr) {
         return;
@@ -290,8 +290,7 @@ void WorkWindowThirdPage::OnValueChanged(TNotifyUI& msg) {
         label_strength_->SetText(
             anx::common::string2wstring(num_load_str).c_str());
       } else if (enmsg->type_ == enmsg_type_exp_stress_amp) {
-
-	  }
+      }
     } else {
       // do nothing
     }
@@ -300,9 +299,11 @@ void WorkWindowThirdPage::OnValueChanged(TNotifyUI& msg) {
 
 void WorkWindowThirdPage::Bind() {
   // initialize the device com interface
-  device_com_ul_ =
+  std::shared_ptr<anx::device::DeviceComInterface> device_com_ul =
       anx::device::DeviceComFactory::Instance()->CreateOrGetDeviceComWithType(
           anx::device::kDeviceCom_Ultrasound, this);
+  ultra_device_ =
+      reinterpret_cast<anx::device::UltraDevice*>(device_com_ul->Device());
   // bind timer
   DuiLib::CHorizontalLayoutUI* layout =
       static_cast<DuiLib::CHorizontalLayoutUI*>(
@@ -380,9 +381,9 @@ void WorkWindowThirdPage::Unbind() {
   paint_manager_ui_->KillTimer(layout, kTimerID);
 
   // release the device com interface
-  if (device_com_ul_ != nullptr) {
-    device_com_ul_->RemoveListener(this);
-    device_com_ul_.reset();
+  if (ultra_device_ != nullptr) {
+    ultra_device_->GetPortDevice()->RemoveListener(this);
+    ultra_device_ = nullptr;
   }
 }
 
@@ -405,8 +406,6 @@ void WorkWindowThirdPage::OnDataReceived(
     const uint8_t* data,
     int32_t size) {
   // TODO(hhool): review the implementation
-  if (device == device_com_ul_.get()) {
-  }
   if (!check_box_display_stop_recv_notify_->IsSelected()) {
     std::string hex_str;
     hex_str = anx::common::ByteArrayToHexString(data, size);

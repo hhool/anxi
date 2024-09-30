@@ -48,7 +48,8 @@ typedef enum ENMsgType {
 typedef struct ENMsgStruct {
   ENMsgType type_;
   void* ptr_;
-} ENMsgStruct;	
+} ENMsgStruct;
+
 }  // namespace ui
 }  // namespace anx
 

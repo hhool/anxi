@@ -21,6 +21,7 @@
 #include "app/device/device_com.h"
 #include "app/device/device_exp_ultrasound_settings.h"
 #include "app/device/stload/stload_helper.h"
+#include "app/device/ultrasonic/ultra_device.h"
 #include "app/ui/ui_virtual_wnd_base.h"
 
 #include "third_party\duilib\source\DuiLib\UIlib.h"
@@ -87,9 +88,9 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   /// @brief static load aircraft stop
   void OnButtonStaticAircraftStop();
 
-  /// @brief  Update button with exp status
-  /// @param status  0 - stop, 1 - start, 2 - pause
-  void UpdateUIWithExpStatus(int status);
+  /// @brief  Update buttons state with device connected status
+  /// work state, exp state, static aircraft states
+  void UpdateUIButton();
 
  protected:
   // impliment anx::device::DeviceComListener;
@@ -103,6 +104,7 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   }
   void ProcessDataGraph();
   void ProcessDataList();
+
  private:
   WorkWindow* pWorkWindow_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
@@ -117,14 +119,22 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   /// @brief exp status
   /// 0 - stop, 1 - start, 2 - pause, <0 - unvalid
   int32_t is_exp_state_;
-  std::shared_ptr<anx::device::DeviceComInterface> device_com_ul_;
+  anx::device::UltraDevice* ultra_device_;
+  int32_t initial_frequency_;
+  int32_t initial_power_;
+  int32_t cur_freq_;
+  int32_t cur_power_;
   anx::device::DeviceUltrasoundSettings dus_;
+  double exp_amplitude_;
+  double exp_statc_load_mpa_;
+  double exp_max_stress_MPa_;
   /// @note state_ultrasound_exp_clip_ for exp clip time control
   /// 0 - stop, 1 - start, 2 - pause, <0 - unvalid
   int32_t state_ultrasound_exp_clip_;
   ExpDataInfo exp_data_graph_info_;
   ExpDataInfo exp_data_list_info_;
   std::unique_ptr<anx::device::DeviceExpDataSampleSettings> dedss_;
+  int64_t exp_data_pre_duration_exponential_=0;
 
   DuiLib::CTabLayoutUI* btn_tablayout_;
   DuiLib::CButtonUI* btn_tab_graph_;

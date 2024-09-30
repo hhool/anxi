@@ -32,6 +32,7 @@ class UltrasonicHelper {
  private:
   static bool is_ultrasonic_simulation_;
 };
+
 }  // namespace ultrasonic
 }  // namespace device
 }  // namespace anx

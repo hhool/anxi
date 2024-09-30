@@ -345,13 +345,10 @@ void WorkWindowSecondWorkWindowSecondPageGraphCtrl::ProcessDataSampleIncoming(
   /// @todo 100 ms is one sample, 120 sample is 12 second, 120 sample is
   /// one data sample, take average of the 120 sample as one data sample
   /// and put it to the graph.
-  /// TODO(hhool): will be removed after the real data incoming.
   if (data_sample_incoming_count_ % data_sample_count_for_one_graph_sample_ ==
       0) {
     double average =
         data_sample_incoming_value_total_ / (data_sample_incoming_count_);
-    double average_n = average;
-    average = average_n / kMultiFactor;
 
     int32_t plot_graph_sample_index =
         plot_index_ - plot_graph_x_axis_reserve_count_for_y_axis_;

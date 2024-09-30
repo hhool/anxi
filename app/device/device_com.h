@@ -89,6 +89,8 @@ class ComPortDevice {
 };
 
 ////////////////////////////////////////////////////////////
+class DeviceNode {};
+
 class DeviceComListener;
 class DeviceComInterface {
  public:
@@ -98,6 +100,14 @@ class DeviceComInterface {
   /// @brief  Remove listener
   /// @param listener  listener
   virtual void RemoveListener(DeviceComListener* listener) = 0;
+
+ public:
+  virtual void AttachDeviceNode(DeviceNode* device) { device_ = device; }
+  virtual void DetachDeviceNode(DeviceNode*) { device_ = nullptr; }
+  virtual DeviceNode* Device() { return device_; }
+
+ private:
+  DeviceNode* device_;
 
  public:
   /// @brief  Open the device com
