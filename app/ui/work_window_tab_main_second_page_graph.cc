@@ -49,9 +49,6 @@ const int32_t kGraphCtrlSampleTotalMinutesTen = 10;
 const int32_t kGraphCtrlSampleTotalMinutesThirty = 30;
 const int32_t kGraphCtrlSampleTotalMinutesSixty = 60;
 namespace {
-const double kYAxisAmpInitialValue = 0.05f;
-
-const double kYAxisStressInitialValue = 0.03f;
 
 const int32_t kTimeGraphButtonId = 2;
 }  // namespace
@@ -226,17 +223,29 @@ void WorkWindowSecondPageGraph::OnValueChanged(TNotifyUI& msg) {
           // 80% of the y_axsi_amp_value_max_
           y_axsi_amp_value_max_ = static_cast<int32_t>(exp_amplitude);
           y_axsi_amp_value_max_ = static_cast<int32_t>(exp_amplitude);
-          y_axsi_amp_value_max_ = static_cast<int32_t>(y_axsi_amp_value_max_ * 1.2f);
+          y_axsi_amp_value_max_ =
+              static_cast<int32_t>(y_axsi_amp_value_max_ * 1.2f);
           if (y_axsi_amp_value_max_ % 10 != 0) {
             y_axsi_amp_value_max_ = (y_axsi_amp_value_max_ / 10 + 1) * 10;
           }
+          y_axsi_amp_value_unused_ = false;
+        } else {
+          y_axsi_amp_value_unused_ = true;
+          y_axsi_amp_value_max_ = 10;
+          y_axsi_amp_value_min_ = -10;
         }
         if (exp_statc_load_mpa > 0.0f) {
           y_axsi_stload_value_max_ = static_cast<int32_t>(exp_statc_load_mpa);
-          y_axsi_stload_value_max_ = static_cast<int32_t>(y_axsi_stload_value_max_ * 1.2f);
+          y_axsi_stload_value_max_ =
+              static_cast<int32_t>(y_axsi_stload_value_max_ * 1.2f);
           if (y_axsi_stload_value_max_ % 10 != 0) {
             y_axsi_stload_value_max_ = (y_axsi_stload_value_max_ / 10 + 1) * 10;
           }
+          y_axsi_stload_value_unused_ = false;
+        } else {
+          y_axsi_stload_value_unused_ = true;
+          y_axsi_stload_value_max_ = 10;
+          y_axsi_stload_value_min_ = -10;
         }
       }
     } else {
@@ -636,7 +645,7 @@ void WorkWindowSecondPageGraph::Bind() {
     page_graph_amplitude_ctrl_.reset(
         new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
             graph_ctrl_event_.get(), activex, "amp", x_min, x_duration,
-            y_axsi_amp_value_max_, 6, kYAxisAmpInitialValue,
+            y_axsi_amp_value_min_, y_axsi_amp_value_max_,
             exp_data_graph_info_->mode_ ? false : true));
     page_graph_amplitude_ctrl_->SetDataSampleCountForOneGraphSample(
         10 * 1000 / exp_data_graph_info_->exp_sample_interval_ms_);
@@ -648,7 +657,7 @@ void WorkWindowSecondPageGraph::Bind() {
     page_graph_stress_ctrl_.reset(
         new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
             graph_ctrl_event_.get(), activex, "stress", x_min, x_duration,
-            y_axsi_stload_value_max_, 6, kYAxisStressInitialValue,
+            y_axsi_stload_value_min_, y_axsi_stload_value_max_,
             exp_data_graph_info_->mode_ ? false : true));
     page_graph_stress_ctrl_->SetDataSampleCountForOneGraphSample(
         10 * 1000 / exp_data_graph_info_->exp_sample_interval_ms_);
@@ -704,7 +713,7 @@ void WorkWindowSecondPageGraph::ClearGraphData() {
     page_graph_amplitude_ctrl_.reset(
         new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
             graph_ctrl_event_.get(), activex, "amp", x_min, x_duration,
-            y_axsi_amp_value_max_, 6, kYAxisAmpInitialValue,
+            y_axsi_amp_value_min_, y_axsi_amp_value_max_,
             exp_data_graph_info_->mode_ ? false : true));
     page_graph_amplitude_ctrl_->SetDataSampleCountForOneGraphSample(
         10 * 1000 / exp_data_graph_info_->exp_sample_interval_ms_);
@@ -716,7 +725,7 @@ void WorkWindowSecondPageGraph::ClearGraphData() {
     page_graph_stress_ctrl_.reset(
         new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
             graph_ctrl_event_.get(), activex, "stress", x_min, x_duration,
-            y_axsi_stload_value_max_, 6, kYAxisStressInitialValue,
+            y_axsi_stload_value_min_, y_axsi_stload_value_max_,
             exp_data_graph_info_->mode_ ? false : true));
     page_graph_stress_ctrl_->SetDataSampleCountForOneGraphSample(
         10 * 1000 / exp_data_graph_info_->exp_sample_interval_ms_);
@@ -754,7 +763,7 @@ void WorkWindowSecondPageGraph::UpdateGraphCtrl(
     page_graph_amplitude_ctrl_.reset(
         new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
             graph_ctrl_event_.get(), activex, "amp", x_min, x_duration,
-            y_axsi_amp_value_max_, 6, kYAxisAmpInitialValue, true));
+            y_axsi_amp_value_min_, y_axsi_amp_value_max_, true));
     page_graph_amplitude_ctrl_->SetDataSampleCountForOneGraphSample(
         10 * 1000 / exp_data_graph_info_->exp_sample_interval_ms_);
     page_graph_amplitude_ctrl_->Init(element_list);
@@ -785,7 +794,7 @@ void WorkWindowSecondPageGraph::UpdateGraphCtrl(
     page_graph_stress_ctrl_.reset(
         new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
             graph_ctrl_event_.get(), activex, "stress", x_min, x_duration,
-            y_axsi_stload_value_max_, 6, kYAxisStressInitialValue, true));
+            y_axsi_stload_value_min_, y_axsi_stload_value_max_, true));
     page_graph_stress_ctrl_->SetDataSampleCountForOneGraphSample(
         10 * 1000 / exp_data_graph_info_->exp_sample_interval_ms_);
     page_graph_stress_ctrl_->Init(element_list);
@@ -1002,7 +1011,7 @@ void WorkWindowSecondPageGraph::OnExpStart() {
     page_graph_amplitude_ctrl_.reset(
         new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
             graph_ctrl_event_.get(), activex, "amp", x_min, x_duration,
-            y_axsi_amp_value_max_, 6, kYAxisAmpInitialValue,
+            y_axsi_amp_value_min_, y_axsi_amp_value_max_,
             exp_data_graph_info_->mode_ ? false : true));
     page_graph_amplitude_ctrl_->SetDataSampleCountForOneGraphSample(
         10 * 1000 / exp_data_graph_info_->exp_sample_interval_ms_);
@@ -1014,7 +1023,7 @@ void WorkWindowSecondPageGraph::OnExpStart() {
     page_graph_stress_ctrl_.reset(
         new WorkWindowSecondWorkWindowSecondPageGraphCtrl(
             graph_ctrl_event_.get(), activex, "stress", x_min, x_duration,
-            y_axsi_stload_value_max_, 6, kYAxisStressInitialValue,
+            y_axsi_stload_value_min_, y_axsi_stload_value_max_,
             exp_data_graph_info_->mode_ ? false : true));
     page_graph_stress_ctrl_->SetDataSampleCountForOneGraphSample(
         10 * 1000 / exp_data_graph_info_->exp_sample_interval_ms_);

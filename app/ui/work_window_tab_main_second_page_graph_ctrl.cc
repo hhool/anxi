@@ -161,27 +161,23 @@ WorkWindowSecondWorkWindowSecondPageGraphCtrl::
         const std::string name,
         double x_min,
         double x_duration,
-        int32_t y_grid_step,
-        int32_t x_grid_step,
-        double y_axis_intial_value,
+        double y_min,
+        double y_max,
         bool auto_refresh)
     : event_interface_(event_interface),
       activex_(activex),
       name_(name),
       x_min_(x_min),
       x_duration_(x_duration),
-      y_grid_step_(y_grid_step),
-      x_grid_step_(x_grid_step),
-      y_min_(0.0f),
-      y_max_(y_grid_step * 1.0f),
-      y_axis_intial_value_(y_axis_intial_value),
+      y_min_(y_min),
+      y_max_(y_max),
       auto_refresh_(auto_refresh) {
+  y_grid_step_ = 10;
+  x_grid_step_ = 6;
+  y_axis_intial_value_ = y_max / 100 * 0.3;
   sampling_total_minutes_ = vartime_to_minutes(x_duration);
   data_sample_count_for_one_graph_sample_ = 5;
   data_sample_incoming_first_time_ = -1.0f;
-  if (y_grid_step > 10) {
-    y_grid_step_ = 10;
-  }
 }
 
 WorkWindowSecondWorkWindowSecondPageGraphCtrl::

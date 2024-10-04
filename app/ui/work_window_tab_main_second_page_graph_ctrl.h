@@ -74,9 +74,8 @@ class WorkWindowSecondWorkWindowSecondPageGraphCtrl {
       const std::string name,
       double x_min,
       double x_duration,
-      int32_t y_grid_step = 1,
-      int32_t x_grid_step = 1,
-      double y_axis_intial_value = 0.05f,
+      double y_min_,
+      double y_max,
       bool auto_refresh = true);
   ~WorkWindowSecondWorkWindowSecondPageGraphCtrl();
 
@@ -126,8 +125,8 @@ class WorkWindowSecondWorkWindowSecondPageGraphCtrl {
 
   /// @brief update y_max_ value for the graph control
   /// @param y_max the y_max_ value for the graph control
-  void UpdateYMaxValue(double yMaxValue, bool update = true ) {
-     y_max_ = yMaxValue;
+  void UpdateYMaxValue(double yMaxValue, bool update = true) {
+    y_max_ = yMaxValue;
     if (update && graph_ctrl_ != nullptr) {
       graph_ctrl_->SetRange(x_min_, x_min_ + x_duration_, y_min_, y_max_);
     }
@@ -160,12 +159,6 @@ class WorkWindowSecondWorkWindowSecondPageGraphCtrl {
   /// @note default is 5 minutes, 5 minutes is the total duration for the
   /// graph control.
   double x_duration_ = 5.0 / (24.0 * 60.0);
-  /// @brief  y grid step for the graph control.
-  /// @note default is 1, 1 is the y grid step for the graph control.
-  int32_t y_grid_step_ = 1;
-  /// @brief  x grid step for the graph control.
-  /// @note default is 1, 1 is the x grid step for the graph control.
-  int32_t x_grid_step_ = 1;
   /// @brief y min value for the graph control.
   /// @note default is 0, 0 is the min value for the y axis.
   /// @note 0 is the min value for the y axis. it's mean the y axis start
@@ -174,12 +167,18 @@ class WorkWindowSecondWorkWindowSecondPageGraphCtrl {
   /// @brief y max value for the graph control.
   /// @note default is 15, 15 is the max value for the y axis.
   double y_max_ = 15.0;
-  /// @brief y intial value for the graph control.
-  /// @note default is 0.05, 0.05 is the intial value for the y axis.
-  double y_axis_intial_value_ = 0.05f;
   /// @brief auto refresh flag for the graph control.
   /// @note default is false, false is the auto refresh flag for the graph
   bool auto_refresh_ = true;
+  /// @brief  y grid step for the graph control.
+  /// @note default is 10, 10 is the y grid step for the graph control.
+  int32_t y_grid_step_ = 10;
+  /// @brief  x grid step for the graph control.
+  /// @note default is 6, 6 is the x grid step for the graph control.
+  int32_t x_grid_step_ = 6;
+  /// @brief y intial value for the graph control.
+  /// @note default is 0.03, 0.03 is the intial value for the y axis value.
+  double y_axis_intial_value_ = 0.03f;
   /// @brief data sampling total duration in minutes,
   /// @note default is 5 minutes graph control.
   /// @note 5 * 60 * 1000 = 5 minutes. 5 minutes is the total duration

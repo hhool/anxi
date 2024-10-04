@@ -131,10 +131,19 @@ class WorkWindowSecondPageGraph : public DuiLib::CNotifyPump,
   ExpDataInfo* exp_data_graph_info_;
   /// @brief amp start time, stress start time.
   int64_t exp_time_interval_num_ = -1;
+  /// @brief y axsi for amptitude value unused or not.
+  bool y_axsi_amp_value_unused_ = false;
   /// @brief y axsi max value for amptitude.
   int32_t y_axsi_amp_value_max_ = 10;
+  /// @brief y axsi min value for amptitude.
+  int32_t y_axsi_amp_value_min_ = 0;
+
+  /// @brief y axsi for stress value unused or not.
+  bool y_axsi_stload_value_unused_ = false;
   /// @brief y axsi max value for stress.
   int32_t y_axsi_stload_value_max_ = 10;
+  /// @brief y axsi min value for stress.
+  int32_t y_axsi_stload_value_min_ = 0;
 
   /// @brief graph time mode pre hour
   DuiLib::COptionUI* opt_graph_time_mode_pre_hour_;
