@@ -134,7 +134,7 @@ class WorkWindowSecondPageData::ListVirtalDataView
           pHBox->GetItemAt(1)->GetInterface(DUI_CTR_LABEL));
       pText->SetText(dui_string);
 
-      double kHz = std::stod(result[0]["kHz"].c_str());
+      double kHz = std::stod(result[0]["kHz"].c_str()) / 1000.f;
       std::string str_kHz = to_string_with_precision(kHz, 3);
       dui_string = anx::common::UTF8ToUnicode(str_kHz).c_str();
       pText = static_cast<DuiLib::CLabelUI*>(
@@ -149,7 +149,7 @@ class WorkWindowSecondPageData::ListVirtalDataView
       pText->SetText(dui_string);
 
       double um = std::stod(result[0]["um"].c_str());
-      std::string str_um = to_string_with_precision(um, 6);
+      std::string str_um = to_string_with_precision(um, 2);
       dui_string = anx::common::UTF8ToUnicode(str_um).c_str();
       pText = static_cast<DuiLib::CLabelUI*>(
           pHBox->GetItemAt(4)->GetInterface(DUI_CTR_LABEL));
