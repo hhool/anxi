@@ -18,7 +18,7 @@ namespace anx {
 namespace common {
 
 // get current time in microseconds
-int64_t GetCurrentTimeMicros();
+uint64_t GetCurrentTimeMicros();
 
 // get current time in milliseconds
 int64_t GetCurrentTimeMillis();

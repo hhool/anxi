@@ -23,13 +23,15 @@
 namespace anx {
 namespace common {
 
-int64_t GetCurrentTimeMicros() {
+uint64_t GetCurrentTimeMicros() {
 #if defined(_WIN32)
   LARGE_INTEGER freq;
   LARGE_INTEGER counter;
   QueryPerformanceFrequency(&freq);
   QueryPerformanceCounter(&counter);
-  return counter.QuadPart * 1000000 / freq.QuadPart;
+  counter.QuadPart *= 1000000LL;
+  uint64_t time = counter.QuadPart / freq.QuadPart;
+  return time;
 #else
   struct timespec ts;
   clock_gettime(CLOCK_REALTIME, &ts);
@@ -39,12 +41,12 @@ int64_t GetCurrentTimeMicros() {
 
 int64_t GetCurrentTimeMillis() {
   // use GetCurrentTimeNanos() to get current time in nanoseconds
-  return GetCurrentTimeMicros() / 1000;
+  return static_cast<int64_t>(GetCurrentTimeMicros() / 1000);
 }
 
 int64_t GetCurrentTimeSeconds() {
   // use GetCurrentTimeNanos() to get current time in nanoseconds
-  return GetCurrentTimeMicros() / 1000000;
+  return static_cast<int64_t>(GetCurrentTimeMicros() / 1000000);
 }
 
 void sleep_ms(int64_t ms) {
