@@ -70,6 +70,16 @@ class WorkWindowFirstPageAxiallySymmetrical : public DuiLib::CNotifyPump,
   WorkWindow* pOwner_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
   std::string t_prefix_;
+  DuiLib::CEditUI* edit_amplitude_ = nullptr;
+  DuiLib::CEditUI* edit_dc_stress_ = nullptr;
+  DuiLib::CEditUI* edit_static_load_ = nullptr;
+  DuiLib::CEditUI* edit_radius_exp_ = nullptr;
+  DuiLib::CEditUI* edit_exp_section_trans_ = nullptr;
+  DuiLib::CEditUI* edit_radus_trans_ = nullptr;
+  DuiLib::CEditUI* edit_length_trans_ = nullptr;
+  DuiLib::CEditUI* edit_radius_parallel_ = nullptr;
+  DuiLib::CEditUI* edit_length_parallel_ = nullptr;
+  DuiLib::CEditUI* edit_speciments_width_ = nullptr;
 };
 
 class WorkWindownFirstPageStressAjustable : public DuiLib::CNotifyPump,
@@ -105,6 +115,16 @@ class WorkWindownFirstPageStressAjustable : public DuiLib::CNotifyPump,
   WorkWindow* pOwner_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
   std::string t_prefix_;
+  DuiLib::CEditUI* edit_amplitude_ = nullptr;
+  DuiLib::CEditUI* edit_dc_stress_ = nullptr;
+  DuiLib::CEditUI* edit_static_load_ = nullptr;
+  DuiLib::CEditUI* edit_radius_exp_ = nullptr;
+  DuiLib::CEditUI* edit_exp_section_trans_ = nullptr;
+  DuiLib::CEditUI* edit_radus_trans_ = nullptr;
+  DuiLib::CEditUI* edit_radius_parallel_ = nullptr;
+  DuiLib::CEditUI* edit_length_trans_ = nullptr;
+  DuiLib::CEditUI* edit_length_parallel_ = nullptr;
+  DuiLib::CEditUI* edit_speciments_width_ = nullptr;
 };
 
 class WorkWindowFirstPageTh3pointBending : public DuiLib::CNotifyPump,
@@ -140,12 +160,13 @@ class WorkWindowFirstPageTh3pointBending : public DuiLib::CNotifyPump,
   WorkWindow* pOwner_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
   std::string t_prefix_;
-  DuiLib::CEditUI* edit_elastic_ = nullptr;
-  DuiLib::CEditUI* edit_density_ = nullptr;
-  DuiLib::CEditUI* edit_max_stress_ = nullptr;
-  DuiLib::CEditUI* edit_stress_ratio_ = nullptr;
-  DuiLib::CEditUI* edit_static_load_ = nullptr;
   DuiLib::CEditUI* edit_amplitude_ = nullptr;
+  DuiLib::CEditUI* edit_dc_stress_ = nullptr;
+  DuiLib::CEditUI* edit_static_load_ = nullptr;
+  DuiLib::CEditUI* edit_speciments_height_ = nullptr;
+  DuiLib::CEditUI* edit_speciments_length_ = nullptr;
+  DuiLib::CEditUI* edit_length_parallel_ = nullptr;
+  DuiLib::CEditUI* edit_speciments_width_ = nullptr;
 };
 
 class WorkWindowFirstPageVibrationBending : public DuiLib::CNotifyPump,
@@ -181,6 +202,16 @@ class WorkWindowFirstPageVibrationBending : public DuiLib::CNotifyPump,
   WorkWindow* pOwner_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
   std::string t_prefix_;
+  DuiLib::CEditUI* edit_amplitude_ = nullptr;
+  DuiLib::CEditUI* edit_dc_stress_ = nullptr;
+  DuiLib::CEditUI* edit_static_load_ = nullptr;
+  DuiLib::CEditUI* edit_radius_exp_ = nullptr;
+  DuiLib::CEditUI* edit_exp_section_ = nullptr;
+  DuiLib::CEditUI* edit_length_parallel_ = nullptr;
+  DuiLib::CEditUI* edit_radius_load_ = nullptr;
+  DuiLib::CEditUI* edit_specimen_radius_transition_ = nullptr;
+  DuiLib::CEditUI* edit_thickness_clamping_ = nullptr;
+  DuiLib::CEditUI* edit_thickness_exp_section_ = nullptr;
 };
 
 }  // namespace ui

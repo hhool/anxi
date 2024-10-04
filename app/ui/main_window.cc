@@ -12,6 +12,7 @@
 #include "app/ui/main_window.h"
 
 #include "app/common/defines.h"
+#include "app/common/file_utils.h"
 #include "app/common/module_utils.h"
 #include "app/common/string_utils.h"
 #include "app/esolution/solution_design.h"
@@ -192,6 +193,10 @@ void anx::ui::MainWindow::Switch_ThirdApp() {
     return;
   }
   std::string path = third_app_list_.begin()->c_str();
+  // check the path is valid and exists
+  if (path.empty() || !anx::common::FileExists(path)) {
+    return;
+  }
   ShellExecute(NULL, _T("open"),
                anx::common::string2wstring(path.c_str()).c_str(), NULL, NULL,
                SW_SHOW);
