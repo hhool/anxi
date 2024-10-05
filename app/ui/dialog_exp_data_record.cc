@@ -14,7 +14,6 @@
 #include <string>
 #include <vector>
 
-#include "app/common/defines.h"
 #include "app/common/logger.h"
 #include "app/common/string_utils.h"
 #include "app/expdata/experiment_data_base.h"

@@ -11,7 +11,6 @@
 
 #include "app/ui/main_window.h"
 
-#include "app/common/defines.h"
 #include "app/common/file_utils.h"
 #include "app/common/module_utils.h"
 #include "app/common/string_utils.h"

@@ -13,7 +13,6 @@
 
 #include <utility>
 
-#include "app/common/defines.h"
 #include "app/common/logger.h"
 #include "app/common/string_utils.h"
 #include "app/esolution/algorithm/alg.h"

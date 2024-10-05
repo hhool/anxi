@@ -13,7 +13,6 @@
 
 #include <string>
 
-#include "app/common/defines.h"
 #include "app/common/string_utils.h"
 #include "app/ui/ui_constants.h"
 
