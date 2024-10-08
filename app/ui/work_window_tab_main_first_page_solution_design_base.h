@@ -108,10 +108,6 @@ class PageSolutionDesignBase {
   int32_t design_type_;
   std::unique_ptr<esolution::SolutionDesign> solution_design_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
-  DuiLib::CEditUI* edit_elastic_ = nullptr;
-  DuiLib::CEditUI* edit_density_ = nullptr;
-  DuiLib::CEditUI* edit_max_stress_ = nullptr;
-  DuiLib::CEditUI* edit_stress_ratio_ = nullptr;
 };
 
 }  // namespace ui
