@@ -633,8 +633,6 @@ void WorkWindowSecondPageGraph::Bind() {
   btn_next_page_ = static_cast<DuiLib::CButtonUI*>(
       paint_manager_ui_->FindControl(_T("graph_settings_next_page")));
   btn_next_page_->SetEnabled(false);
-
-  UpdateControlFromSettings();
   // init the graph control
   double x_min = anx::common::GetCurrrentDateTime();
   double x_duration = minutes_to_vartime(graphctrl_sample_total_minutes_);
@@ -669,6 +667,8 @@ void WorkWindowSecondPageGraph::Bind() {
   paint_manager_ui_->SetTimer(btn_pre_page_, kTimeGraphButtonId, 1000);
   btn_pre_page_->OnNotify +=
       ::MakeDelegate(this, &WorkWindowSecondPageGraph::OnTimer);
+
+  UpdateControlFromSettings();
 }
 
 void WorkWindowSecondPageGraph::Unbind() {

@@ -269,7 +269,7 @@ void WorkWindowSecondWorkWindowSecondPageGraphCtrl::Init(
     spGraphElement_->PlotXY(x_min_ + data_sampling_interval_var_ * (i),
                             y_axis_intial_value_);
   }
-#if 1
+#if 0
   // dump the x and y value of the graph element.
   DumpGraphDataList();
   // dump element list
@@ -368,7 +368,7 @@ void WorkWindowSecondWorkWindowSecondPageGraphCtrl::ProcessDataSampleIncoming(
         plot_graph_sample_index %
                 (sampling_total_minutes_ * (this->x_grid_step_ - 1)) ==
             0) {
-#if 1
+#if 0
       DumpGraphDataList();
 #endif
       ///////////////////////////////////////////////
@@ -407,7 +407,7 @@ void WorkWindowSecondWorkWindowSecondPageGraphCtrl::ProcessDataSampleIncoming(
 
 void WorkWindowSecondWorkWindowSecondPageGraphCtrl::Release() {
   if (graph_ctrl_ != nullptr) {
-#if 1
+#if 0
     DumpGraphDataList();
 #endif
     graph_ctrl_->ClearGraph();
