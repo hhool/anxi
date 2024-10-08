@@ -78,6 +78,12 @@ class Runnable {
   bool stop_ = false;
 };
 
+#if defined(_WIN32)
+typedef HANDLE ThreadIt;
+#else
+typedef pthread_t ThreadIt;
+#endif
+
 class Thread {
  public:
   Thread();
@@ -90,6 +96,10 @@ class Thread {
   virtual void start();
   virtual void join();
   virtual void detach();
+
+  bool is_current_thread();
+
+  ThreadIt current_thread();
 
  private:
 #if defined(_WIN32)

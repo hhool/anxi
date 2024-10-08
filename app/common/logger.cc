@@ -68,17 +68,30 @@ void Logger::Log(int level, std::string& log) {
 // LoggerStream
 
 namespace {
-/// @brief get the current time in milliseconds
+/// @brief convert current time to string format
 /// @return  the current time in milliseconds %Y-%m-%d %H:%M:%S.%3d
-std::string FormatTimeMillis(int64_t millis) {
-  time_t t = millis / 1000;
-  int32_t ms = millis % 1000;
-  struct tm ltm;
-  GetLocalTime(&ltm);
+std::string FormatTimeMillis() {
+  // get current time in milliseconds since epoch time 1970-01-01 00:00:00
+  // note thread safe, not c++ standard library no use chrono
+
+#if defined(_WIN32) || defined(_WIN64)
+  SYSTEMTIME st;
+  GetLocalTime(&st);
   char buf[32];
-  strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &ltm);
-  snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf), ".%03d", ms);
+  snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d.%03d", st.wYear,
+           st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond,
+           st.wMilliseconds);
   return std::string(buf);
+#else
+  struct timeval tv;
+  gettimeofday(&tv, nullptr);
+  struct tm* ltm = localtime(&tv.tv_sec);
+  char buf[32];
+  snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d.%03d",
+           1900 + ltm->tm_year, 1 + ltm->tm_mon, ltm->tm_mday, ltm->tm_hour,
+           ltm->tm_min, ltm->tm_sec, static_cast<int>(tv.tv_usec / 1000));
+  return std::string(buf);
+#endif
 }
 }  // namespace
 
@@ -93,10 +106,8 @@ LoggerStream::LoggerStream(const char* file,
   if (pos != std::string::npos) {
     file_name = file_name.substr(pos + 1);
   }
-  stream_ << "[" << std::this_thread::get_id() << ":"
-          << std::this_thread::get_id() << ":"
-          << FormatTimeMillis(GetCurrentTimeMillis()) << ":" << file_name << ":"
-          << line << ":" << func << "] ";
+  stream_ << "[" << std::this_thread::get_id() << ":" << FormatTimeMillis()
+          << ":" << file_name << ":" << line << ":" << func << "] ";
 }
 
 LoggerStream::~LoggerStream() {

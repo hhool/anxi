@@ -181,6 +181,22 @@ void Thread::detach() {
   thread_ = nullptr;
 }
 
+bool Thread::is_current_thread() {
+#if defined(_WIN32)
+  return GetCurrentThreadId() == GetThreadId(thread_);
+#else
+  return pthread_equal(pthread_self(), thread_);
+#endif
+}
+
+ThreadIt Thread::current_thread() {
+#if defined(_WIN32)
+  return thread_;
+#else
+  return pthread_self();
+#endif
+}
+
 #if defined(_WIN32)
 unsigned int __stdcall Thread::thread_func(void* arg) {
 #else
