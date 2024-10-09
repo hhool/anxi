@@ -48,14 +48,6 @@ FetchContent_MakeAvailable(googletest)
 
 # ###############
 # Define a test
-add_executable(${PREFIX}_json_unittest json_unittest.cc)
-target_include_directories(${PREFIX}_json_unittest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../third_party/jsoncpp/source/include)
-
-# Link gtest
-target_link_libraries(${PREFIX}_json_unittest gtest_main gtest jsoncpp_static)
-
-# ###############
-# Define a test
 add_executable(${PREFIX}_tinyxml2_unittest tinyxml2_unittest.cc)
 target_include_directories(${PREFIX}_tinyxml2_unittest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../third_party/tinyxml2/source)
 
