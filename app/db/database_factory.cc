@@ -73,7 +73,5 @@ void DatabaseFactory::CloseAllDatabase() {
   }
   databases_.clear();
 }
-
-namespace Helper {}  // namespace Helper
 }  // namespace db
 }  // namespace anx
