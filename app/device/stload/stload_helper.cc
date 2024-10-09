@@ -105,7 +105,6 @@ int32_t STLoadHelper::STLoadSetup() {
   int lExt_P = 30;
   int lExt_I = 0;
   int lExt_D = 0;
-  LOG_F(LG_ERROR) << "STLoadSetup";
   BOOL bSuccess =
       anx::device::stload::STLoadHelper::st_load_loader_.st_api_.on_line(
           nChannelNo, 0, 0, 0, rate, machineType, nDTCType, sensorPosition,

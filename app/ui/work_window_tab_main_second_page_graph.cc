@@ -864,6 +864,9 @@ void WorkWindowSecondPageGraph::RefreshPreNextAlwaysShowNewControl(
 }
 
 void WorkWindowSecondPageGraph::RefreshPreNextControl() {
+  if (page_graph_amplitude_ctrl_ == nullptr) {
+    return;
+  }
   // get the current page no
   int32_t id = exp_data_graph_info_->exp_data_view_current_start_no_;
   // get the total data sample count for one page graph data

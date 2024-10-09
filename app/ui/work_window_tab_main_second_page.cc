@@ -187,7 +187,7 @@ void WorkWindowSecondPage::OnTimer(TNotifyUI& msg) {
           exp_stop();
           return;
         }
-
+        this->pWorkWindow_->UpdateArgsArea(-1, cur_freq_);
         /// exp clipping enabled
         if (this->dus_.exp_clipping_enable_ == 1) {
           if (this->dus_.exp_clip_time_duration_ > 0) {
@@ -268,7 +268,7 @@ void WorkWindowSecondPage::OnValueChanged(TNotifyUI& msg) {
         }
         LOG_F(LG_INFO) << "exp_amplitude:" << exp_amplitude
                        << " exp_statc_load_mpa:" << exp_statc_load_mpa
-                       << "exp_max_stress:" << exp_max_stress;
+                       << " exp_max_stress:" << exp_max_stress;
         exp_max_stress_MPa_ = exp_max_stress;
         exp_amplitude_ = exp_amplitude;
         exp_statc_load_mpa_ = exp_statc_load_mpa;

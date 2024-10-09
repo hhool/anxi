@@ -340,7 +340,6 @@ void WorkWindow::Notify(DuiLib::TNotifyUI& msg) {
   } else if (msg.sType == DUI_MSGTYPE_KILLFOCUS) {
     DuiLib::CDuiString name = msg.pSender->GetName();
     std::string name_str = anx::common::wstring2string(name.GetData());
-    LOG_F(LG_INFO) << "name:" << name_str;
     // compare name_str partion compare with
     // "tm_page_first_left_max_stress" and "tm_page_first_left_ratio_stress"
     if (name_str.find("tm_page_first_left_max_stress") != std::string::npos) {
@@ -991,10 +990,18 @@ void WorkWindow::UpdateArgsArea(int64_t cycle_count,
                                 double freq,
                                 double amplitude,
                                 double static_load) {
-  // update cycle count
   DuiLib::CDuiString value;
-  value.Format(_T("%d"), cycle_count);
-  btn_args_area_value_freq_num_->SetText(value);
+  // update freq
+  if (freq >= 0) {
+    value.Format(_T("%.3f"), freq / 1000.0f);
+    btn_args_area_value_freq_->SetText(value);
+  }
+  // update cycle count
+
+  if (cycle_count >= 0) {
+    value.Format(_T("%d"), cycle_count);
+    btn_args_area_value_freq_num_->SetText(value);
+  }
 }
 }  // namespace ui
 }  // namespace anx
