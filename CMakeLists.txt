@@ -26,6 +26,10 @@ endif()
 set(PRODUCT_NAME anxi CACHE STRING "anxi")
 set(PRODUCT_VERSION 1.0.0 CACHE STRING "anxi version")
 
+# set global property for folder
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMake")
+
 # options
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
 option(USE_UNICODE "Use unicode" ON)
@@ -37,6 +41,13 @@ option(ANXI_BUILD_STLOAD_SIMULATOR "Use STLOAD simulator" ON)
 
 # only build library if add anxi as subdirectory
 if(NOT CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+    set(ANXI_BUILD_EXAMPLES OFF)
+    set(ANXI_BUILD_DOC OFF)
+    set(ANXI_BUILD_TEST OFF)
+    set(ANXI_BUILD_UNITTEST OFF)
+endif()
+
+if (CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
     set(ANXI_BUILD_EXAMPLES OFF)
     set(ANXI_BUILD_DOC OFF)
     set(ANXI_BUILD_TEST OFF)
@@ -88,8 +99,8 @@ if(WIN32)
     add_subdirectory(third_party/duilib)
 endif()
 
-add_subdirectory(third_party/jsoncpp)
-add_subdirectory(third_party/tinyxml2)
 add_subdirectory(third_party/dmgraph)
+#add_subdirectory(third_party/jsoncpp)
 add_subdirectory(third_party/sqlite)
-add_subdirectory(third_party/zlib)
+add_subdirectory(third_party/tinyxml2)
+#add_subdirectory(third_party/zlib)
