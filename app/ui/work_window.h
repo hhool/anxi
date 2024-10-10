@@ -130,6 +130,7 @@ class WorkWindow : public DuiLib::WindowImplBase,
  protected:
   friend class CMenuDesignWnd;
   friend class CMenuStoreWnd;
+  friend class WorkWindowFirstPageTh3pointBending;
   friend class WorkWindowStatusBar;
   friend class WorkWindowSecondPage;
   friend class WorkWindowThirdPage;

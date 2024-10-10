@@ -222,6 +222,12 @@ struct ExpDesignResultTh3pointBending : public ExpDesignResult0 {
 
  public:
   virtual std::string ToXml(bool close_tag = true) const;
+  // @brief 理论振幅A' um
+  // @brief Theoretical amplitude A' um
+  double f_theory_eamplitude_;
+  // @brief 理论应力 Cs' MPa
+  // @brief Theoretical stress Cs' MPa
+  double f_theory_dc_stress_MPa_;
   // @brief 静载 MPa
   // @brief Static load MPa
   double f_static_load_MPa_;

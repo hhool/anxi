@@ -263,6 +263,10 @@ std::string ExpDesignResultTh3pointBending::ToXml(bool close_tag) const {
     xml += "<result type=\"th3point\">\r\n";
   }
   xml += ExpDesignResult0::ToXml(false);
+  xml += "<f_theory_eamplitude>" + std::to_string(f_theory_eamplitude_) +
+         "</f_theory_eamplitude>\r\n";
+  xml += "<f_theory_dc_stress_MPa>" + std::to_string(f_theory_dc_stress_MPa_) +
+         "</f_theory_dc_stress_MPa>\r\n";
   xml += "<f_static_load_MPa>" + std::to_string(f_static_load_MPa_) +
          "</f_static_load_MPa>\r\n";
   xml += "<f_specimen_width_B>" + std::to_string(f_specimen_width_B_) +
@@ -551,6 +555,20 @@ int32_t SolutionDesign::FromXml(const std::string& xml,
           new ExpDesignResultStressesAdjustable(result_stresses));
     } else if (header.solution_type_ == kSolutionName_Th3point_Bending) {
       ExpDesignResultTh3pointBending result_th3point;
+
+      tinyxml2::XMLElement* f_theory_eamplitude_element =
+          result_element->FirstChildElement("f_theory_eamplitude");
+      if (f_theory_eamplitude_element) {
+        result_th3point.f_theory_eamplitude_ =
+            f_theory_eamplitude_element->FloatText();
+      }
+
+      tinyxml2::XMLElement* f_theory_dc_stress_MPa_element =
+          result_element->FirstChildElement("f_theory_dc_stress_MPa");
+      if (f_theory_dc_stress_MPa_element) {
+        result_th3point.f_theory_dc_stress_MPa_ =
+            f_theory_dc_stress_MPa_element->FloatText();
+      }
 
       tinyxml2::XMLElement* f_eamplitude_element =
           result_element->FirstChildElement("f_eamplitude");

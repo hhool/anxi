@@ -991,16 +991,25 @@ void WorkWindow::UpdateArgsArea(int64_t cycle_count,
                                 double amplitude,
                                 double static_load) {
   DuiLib::CDuiString value;
+  // update cycle count
+  if (cycle_count >= 0) {
+    value.Format(_T("%d"), cycle_count);
+    btn_args_area_value_freq_num_->SetText(value);
+  }
   // update freq
   if (freq >= 0) {
     value.Format(_T("%.3f"), freq / 1000.0f);
     btn_args_area_value_freq_->SetText(value);
   }
-  // update cycle count
-
-  if (cycle_count >= 0) {
-    value.Format(_T("%d"), cycle_count);
-    btn_args_area_value_freq_num_->SetText(value);
+  // update amplitude
+  if (amplitude >= 0) {
+    value.Format(_T("%.2f"), amplitude);
+    btn_args_area_value_amplitude_->SetText(value);
+  }
+  // update static load
+  if (static_load >= 0) {
+    value.Format(_T("%.2f"), static_load);
+    btn_args_area_value_static_load_->SetText(value);
   }
 }
 }  // namespace ui
