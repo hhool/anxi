@@ -872,6 +872,9 @@ void WorkWindowSecondPage::OnButtonStaticAircraftUp() {
   btn_sa_down_->SetEnabled(false);
   btn_sa_stop_->SetEnabled(true);
   st_load_is_running_ = true;
+  ////
+  lss->direct_ = 1;
+  anx::device::SaveDeviceLoadStaticSettingsDefaultResource(*lss);
 }
 
 void WorkWindowSecondPage::OnButtonStaticAircraftDown() {
@@ -903,6 +906,9 @@ void WorkWindowSecondPage::OnButtonStaticAircraftDown() {
   btn_sa_down_->SetEnabled(false);
   btn_sa_stop_->SetEnabled(true);
   st_load_is_running_ = true;
+  ////
+  lss->direct_ = 2;
+  anx::device::SaveDeviceLoadStaticSettingsDefaultResource(*lss);
 }
 
 void WorkWindowSecondPage::OnButtonStaticAircraftStop() {

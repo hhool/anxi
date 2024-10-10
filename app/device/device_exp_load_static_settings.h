@@ -20,17 +20,25 @@ namespace device {
 class DeviceLoadStatic {
  public:
   DeviceLoadStatic();
-  DeviceLoadStatic(int32_t direct,
-                   int32_t action,
-                   int32_t speed,
-                   int32_t retention);
+  DeviceLoadStatic(int32_t direct, int32_t speed, int32_t retention);
   virtual ~DeviceLoadStatic();
 
  public:
+  /// @brief direct 0: none, 1: up, 2: down, 3: left, 4: right
+  int32_t direct_;
   /// @brief speed
   int32_t speed_;
   /// @brief retention
   int32_t retention_;
+
+ public:
+  std::string ValueDirectToString() const;
+
+ public:
+  /// @brief  direct string value to bool
+  /// @param direct_str  none, up, down, left, right
+  /// @return  int32_t 0: none, 1: up, 2: down, 3: left, 4: right
+  static int32_t ValueDirectFromString(const std::string& direct_str);
 };
 
 class DeviceLoadStaticSettings : public DeviceLoadStatic {

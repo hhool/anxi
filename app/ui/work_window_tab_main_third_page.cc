@@ -311,16 +311,16 @@ void WorkWindowThirdPage::Bind() {
   paint_manager_ui_->SetTimer(layout, kTimerID, kTimerElapse);
 
   // bind control
-  /*opt_direct_up_ = static_cast<COptionUI*>(
+  opt_direct_up_ = static_cast<COptionUI*>(
       paint_manager_ui_->FindControl(_T("tab_page_three_left_move_up")));
   opt_direct_down_ = static_cast<COptionUI*>(
       paint_manager_ui_->FindControl(_T("tab_page_three_left_move_down")));
-
-  opt_action_pull_ = static_cast<COptionUI*>(
-      paint_manager_ui_->FindControl(_T("tab_page_three_left_pull")));
-  opt_action_push_ = static_cast<COptionUI*>(
-      paint_manager_ui_->FindControl(_T("tab_page_three_left_push")));
-          */
+  /*
+    opt_action_pull_ = static_cast<COptionUI*>(
+        paint_manager_ui_->FindControl(_T("tab_page_three_left_pull")));
+    opt_action_push_ = static_cast<COptionUI*>(
+        paint_manager_ui_->FindControl(_T("tab_page_three_left_push")));
+            */
   edit_speed_ = static_cast<CEditUI*>(
       paint_manager_ui_->FindControl(_T("tab_page_three_left_speed")));
 
@@ -394,6 +394,8 @@ void WorkWindowThirdPage::UpdateControlFromSettings() {
   if (lss == nullptr) {
     return;
   }
+  opt_direct_up_->Selected(lss->direct_ == 1);
+  opt_direct_down_->Selected(lss->direct_ == 2);
   edit_speed_->SetText(
       anx::common::string2wstring(std::to_string(lss->speed_).c_str()).c_str());
   edit_retention_->SetText(

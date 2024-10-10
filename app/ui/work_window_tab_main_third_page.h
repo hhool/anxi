@@ -80,9 +80,9 @@ class WorkWindowThirdPage : public DuiLib::CNotifyPump,
   uint32_t recv_table_no_ = 0;
   uint32_t recv_notify_table_no_ = 0;
 
-  /*COptionUI* opt_direct_up_;
+  COptionUI* opt_direct_up_;
   COptionUI* opt_direct_down_;
-  COptionUI* opt_action_pull_;
+  /*COptionUI* opt_action_pull_;
   COptionUI* opt_action_push_;*/
 
   CEditUI* edit_speed_;

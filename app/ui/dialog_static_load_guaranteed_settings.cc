@@ -36,7 +36,12 @@ void DialogStaticLoadGuaranteedSettings::InitWindow() {
   btn_ok_ = static_cast<CButtonUI*>(m_PaintManager.FindControl(_T("okbtn")));
   btn_cancel_ =
       static_cast<CButtonUI*>(m_PaintManager.FindControl(_T("cancelbtn")));
-
+  /*
+    opt_direct_up_ = static_cast<COptionUI*>(
+        m_PaintManager.FindControl(_T("tab_page_three_left_move_up")));
+    opt_direct_down_ = static_cast<COptionUI*>(
+        m_PaintManager.FindControl(_T("tab_page_three_left_move_down")));
+  */
   edit_speed_ = static_cast<CEditUI*>(
       m_PaintManager.FindControl(_T("tab_page_three_left_speed")));
 
@@ -94,6 +99,8 @@ void DialogStaticLoadGuaranteedSettings::UpdateControlFromSettings() {
   if (lss == nullptr) {
     return;
   }
+  /*opt_direct_up_->Selected(lss->direct_ == 1);
+  opt_direct_down_->Selected(lss->direct_ == 2);*/
   edit_speed_->SetText(
       anx::common::string2wstring(std::to_string(lss->speed_).c_str()).c_str());
   edit_retention_->SetText(
@@ -102,9 +109,11 @@ void DialogStaticLoadGuaranteedSettings::UpdateControlFromSettings() {
 }
 
 void DialogStaticLoadGuaranteedSettings::SaveSettingsFromControl() {
+  // std::string direct = opt_direct_up_->IsSelected() ? "up" : "down";
   int32_t speed = _ttoi(edit_speed_->GetText().GetData());
   int32_t retention = _ttoi(edit_retention_->GetText().GetData());
   anx::device::DeviceLoadStaticSettings lss;
+  // lss.direct_ = anx::device::DeviceLoadStatic::ValueDirectFromString(direct);
   lss.speed_ = speed;
   lss.retention_ = retention;
   anx::device::SaveDeviceLoadStaticSettingsDefaultResource(lss);
