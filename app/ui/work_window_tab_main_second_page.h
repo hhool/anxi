@@ -134,7 +134,8 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   ExpDataInfo exp_data_graph_info_;
   ExpDataInfo exp_data_list_info_;
   std::unique_ptr<anx::device::DeviceExpDataSampleSettings> dedss_;
-  int64_t exp_data_pre_duration_exponential_=0;
+  int64_t exp_data_pre_duration_exponential_ = 0;
+  bool start_time_pos_has_deal_ = false;
 
   DuiLib::CTabLayoutUI* btn_tablayout_;
   DuiLib::CButtonUI* btn_tab_graph_;

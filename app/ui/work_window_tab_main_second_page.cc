@@ -188,6 +188,23 @@ void WorkWindowSecondPage::OnTimer(TNotifyUI& msg) {
           return;
         }
         this->pWorkWindow_->UpdateArgsArea(-1, cur_freq_);
+        int64_t curtime = anx::common::GetCurrentTimeMillis();
+        if (dedss_->sampling_start_pos_ > 0) {
+          if ((curtime - exp_data_graph_info_.exp_start_time_ms_) >=
+                  dedss_->sampling_start_pos_ * 100 &&
+              !start_time_pos_has_deal_) {
+            LOG_F(LG_INFO) << "exp_stop: curtime:" << curtime
+                           << " exp_start_time_ms:"
+                           << this->exp_data_graph_info_.exp_start_time_ms_
+                           << " sampling_start_pos:"
+                           << this->dedss_->sampling_start_pos_;
+            if (ultra_device_->StartUltra() < 0) {
+              is_exp_state_ = 0;
+              return;
+            }
+            start_time_pos_has_deal_ = true;
+          }
+        }
         /// exp clipping enabled
         if (this->dus_.exp_clipping_enable_ == 1) {
           if (this->dus_.exp_clip_time_duration_ > 0) {
@@ -210,7 +227,10 @@ void WorkWindowSecondPage::OnTimer(TNotifyUI& msg) {
                        state_ultrasound_exp_clip_ == 2) {
               // resume ultrasound
               LOG_F(LG_INFO) << "resume ultrasound";
-              ultra_device_->StartUltra();
+              if (ultra_device_->StartUltra() < 0) {
+                is_exp_state_ = 0;
+                return;
+              }
               state_ultrasound_exp_clip_ = 1;
             }
           }
@@ -676,10 +696,13 @@ int32_t WorkWindowSecondPage::exp_start() {
     is_exp_state_ = 0;
     return -1;
   }
-  if (ultra_device_->StartUltra() < 0) {
-    is_exp_state_ = 0;
-    return -1;
+  if (dedss_->sampling_start_pos_ == 0) {
+    if (ultra_device_->StartUltra() < 0) {
+      is_exp_state_ = 0;
+      return -1;
+    }
   }
+  start_time_pos_has_deal_ = false;
   paint_manager_ui_->SetTimer(btn_exp_start_, kTimerIdSampling,
                               kSamplingInterval);
 

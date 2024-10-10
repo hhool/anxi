@@ -396,7 +396,7 @@ WorkWindowSecondPageData::UpdateExpClipTimeFromControl() {
   sample_start_pos = _ttoll(edit_sample_start_pos_->GetText());
   sample_end_pos = _ttoll(edit_sample_end_pos_->GetText());
   sample_time_interval = _ttoll(edit_sample_interval_->GetText());
-  if (sample_start_pos > sample_end_pos) {
+  if (sample_start_pos > sample_end_pos && sample_end_pos > 0) {
     return nullptr;
   }
   if (sample_time_interval <= 0) {
