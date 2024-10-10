@@ -1042,6 +1042,7 @@ void WorkWindowSecondPageGraph::OnExpPause() {}
 void WorkWindowSecondPageGraph::OnExpResume() {
   chk_graph_always_show_new_->SetCheck(true);
   exp_data_graph_info_->mode_ = view_mode_real;
+  exp_time_interval_num_ = 0;
 }
 
 }  // namespace ui

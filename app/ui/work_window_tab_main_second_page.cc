@@ -737,6 +737,31 @@ void WorkWindowSecondPage::exp_resume() {
 
   SaveSettingsFromControl();
 
+  /// @brief reset the database exp_data table.
+  /// @note the table name is exp_data, delete exp_data table and create a new
+  /// one.
+  anx::db::helper::DropDataTable(anx::db::helper::kDefaultDatabasePathname,
+	  anx::db::helper::kTableExpDataGraph);
+
+  // create the exp_data_graph table
+  std::string db_filepathname;
+  anx::db::helper::DefaultDatabasePathname(&db_filepathname);
+  auto db = anx::db::DatabaseFactory::Instance()->CreateOrGetDatabase(
+	  db_filepathname);
+  db->Execute(anx::db::helper::sql::kCreateTableExpDataGraphSqlFormat);
+
+  /// @brief get the exp data sample settings and set the exp start time
+  /// and exp sample interval
+  exp_data_graph_info_.exp_data_table_no_ = 0;
+  exp_data_graph_info_.exp_time_interval_num_ = 0;
+  exp_data_graph_info_.exp_start_time_ms_ = anx::common::GetCurrentTimeMillis();
+  exp_data_graph_info_.exp_sample_interval_ms_ = 2000;
+  // clear graph data
+  WorkWindowSecondPageGraph* graph_page =
+	  reinterpret_cast<WorkWindowSecondPageGraph*>(
+		  work_window_second_page_graph_notify_pump_.get());
+  graph_page->ClearGraphData();
+
   dedss_ =
       std::move(anx::device::LoadDeviceExpDataSampleSettingsDefaultResource());
   exp_data_list_info_.exp_sample_interval_ms_ =
