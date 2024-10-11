@@ -29,7 +29,6 @@
 #include "app/esolution/solution_design_default.h"
 #include "app/esolution/solution_design_helper.h"
 #include "app/ui/dialog_com_port_settings.h"
-#include "app/ui/dialog_com_record_2000c.h"
 #include "app/ui/dialog_exp_data_record.h"
 #include "app/ui/ui_constants.h"
 #include "app/ui/work_window_menu_design.h"
@@ -330,13 +329,6 @@ void WorkWindow::Notify(DuiLib::TNotifyUI& msg) {
                                    WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
     dialog_exp_data_record->CenterWindow();
     dialog_exp_data_record->ShowModal();
-  } else if (msg.sType == kMenu_Store_ComRecord) {
-    DialogComRecord2000C* dialog_com_record_2000c = new DialogComRecord2000C();
-    dialog_com_record_2000c->Create(*this, _T("dialog_com_record_2000c"),
-                                    UI_WNDSTYLE_FRAME,
-                                    WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
-    dialog_com_record_2000c->CenterWindow();
-    dialog_com_record_2000c->ShowWindow(true, true);
   } else if (msg.sType == DUI_MSGTYPE_KILLFOCUS) {
     DuiLib::CDuiString name = msg.pSender->GetName();
     std::string name_str = anx::common::wstring2string(name.GetData());

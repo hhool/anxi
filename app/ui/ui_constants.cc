@@ -190,7 +190,6 @@ const TCHAR* const kMenu_Design_Exit = _T("menu_design_item_exit");
 //
 // header menu store related
 const TCHAR* const kMenu_Store_ExpRecord = _T("menu_store_item_exp_record");
-const TCHAR* const kMenu_Store_ComRecord = _T("menu_store_item_com_record");
 
 /////////////////////////////////////////////////////////////////////////////////////
 //

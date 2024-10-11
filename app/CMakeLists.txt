@@ -191,8 +191,6 @@ if(WIN32)
         ui/dialog_amplitude_calibration_settings.h
         ui/dialog_com_port_settings.cc
         ui/dialog_com_port_settings.h
-        ui/dialog_com_record_2000c.cc
-        ui/dialog_com_record_2000c.h
         ui/dialog_common.cc
         ui/dialog_common.h
         ui/dialog_exp_data_record.cc
