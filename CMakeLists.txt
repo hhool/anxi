@@ -9,6 +9,7 @@ cmake_minimum_required(VERSION 3.0)
 
 project(anxi LANGUAGES CXX)
 
+message(STATUS "${PROJECT_NAME} CMakeLists")
 # set output directory
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -22,9 +23,7 @@ if(NOT CMAKE_BUILD_TYPE)
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
-# set product name
-set(PRODUCT_NAME anxi CACHE STRING "anxi")
-set(PRODUCT_VERSION 1.0.0 CACHE STRING "anxi version")
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 
 # set global property for folder
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -100,7 +99,10 @@ if(WIN32)
 endif()
 
 add_subdirectory(third_party/dmgraph)
-#add_subdirectory(third_party/jsoncpp)
 add_subdirectory(third_party/sqlite)
 add_subdirectory(third_party/tinyxml2)
-#add_subdirectory(third_party/zlib)
+
+# ##############################################################################
+# install target
+include(install)
+include(cpack_nsis_setup)

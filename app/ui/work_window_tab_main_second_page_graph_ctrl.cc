@@ -183,6 +183,7 @@ WorkWindowSecondWorkWindowSecondPageGraphCtrl::
 WorkWindowSecondWorkWindowSecondPageGraphCtrl::
     ~WorkWindowSecondWorkWindowSecondPageGraphCtrl() {
   Release();
+  LOG_F(LG_INFO);
 }
 
 void WorkWindowSecondWorkWindowSecondPageGraphCtrl::SetAutoRefresh(

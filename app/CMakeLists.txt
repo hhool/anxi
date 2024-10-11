@@ -9,13 +9,6 @@ cmake_minimum_required(VERSION 3.0)
 
 project(app LANGUAGES CXX)
 
-set(PROJECT_NAME "anxi")
-
-# set output directory
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-
 # source files
 set(PROJECT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/..")
 message(STATUS "PROJECT_PATH: ${PROJECT_PATH}")
@@ -277,7 +270,7 @@ target_link_libraries(app_exe app_ui)
 
 if(WIN32)
     target_link_libraries(app_exe user32 gdi32)
-    set_target_properties(app_exe PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS")
+    set_target_properties(app_exe PROPERTIES LINK_FLAGS "/MANIFESTUAC:\"level='requireAdministrator' uiAccess='false'\" /SUBSYSTEM:WINDOWS")
 
     # set working directory to bin directory
     # for visual studio debugger to find third stload third dll
@@ -314,3 +307,20 @@ add_custom_command(TARGET app_exe POST_BUILD
 add_custom_command(TARGET app_exe POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${PROJECT_SOURCE_DIR}/resource/db ${PROJECT_BINARY_DIR}/../bin/${CMAKE_BUILD_TYPE}/db)
+add_custom_command(TARGET app_exe POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${PROJECT_SOURCE_DIR}/../third_party/dmgraph/script/ ${PROJECT_BINARY_DIR}/../bin/${CMAKE_BUILD_TYPE}/)
+add_custom_command(TARGET app_exe POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${PROJECT_SOURCE_DIR}/../package/ ${PROJECT_BINARY_DIR}/../bin/${CMAKE_BUILD_TYPE}/)
+if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+    add_custom_command(TARGET app_exe POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+       ${PROJECT_SOURCE_DIR}/resource/runtime/debug ${PROJECT_BINARY_DIR}/../bin/${CMAKE_BUILD_TYPE}/)
+else()
+    add_custom_command(TARGET app_exe POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+       ${PROJECT_SOURCE_DIR}/resource/runtime/release ${PROJECT_BINARY_DIR}/../bin/${CMAKE_BUILD_TYPE}/)
+endif()
+
+

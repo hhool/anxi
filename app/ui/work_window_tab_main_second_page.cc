@@ -177,7 +177,7 @@ void WorkWindowSecondPage::OnTimer(TNotifyUI& msg) {
         for (int32_t i = 0; i < dus_.exp_max_cycle_power_; i++) {
           exp_max_cycle_count *= 10;
         }
-        int64_t total_des_time_ms = exp_max_cycle_count / 20;
+        int64_t total_des_time_ms = exp_max_cycle_count / 20 * 1000;
         int64_t current_time_ms = anx::common::GetCurrentTimeMillis();
         int64_t duration =
             current_time_ms - exp_data_graph_info_.exp_start_time_ms_;
@@ -394,7 +394,6 @@ void WorkWindowSecondPage::Bind() {
 
 void WorkWindowSecondPage::Unbind() {
   /// @brief remove the virtual window
-
   this->RemoveVirtualWnd(_T("WorkWindowSecondPageGraph"));
   work_window_second_page_graph_virtual_wnd_->Unbind();
   WorkWindowSecondPageGraph* graph_page =
@@ -420,6 +419,11 @@ void WorkWindowSecondPage::Unbind() {
     ultra_device_->GetPortDevice()->RemoveListener(this);
     ultra_device_ = nullptr;
   }
+  /// @brief drop the exp_data table
+  anx::db::helper::DropDataTable(anx::db::helper::kDefaultDatabasePathname,
+	  anx::db::helper::kTableExpDataGraph);
+  anx::db::helper::DropDataTable(anx::db::helper::kDefaultDatabasePathname,
+	  anx::db::helper::kTableExpDataList);
 }
 
 void WorkWindowSecondPage::CheckDeviceComConnectedStatus() {

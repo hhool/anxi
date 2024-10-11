@@ -44,3 +44,9 @@ $ regsvr32 out/bin/Release/dmgraph.dll
 ```bash
 $ ./out/bin/Release/anxi
 ```
+
+## install
+
+ [how to install](package/README.install.md)
+
+ [如何安装](package/README.install.zh.md)

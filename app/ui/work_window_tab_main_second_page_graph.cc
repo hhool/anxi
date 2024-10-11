@@ -345,6 +345,10 @@ bool WorkWindowSecondPageGraph::OnOptGraphTimeRangeChange(void* param) {
   if (graphctrl_sample_total_minutes == graphctrl_sample_total_minutes_) {
     return true;
   }
+  if (page_graph_amplitude_ctrl_ == nullptr) {
+    LOG_F(LG_INFO) << "page_graph_amplitude_ctrl is nullptr";
+	return false;
+  }
   graphctrl_sample_total_minutes_ = graphctrl_sample_total_minutes;
   assert(page_graph_amplitude_ctrl_ != nullptr);
   // 1. get the current x min value. the current x min value is the start time.
@@ -702,7 +706,6 @@ void WorkWindowSecondPageGraph::ClearGraphData() {
   }
   exp_data_graph_info_->exp_data_view_current_start_no_ = 1;
   exp_data_graph_info_->exp_data_table_no_ = 0;
-  UpdateControlFromSettings();
   // init the graph control
   double x_min = anx::common::GetCurrrentDateTime();
   double x_duration = minutes_to_vartime(graphctrl_sample_total_minutes_);
