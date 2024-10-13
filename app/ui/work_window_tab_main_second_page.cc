@@ -13,6 +13,9 @@
 
 #include <iomanip>
 #include <iostream>
+#undef max
+#undef min
+#include <limits>  // std::numeric_limits
 #include <sstream>
 #include <string>
 #include <utility>
@@ -51,6 +54,32 @@ DUI_END_MESSAGE_MAP()
 namespace anx {
 namespace ui {
 namespace {
+template <typename R>
+R get_value_from_edit(DuiLib::CEditUI* edit) {
+  DuiLib::CDuiString value = edit->GetText();
+  return static_cast<R>(_ttof(value.GetData()));
+}
+template <typename R>
+R get_value_from_edit(const std::string& ctrl_name,
+                      DuiLib::CPaintManagerUI* paint_manager_ui) {
+  DuiLib::CDuiString dui_str_name;
+  dui_str_name.Append(anx::common::string2wstring(ctrl_name.c_str()).c_str());
+  DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
+      paint_manager_ui->FindControl(dui_str_name));
+  return get_value_from_edit<R>(edit);
+}
+
+void set_value_to_edit(DuiLib::CEditUI* edit, double value) {
+  DuiLib::CDuiString str;
+  str.Format(_T("%.1f"), value);
+  edit->SetText(str);
+}
+
+void set_value_to_edit(DuiLib::CEditUI* edit, int value) {
+  DuiLib::CDuiString str;
+  str.Format(_T("%d"), value);
+  edit->SetText(str);
+}
 
 template <typename T>
 std::string to_string_with_precision(const T a_value, const int n = 2) {
@@ -312,6 +341,104 @@ void WorkWindowSecondPage::OnValueChanged(TNotifyUI& msg) {
   }
 }
 
+bool WorkWindowSecondPage::OnExpClipChanged(void* msg) {
+  TNotifyUI* pMsg = reinterpret_cast<TNotifyUI*>(msg);
+  if (pMsg == nullptr || pMsg->pSender == nullptr) {
+    return false;
+  }
+  LOG_F(LG_INFO) << "OnExpClipChanged: " << pMsg->pSender->GetName() << " "
+                 << pMsg->sType << " " << pMsg->wParam << " " << pMsg->lParam;
+  if (pMsg->sType != DUI_MSGTYPE_KILLFOCUS) {
+    return true;
+  }
+
+  if (pMsg->pSender == edit_exp_clip_time_duration_) {
+    int32_t exp_clip_time_duration =
+        get_value_from_edit<int32_t>(edit_exp_clip_time_duration_);
+    bool restore = false;
+    if (exp_clip_time_duration < 1) {
+      exp_clip_time_duration = dus_.exp_clip_time_duration_;
+      restore = true;
+    } else if (exp_clip_time_duration > 990) {
+      exp_clip_time_duration = dus_.exp_clip_time_duration_;
+      restore = true;
+    }
+    if (restore) {
+      set_value_to_edit(edit_exp_clip_time_duration_, exp_clip_time_duration);
+    }
+  } else if (pMsg->pSender == edit_exp_clip_time_paused_) {
+    int32_t exp_clip_time_paused =
+        get_value_from_edit<int32_t>(edit_exp_clip_time_paused_);
+    bool restore = false;
+    if (exp_clip_time_paused < 1) {
+      exp_clip_time_paused = dus_.exp_clip_time_paused_;
+      restore = true;
+    }
+    if (restore) {
+      set_value_to_edit(edit_exp_clip_time_paused_, exp_clip_time_paused);
+    }
+  } else if (pMsg->pSender == edit_max_cycle_count_) {
+    int32_t exp_max_cycle_count =
+        get_value_from_edit<int32_t>(edit_max_cycle_count_);
+    bool restore = false;
+    if (exp_max_cycle_count < 1) {
+      exp_max_cycle_count = static_cast<int32_t>(dus_.exp_max_cycle_count_);
+      restore = true;
+    } else {
+      // check the max cycle count with the max cycle power is valid
+      int32_t exp_max_cycle_power = _ttoi(edit_max_cycle_power_->GetText());
+      int64_t max_cycle_count = exp_max_cycle_count;
+      for (int32_t i = 0; i < exp_max_cycle_power; i++) {
+        max_cycle_count *= 10;
+      }
+      if (max_cycle_count < 1) {
+        exp_max_cycle_count = static_cast<int32_t>(dus_.exp_max_cycle_count_);
+        restore = true;
+      }
+    }
+    if (restore) {
+      set_value_to_edit(edit_max_cycle_count_, exp_max_cycle_count);
+    }
+  } else if (pMsg->pSender == edit_max_cycle_power_) {
+    int32_t exp_max_cycle_power =
+        get_value_from_edit<int32_t>(edit_max_cycle_power_);
+    bool restore = false;
+    if (exp_max_cycle_power < 1 || exp_max_cycle_power > 18) {
+      exp_max_cycle_power = dus_.exp_max_cycle_power_;
+      restore = true;
+    } else {
+      // check the max cycle count with the max cycle power is valid
+      int32_t exp_max_cycle_count = _ttoi(edit_max_cycle_count_->GetText());
+      int64_t max_cycle_count = exp_max_cycle_count;
+      for (int32_t i = 0; i < exp_max_cycle_power; i++) {
+        max_cycle_count *= 10;
+      }
+      if (max_cycle_count < 1) {
+        exp_max_cycle_power = dus_.exp_max_cycle_power_;
+        restore = true;
+      }
+    }
+    if (restore) {
+      set_value_to_edit(edit_max_cycle_power_, exp_max_cycle_power);
+    }
+  } else if (pMsg->pSender == edit_frequency_fluctuations_range_) {
+    int32_t exp_frequency_fluctuations_range =
+        get_value_from_edit<int32_t>(edit_frequency_fluctuations_range_);
+    bool restore = false;
+    if (exp_frequency_fluctuations_range < 1) {
+      exp_frequency_fluctuations_range = dus_.exp_frequency_fluctuations_range_;
+      restore = true;
+    }
+    if (restore) {
+      set_value_to_edit(edit_frequency_fluctuations_range_,
+                        exp_frequency_fluctuations_range);
+    }
+  } else {
+    // do nothing
+  }
+  return true;
+}
+
 void WorkWindowSecondPage::Bind() {
   btn_tablayout_ = static_cast<DuiLib::CTabLayoutUI*>(
       paint_manager_ui_->FindControl(_T("tab_graph_data")));
@@ -365,7 +492,10 @@ void WorkWindowSecondPage::Bind() {
       paint_manager_ui_->FindControl(_T("text_exp_clip_time_duration")));
   text_exp_clip_time_paused_ = static_cast<DuiLib::CTextUI*>(
       paint_manager_ui_->FindControl(_T("text_exp_clip_time_paused")));
-
+  edit_exp_clip_time_duration_->OnNotify +=
+      ::MakeDelegate(this, &WorkWindowSecondPage::OnExpClipChanged);
+  edit_exp_clip_time_paused_->OnNotify +=
+      ::MakeDelegate(this, &WorkWindowSecondPage::OnExpClipChanged);
   /// @brief max cycle count edit
   edit_max_cycle_count_ = static_cast<DuiLib::CEditUI*>(
       paint_manager_ui_->FindControl(_T("edit_exp_max_cycle_count")));
@@ -373,6 +503,12 @@ void WorkWindowSecondPage::Bind() {
       paint_manager_ui_->FindControl(_T("edit_exp_max_cycle_power")));
   edit_frequency_fluctuations_range_ = static_cast<DuiLib::CEditUI*>(
       paint_manager_ui_->FindControl(_T("edit_frequency_fluctuations_range")));
+  edit_max_cycle_count_->OnNotify +=
+      ::MakeDelegate(this, &WorkWindowSecondPage::OnExpClipChanged);
+  edit_max_cycle_power_->OnNotify +=
+      ::MakeDelegate(this, &WorkWindowSecondPage::OnExpClipChanged);
+  edit_frequency_fluctuations_range_->OnNotify +=
+      ::MakeDelegate(this, &WorkWindowSecondPage::OnExpClipChanged);
 
   /// @brief update the control from the settings file and set the timer
   /// to refresh the control
@@ -421,15 +557,16 @@ void WorkWindowSecondPage::Unbind() {
   }
   /// @brief drop the exp_data table
   anx::db::helper::DropDataTable(anx::db::helper::kDefaultDatabasePathname,
-	  anx::db::helper::kTableExpDataGraph);
+                                 anx::db::helper::kTableExpDataGraph);
   anx::db::helper::DropDataTable(anx::db::helper::kDefaultDatabasePathname,
-	  anx::db::helper::kTableExpDataList);
+                                 anx::db::helper::kTableExpDataList);
 }
 
 void WorkWindowSecondPage::CheckDeviceComConnectedStatus() {
   /// exp_start, exp_stop, exp_pause, exp_resume button state
-  /// if the device com interface is connected then enable the exp_start button
-  /// else disable the exp_start button and exp_stop button and exp_pause button
+  /// if the device com interface is connected then enable the exp_start
+  /// button else disable the exp_start button and exp_stop button and
+  /// exp_pause button
   if (pWorkWindow_->IsULDeviceComInterfaceConnected()) {
     if (is_exp_state_ < 0) {
       is_exp_state_ = 0;
@@ -447,9 +584,15 @@ void WorkWindowSecondPage::RefreshExpClipTimeControl() {
   int32_t exp_clip_time_duration =
       _ttoi(edit_exp_clip_time_duration_->GetText());
   if (dus_.exp_clip_time_duration_ != exp_clip_time_duration) {
+    bool is_changed = false;
+    if (exp_clip_time_duration < 1 || exp_clip_time_duration > 990) {
+      return;
+    }
     dus_.exp_clip_time_duration_ = exp_clip_time_duration;
     std::string value = ("=");
-    value += to_string_with_precision((exp_clip_time_duration * 100) / 1000.0f);
+    double f_value = static_cast<double>(exp_clip_time_duration);
+    f_value /= 10.0f;
+    value += to_string_with_precision(f_value, 1);
     value += "S";
     text_exp_clip_time_duration_->SetText(
         anx::common::string2wstring(value).c_str());
@@ -457,12 +600,63 @@ void WorkWindowSecondPage::RefreshExpClipTimeControl() {
 
   int32_t exp_clip_time_paused = _ttoi(edit_exp_clip_time_paused_->GetText());
   if (dus_.exp_clip_time_paused_ != exp_clip_time_paused) {
+    if (exp_clip_time_paused < 1) {
+      return;
+    }
     dus_.exp_clip_time_paused_ = exp_clip_time_paused;
     std::string value = ("=");
-    value += to_string_with_precision((exp_clip_time_paused * 100) / 1000.0f);
+    double f_value = static_cast<double>(exp_clip_time_paused);
+    f_value /= 10.0f;
+    value += to_string_with_precision(f_value, 1);
     value += ("S");
     text_exp_clip_time_paused_->SetText(
         anx::common::string2wstring(value).c_str());
+  }
+
+  int32_t exp_max_cycle_count = _ttoi(edit_max_cycle_count_->GetText());
+  if (dus_.exp_max_cycle_count_ != exp_max_cycle_count) {
+    if (exp_max_cycle_count < 1) {
+      return;
+    }
+    // check the max cycle count with the max cycle power is valid
+    int32_t exp_max_cycle_power = _ttoi(edit_max_cycle_power_->GetText());
+    int64_t max_cycle_count = exp_max_cycle_count;
+    for (int32_t i = 0; i < exp_max_cycle_power; i++) {
+      max_cycle_count *= 10;
+    }
+    if (max_cycle_count < 1) {
+      return;
+    }
+    dus_.exp_max_cycle_count_ = exp_max_cycle_count;
+  }
+
+  int32_t exp_max_cycle_power = _ttoi(edit_max_cycle_power_->GetText());
+  if (dus_.exp_max_cycle_power_ != exp_max_cycle_power) {
+    if (exp_max_cycle_power < 1) {
+      return;
+    } else if (exp_max_cycle_power > 18) {
+      return;
+    }
+    // check the max cycle count with the max cycle power is valid
+    int32_t exp_max_cycle_count = _ttoi(edit_max_cycle_count_->GetText());
+    int64_t max_cycle_count = exp_max_cycle_count;
+    for (int32_t i = 0; i < exp_max_cycle_power; i++) {
+      max_cycle_count *= 10;
+    }
+    if (max_cycle_count < 1) {
+      return;
+    }
+    dus_.exp_max_cycle_power_ = exp_max_cycle_power;
+  }
+
+  int32_t exp_frequency_fluctuations_range =
+      _ttoi(edit_frequency_fluctuations_range_->GetText());
+  if (dus_.exp_frequency_fluctuations_range_ !=
+      exp_frequency_fluctuations_range) {
+    if (exp_frequency_fluctuations_range < 1) {
+      return;
+    }
+    dus_.exp_frequency_fluctuations_range_ = exp_frequency_fluctuations_range;
   }
 }
 
@@ -470,26 +664,14 @@ void WorkWindowSecondPage::UpdateControlFromSettings() {
   std::unique_ptr<anx::device::DeviceUltrasoundSettings> dus =
       anx::device::LoadDeviceUltrasoundSettingsDefaultResource();
   if (dus != nullptr) {
-    edit_exp_clip_time_duration_->SetText(
-        anx::common::string2wstring(
-            std::to_string(dus->exp_clip_time_duration_).c_str())
-            .c_str());
-    edit_exp_clip_time_paused_->SetText(
-        anx::common::string2wstring(
-            std::to_string(dus->exp_clip_time_paused_).c_str())
-            .c_str());
-    edit_max_cycle_count_->SetText(
-        anx::common::string2wstring(
-            std::to_string(dus->exp_max_cycle_count_).c_str())
-            .c_str());
-    edit_max_cycle_power_->SetText(
-        anx::common::string2wstring(
-            std::to_string(dus->exp_max_cycle_power_).c_str())
-            .c_str());
-    edit_frequency_fluctuations_range_->SetText(
-        anx::common::string2wstring(
-            std::to_string(dus->exp_frequency_fluctuations_range_).c_str())
-            .c_str());
+    set_value_to_edit(edit_exp_clip_time_duration_,
+                      dus->exp_clip_time_duration_);
+    set_value_to_edit(edit_exp_clip_time_paused_, dus->exp_clip_time_paused_);
+    set_value_to_edit(edit_max_cycle_count_,
+                      static_cast<int32_t>(dus->exp_max_cycle_count_));
+    set_value_to_edit(edit_max_cycle_power_, dus->exp_max_cycle_power_);
+    set_value_to_edit(edit_frequency_fluctuations_range_,
+                      dus->exp_frequency_fluctuations_range_);
 
     if (dus->exp_clipping_enable_ == 1) {
       chk_exp_clip_set_->Selected(true);
@@ -521,13 +703,13 @@ void WorkWindowSecondPage::UpdateExpClipTimeFromControl() {
 
   // exp_clip_time_duration append "S"
   std::string value = ("=");
-  value += to_string_with_precision((exp_clip_time_duration * 100) / 1000.0f);
+  value += to_string_with_precision((exp_clip_time_duration) / 10.0f, 1);
   value += "S";
   text_exp_clip_time_duration_->SetText(
       anx::common::string2wstring(value).c_str());
   // exp_clip_time_paused append "S"
   value = ("=");
-  value += to_string_with_precision((exp_clip_time_paused * 100) / 1000.0f);
+  value += to_string_with_precision((exp_clip_time_paused) / 10.0f, 1);
   value += "S";
   text_exp_clip_time_paused_->SetText(
       anx::common::string2wstring(value).c_str());
@@ -745,13 +927,13 @@ void WorkWindowSecondPage::exp_resume() {
   /// @note the table name is exp_data, delete exp_data table and create a new
   /// one.
   anx::db::helper::DropDataTable(anx::db::helper::kDefaultDatabasePathname,
-	  anx::db::helper::kTableExpDataGraph);
+                                 anx::db::helper::kTableExpDataGraph);
 
   // create the exp_data_graph table
   std::string db_filepathname;
   anx::db::helper::DefaultDatabasePathname(&db_filepathname);
   auto db = anx::db::DatabaseFactory::Instance()->CreateOrGetDatabase(
-	  db_filepathname);
+      db_filepathname);
   db->Execute(anx::db::helper::sql::kCreateTableExpDataGraphSqlFormat);
 
   /// @brief get the exp data sample settings and set the exp start time
@@ -762,8 +944,8 @@ void WorkWindowSecondPage::exp_resume() {
   exp_data_graph_info_.exp_sample_interval_ms_ = 2000;
   // clear graph data
   WorkWindowSecondPageGraph* graph_page =
-	  reinterpret_cast<WorkWindowSecondPageGraph*>(
-		  work_window_second_page_graph_notify_pump_.get());
+      reinterpret_cast<WorkWindowSecondPageGraph*>(
+          work_window_second_page_graph_notify_pump_.get());
   graph_page->ClearGraphData();
 
   dedss_ =

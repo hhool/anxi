@@ -56,6 +56,7 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   void OnClick(TNotifyUI& msg);         // NOLINT
   void OnTimer(TNotifyUI& msg);         // NOLINT
   void OnValueChanged(TNotifyUI& msg);  // NOLINT
+  bool OnExpClipChanged(void* msg);
 
  public:
   // implement the base class UIVirtualWndBase virtual function
@@ -70,6 +71,7 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   void UpdateExpClipTimeFromControl();
 
  protected:
+
   int32_t exp_start();
   void exp_pause();
   void exp_stop();
