@@ -345,9 +345,11 @@ SolutionDesign::SolutionDesign(const SolutionDesign& design)
 std::string SolutionDesign::ToXml() const {
   std::string xml;
   xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n";
+  xml += "<solution>\r\n";
   xml += header_->ToXml();
   xml += base_param_->ToXml();
   xml += result_->ToXml();
+  xml += "</solution>\r\n";
   return xml;
 }
 
@@ -360,15 +362,19 @@ int32_t SolutionDesign::FromXml(const std::string& xml,
   if (doc.Parse(xml.c_str()) != tinyxml2::XML_SUCCESS) {
     return -1;
   }
-
-  tinyxml2::XMLElement* header_element = doc.FirstChildElement("header");
+  
+  tinyxml2::XMLElement* root = doc.RootElement();
+  if (root == nullptr) {
+    return -2;
+  }
+  tinyxml2::XMLElement* header_element = root->FirstChildElement("header");
 
   tinyxml2::XMLElement* base_param_element =
-      doc.FirstChildElement("base_param");
+      root->FirstChildElement("base_param");
 
-  tinyxml2::XMLElement* result_element = doc.FirstChildElement("result");
+  tinyxml2::XMLElement* result_element = root->FirstChildElement("result");
   if (!header_element || !base_param_element || !result_element) {
-    return -2;
+    return -3;
   }
 
   // parse header[solution_type_element] element
