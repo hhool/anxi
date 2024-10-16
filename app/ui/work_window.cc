@@ -470,39 +470,19 @@ LRESULT WorkWindow::OnSysCommand(UINT uMsg,
   return 0;
 }
 
-ULONG WorkWindow::DeviceCallback(PVOID Context, ULONG Type, PVOID Setting) {
-  WorkWindow* pthis = reinterpret_cast<WorkWindow*>(Context);
-  if (Type == PBT_APMSUSPEND) {
-    if (pthis->is_exp_state_ != 0) {
-      DuiLib::TNotifyUI msg;
-      msg.sType = kValueChanged;
-      msg.pSender = pthis->btn_args_area_value_amplitude_;
-      msg.wParam = PBT_APMQUERYSUSPEND;
-      pthis->tab_main_pages_["WorkWindowThirdPage"]->NotifyPump(msg);
-      pthis->tab_main_pages_["WorkWindowSecondPage"]->NotifyPump(msg);
-      return 0;
-    }
-  } else if (Type == PBT_APMRESUMESUSPEND) {
-    cout << "open" << endl;
-  }
-  return ERROR_SUCCESS;
-}
-
 static HPOWERNOTIFY g_power_notify_handle = NULL;
 LRESULT WorkWindow::OnCreate(UINT uMsg,
                              WPARAM wParam,
                              LPARAM lParam,
                              BOOL& bHandled) {
-  DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS params;
-  params.Callback = DeviceCallback;
-  params.Context = this;
-  PowerRegisterSuspendResumeNotification(DEVICE_NOTIFY_CALLBACK, &params,
-                                         &g_power_notify_handle);
+  g_power_notify_handle = RegisterPowerSettingNotification(
+      this->GetHWND(), &GUID_LIDSWITCH_STATE_CHANGE,
+      DEVICE_NOTIFY_WINDOW_HANDLE);
   return __super::OnCreate(uMsg, wParam, lParam, bHandled);
 }
 
 LRESULT WorkWindow::OnDestroy(UINT, WPARAM, LPARAM, BOOL& bHandled) {
-  PowerUnregisterSuspendResumeNotification(g_power_notify_handle);
+  UnregisterPowerSettingNotification(g_power_notify_handle);
   bHandled = FALSE;
   return __super::OnDestroy(0, 0, 0, bHandled);
 }
@@ -613,6 +593,28 @@ LRESULT WorkWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
       tab_main_pages_["WorkWindowSecondPage"]->NotifyPump(msg);
     }
     return 0;
+  } else if (uMsg == WM_POWERBROADCAST) {
+    if (wParam == PBT_POWERSETTINGCHANGE) {
+      POWERBROADCAST_SETTING* ppbs = (POWERBROADCAST_SETTING*)lParam;
+      if (memcmp(&ppbs->PowerSetting, &GUID_LIDSWITCH_STATE_CHANGE,
+                 sizeof(GUID)) == 0) {
+        unsigned int lid_state = *(unsigned int*)ppbs->Data;
+        if (lid_state == 1) {
+          // 盖子是打开的
+        } else {
+          if (is_exp_state_ != 0) {
+            DuiLib::TNotifyUI msg;
+            msg.sType = kValueChanged;
+            msg.pSender = btn_args_area_value_amplitude_;
+            msg.wParam = PBT_APMQUERYSUSPEND;
+            this->tab_main_pages_["WorkWindowThirdPage"]->NotifyPump(msg);
+            this->tab_main_pages_["WorkWindowSecondPage"]->NotifyPump(msg);
+            return 0;
+          }
+        }
+      }
+      return 0;
+    }
   } else {
     // TODO(hhool): do nothing
   }
