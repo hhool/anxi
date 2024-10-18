@@ -41,9 +41,9 @@ void GetLocalTime(struct tm* ltm);
 // @return void
 void GetCurrentDateTime(char dateTimeStr[256]);
 
-/// @brief get current date time in double format with the date part ignored.
-/// @return the current date time in double format.
-double GetCurrrentDateTime();
+/// @brief get current date time in double format of vartime.
+/// @return the current date time in double format of vartime.
+double GetCurrrentSystimeAsVarTime();
 }  // namespace common
 }  // namespace anx
 
