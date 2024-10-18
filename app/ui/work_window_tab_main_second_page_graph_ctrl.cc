@@ -431,7 +431,7 @@ double WorkWindowSecondWorkWindowSecondPageGraphCtrl::GetXDurationOfAxis()
 }
 
 void WorkWindowSecondWorkWindowSecondPageGraphCtrl::UpateXTimeValue() {
-  x_min_ = anx::common::GetCurrrentDateTime();
+  x_min_ = anx::common::GetCurrrentSystimeAsVarTime();
   LOG_F_INFO_TAG(name_) << " " << "x_min:" << x_min_;
 }
 

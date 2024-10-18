@@ -638,7 +638,7 @@ void WorkWindowSecondPageGraph::Bind() {
       paint_manager_ui_->FindControl(_T("graph_settings_next_page")));
   btn_next_page_->SetEnabled(false);
   // init the graph control
-  double x_min = anx::common::GetCurrrentDateTime();
+  double x_min = anx::common::GetCurrrentSystimeAsVarTime();
   double x_duration = minutes_to_vartime(graphctrl_sample_total_minutes_);
   {
     CActiveXUI* activex = static_cast<CActiveXUI*>(
@@ -707,7 +707,7 @@ void WorkWindowSecondPageGraph::ClearGraphData() {
   exp_data_graph_info_->exp_data_view_current_start_no_ = 1;
   exp_data_graph_info_->exp_data_table_no_ = 0;
   // init the graph control
-  double x_min = anx::common::GetCurrrentDateTime();
+  double x_min = anx::common::GetCurrrentSystimeAsVarTime();
   double x_duration = minutes_to_vartime(graphctrl_sample_total_minutes_);
   {
     CActiveXUI* activex = static_cast<CActiveXUI*>(
@@ -999,7 +999,7 @@ void WorkWindowSecondPageGraph::SaveSettingsFromControl() {
 void WorkWindowSecondPageGraph::OnExpStart() {
   /// @note update graph title with the current time
   /// get current var time
-  double vartime = anx::common::GetCurrrentDateTime();
+  double vartime = anx::common::GetCurrrentSystimeAsVarTime();
   RefreshExpGraphTitleControl(vartime);
   /// @note reset the graph to mode real and set the time interval number to 0
   chk_graph_always_show_new_->SetCheck(true);
@@ -1008,7 +1008,7 @@ void WorkWindowSecondPageGraph::OnExpStart() {
   exp_time_interval_num_ = 0;
   /// @note update the graph control with the data from the database and
   /// update the graph control.
-  double x_min = anx::common::GetCurrrentDateTime();
+  double x_min = anx::common::GetCurrrentSystimeAsVarTime();
   double x_duration = minutes_to_vartime(graphctrl_sample_total_minutes_);
   {
     CActiveXUI* activex = static_cast<CActiveXUI*>(

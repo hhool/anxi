@@ -101,18 +101,11 @@ void GetCurrentDateTime(char dateTimeStr[256]) {
           msec);
 }
 
-double GetCurrrentDateTime() {
+double GetCurrrentSystimeAsVarTime() {
   SYSTEMTIME st;
   GetLocalTime(&st);
   /// @note use SystemTimeToVariantTime to convert the time to double
   DATE dt;
-  st.wYear = st.wYear;
-  st.wMonth = st.wMonth;
-  st.wDay = st.wDay;
-  st.wHour = st.wHour;
-  st.wMilliseconds = 0;
-  st.wDayOfWeek = 0;
-
   SystemTimeToVariantTime(&st, &dt);
   return dt;
 }

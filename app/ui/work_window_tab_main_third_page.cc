@@ -420,7 +420,7 @@ void WorkWindowThirdPage::OnDataReceived(
     sql_str += hex_str;
     sql_str += "\'";
     sql_str += ", ";
-    sql_str += std::to_string(anx::common::GetCurrrentDateTime());
+    sql_str += std::to_string(anx::common::GetCurrrentSystimeAsVarTime());
     sql_str += ")";
     anx::db::helper::InsertDataTable(anx::db::helper::kDefaultDatabasePathname,
                                      anx::db::helper::kTableNotification,
@@ -441,7 +441,7 @@ void WorkWindowThirdPage::OnDataReceived(
     sql_str += hex_str;
     sql_str += "\'";
     sql_str += ", ";
-    sql_str += std::to_string(anx::common::GetCurrrentDateTime());
+    sql_str += std::to_string(anx::common::GetCurrrentSystimeAsVarTime());
     sql_str += ")";
     anx::db::helper::InsertDataTable(anx::db::helper::kDefaultDatabasePathname,
                                      anx::db::helper::kTableSendNotify,
@@ -468,7 +468,7 @@ void WorkWindowThirdPage::OnDataOutgoing(
     sql_str += hex_str;
     sql_str += "\'";
     sql_str += ", ";
-    sql_str += std::to_string(anx::common::GetCurrrentDateTime());
+    sql_str += std::to_string(anx::common::GetCurrrentSystimeAsVarTime());
     sql_str += ")";
     anx::db::helper::InsertDataTable(anx::db::helper::kDefaultDatabasePathname,
                                      anx::db::helper::kTableSendData, sql_str);
