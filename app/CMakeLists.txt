@@ -88,6 +88,7 @@ if(WIN32)
         add_library(app_stload_simulator SHARED ${DEVICE_STLOAD_SIMULATOR_FILES})
         target_link_libraries(app_stload_simulator app_ui)
         target_compile_definitions(app_stload_simulator PRIVATE STLOAD_SIMULATION_EXPORTS)
+        set_target_properties(app_stload_simulator PROPERTIES FOLDER "app")
     endif()
 
     set(DEVICE_ULTRASONIC_FILES
@@ -105,6 +106,7 @@ if(WIN32)
         list(APPEND APP_DEVICE_ULTRASONIC_UNITTEST_FILES ${APP_DEVICE_ULTRASONIC_UNITTEST_FILES})
         add_executable(app_device_ultra_unittest ${APP_DEVICE_ULTRASONIC_UNITTEST_FILES})
         target_link_libraries(app_device_ultra_unittest gtest_main gtest app_ui)
+        set_target_properties(app_device_ultra_unittest PROPERTIES FOLDER "app_unittest")
     endif()
 endif()
 
@@ -116,6 +118,7 @@ if(ANXI_BUILD_UNITTEST)
         list(APPEND APP_DEVICE_UNITTEST_FILES ${APP_DEVICE_UNITTEST_FILES})
         add_executable(app_device_stload_unittest ${APP_DEVICE_UNITTEST_FILES})
         target_link_libraries(app_device_stload_unittest gtest_main gtest app_ui)
+        set_target_properties(app_device_stload_unittest PROPERTIES FOLDER "app_unittest")
     endif()
 endif()
 
@@ -151,6 +154,7 @@ if(ANXI_BUILD_UNITTEST)
     list(APPEND APP_ESOLUTION_UNITTEST_SOURCES ${APP_ESOLUTION_UNITTEST_FILES})
     add_executable(app_esolution_unittest ${APP_ESOLUTION_UNITTEST_FILES})
     target_link_libraries(app_esolution_unittest gtest_main gtest app_ui)
+    set_target_properties(app_esolution_unittest PROPERTIES FOLDER "app_unittest")
 endif()
 
 set(ESOLUTION_ALG_FILES
@@ -166,6 +170,7 @@ if(ANXI_BUILD_UNITTEST)
     list(APPEND APP_ESOLUTION_ALG_UNITTEST_SOURCES ${APP_ESOLUTION_ALG_UNITTEST_FILES})
     add_executable(app_esolution_alg_unittest ${APP_ESOLUTION_ALG_UNITTEST_FILES})
     target_link_libraries(app_esolution_alg_unittest gtest_main gtest app_ui)
+    set_target_properties(app_esolution_alg_unittest PROPERTIES FOLDER "app_unittest")
 endif()
 
 set(APP_FILES
@@ -238,6 +243,7 @@ endif()
 # add library
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 add_library(app_ui STATIC ${APP_SOURCES})
+set_target_properties(app_ui PROPERTIES FOLDER "app")
 
 # # add library duilib source path
 target_include_directories(app_ui PUBLIC ${PROJECT_PATH})
@@ -267,6 +273,7 @@ add_dependencies(app_ui SQLite::SQLite3)
 add_executable(app_exe main.cc ${RES_FILES})
 add_dependencies(app_exe app_ui)
 target_link_libraries(app_exe app_ui)
+set_target_properties(app_exe PROPERTIES FOLDER "app")
 
 if(WIN32)
     target_link_libraries(app_exe user32 gdi32)
@@ -291,6 +298,7 @@ if(ANXI_BUILD_UNITTEST)
     list(APPEND APP_UNITTEST_SOURCES ${APP_UNITTEST_FILES})
     add_executable(app_unittest ${APP_UNITTEST_FILES})
     target_link_libraries(app_unittest app_ui gtest_main gtest)
+    set_target_properties(app_unittest PROPERTIES FOLDER "app_unittest")
 endif()
 
 # ##############################################################################

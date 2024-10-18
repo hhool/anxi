@@ -94,13 +94,30 @@ endif()
 # third_party
 add_subdirectory(third_party/CSerialPort)
 
+# Ensure CSerialPort target is defined before setting its properties
+if(TARGET libcserialport)
+    set_property(TARGET libcserialport PROPERTY FOLDER "third_party")
+endif()
+
 if(WIN32)
     add_subdirectory(third_party/duilib)
+    set_property(TARGET duilib PROPERTY FOLDER "third_party")
 endif()
 
 add_subdirectory(third_party/dmgraph)
+set_property(TARGET DMGraph PROPERTY FOLDER "third_party")
+set_property(TARGET DMGraphTest PROPERTY FOLDER "third_party")
+set_property(TARGET DMGraphTlb PROPERTY FOLDER "third_party")
+
 add_subdirectory(third_party/sqlite)
+set_property(TARGET SQLite3 PROPERTY FOLDER "third_party")
+
 add_subdirectory(third_party/tinyxml2)
+set_property(TARGET tinyxml2 PROPERTY FOLDER "third_party")
+
+if(TARGET xmltest)
+    set_property(TARGET xmltest PROPERTY FOLDER "third_party")
+endif()
 
 # ##############################################################################
 # install target
