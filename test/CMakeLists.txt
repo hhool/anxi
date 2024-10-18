@@ -40,6 +40,7 @@ target_include_directories(${PREFIX}_tinyxml2_unittest PRIVATE ${CMAKE_CURRENT_S
 
 # Link gtest
 target_link_libraries(${PREFIX}_tinyxml2_unittest gtest_main gtest tinyxml2)
+set_target_properties(${PREFIX}_tinyxml2_unittest PROPERTIES FOLDER "test")
 
 # ###############
 # Define a test
@@ -48,6 +49,7 @@ target_include_directories(${PREFIX}_cserialport_unittest PRIVATE ${CMAKE_CURREN
 
 # Link gtest
 target_link_libraries(${PREFIX}_cserialport_unittest gtest_main gtest libcserialport)
+set_target_properties(${PREFIX}_cserialport_unittest PROPERTIES FOLDER "test")
 
 # ###############
 # Define a test
@@ -56,6 +58,8 @@ if(WIN32)
     target_link_libraries(${PREFIX}_ole_vartime_unittest gtest_main gtest comctl32 oleaut32)
     add_executable(${PREFIX}_library_win_unittest library_win_unittest.cc)
     target_link_libraries(${PREFIX}_library_win_unittest gtest_main gtest app_ui comctl32 oleaut32)
+    set_target_properties(${PREFIX}_ole_vartime_unittest PROPERTIES FOLDER "test")
+    set_target_properties(${PREFIX}_library_win_unittest PROPERTIES FOLDER "test")
 endif()
 
 # ###############
@@ -65,3 +69,4 @@ target_include_directories(${PREFIX}_sqlite_unittest PRIVATE ${CMAKE_CURRENT_SOU
 
 # Link gtest
 target_link_libraries(${PREFIX}_sqlite_unittest gtest_main gtest SQLite::SQLite3)
+set_target_properties(${PREFIX}_sqlite_unittest PROPERTIES FOLDER "test")
