@@ -1141,7 +1141,7 @@ void WorkWindowSecondPage::OnDataReceived(
     // TODO(hhool): random KHz, um, MPa
     double um = exp_amplitude_;
     double MPa = std::fabsl(exp_statc_load_mpa_);
-    double date = anx::common::GetCurrrentDateTime();
+    double date = anx::common::GetCurrrentSystimeAsVarTime();
     exp_data_graph_info_.amp_freq_ = KHz;
     exp_data_graph_info_.amp_um_ = um;
     exp_data_graph_info_.stress_value_ = MPa;
@@ -1168,7 +1168,7 @@ void WorkWindowSecondPage::ProcessDataGraph() {
     // update the data to the database table amp, stress, um
     int64_t cycle_count =
         exp_data_graph_info_.exp_data_table_no_ * cur_freq_ * 2;
-    double date = anx::common::GetCurrrentDateTime();
+    double date = anx::common::GetCurrrentSystimeAsVarTime();
     // save to database
     // format cycle_count, KHz, MPa, um to the sql string and insert to the
     // database
@@ -1254,7 +1254,7 @@ void WorkWindowSecondPage::ProcessDataList() {
       cycle_count = static_cast<int64_t>(multiplier *
                                          exp_data_list_info_.amp_freq_ / 10.f);
     }
-    double date = anx::common::GetCurrrentDateTime();
+    double date = anx::common::GetCurrrentSystimeAsVarTime();
     // 1. save to database
     // format cycle_count, KHz, MPa, um to the sql string and insert to the
     // database
