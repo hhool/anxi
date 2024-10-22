@@ -119,10 +119,12 @@ void ComPortDeviceImpl::RemoveListener(DeviceComListener* listener) {
 
 int32_t ComPortDeviceImpl::Open(const ComPortDevice& com_port) {
   if (com_port.GetComPort().baud_rate == 0) {
+    LOG_F(LG_ERROR) << "baud rate is 0";
     return -1;
   }
 
   if (native_serialport_ == nullptr) {
+    LOG_F(LG_ERROR) << "native_serialport_ is nullptr";
     return -2;
   }
 
@@ -139,6 +141,7 @@ int32_t ComPortDeviceImpl::Open(const ComPortDevice& com_port) {
   native_serialport->setReadIntervalTimeout(com_port.GetComPort().timeout);
 
   if (!native_serialport->open()) {
+    LOG_F(LG_ERROR) << "open failed";
     return -3;
   }
   com_port_device_ = com_port;

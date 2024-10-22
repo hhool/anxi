@@ -39,7 +39,7 @@ int32_t UltraDevice::Open(const anx::device::ComSettings& com_settings) {
   }
 
   if (port_device_->Open(com_settings) != 0) {
-    return -1;
+    return -2;
   }
 
   return 0;
@@ -68,25 +68,28 @@ int32_t UltraDevice::StartUltra() {
   uint8_t hex[8] = {0x01, 0x05, 0x00, 0x02, 0xFF, 0x00, 0x2D, 0xFA};
   int32_t written = port_device_->Write(hex, sizeof(hex));
   if (written < 8) {
-    return -1;
+    return -2;
   }
 
   uint8_t hex_res[64] = {0};
   int32_t try_count = 0;
   int32_t readed = 0;
   while (try_count < 10) {
-    readed = port_device_->Read(hex_res, sizeof(hex_res));
-    if (readed > 0) {
+    int32_t r = port_device_->Read(hex_res + readed, sizeof(hex_res) - readed);
+    if (r > 0) {
+      readed += r;
+    }
+    if (readed >= 8) {
       break;
     }
     try_count++;
     anx::common::sleep_ms(10);
   }
   if (readed < 8) {
-    return -1;
+    return -3;
   }
   if (memcmp(hex, hex_res, 8) != 0) {
-    return -1;
+    return -4;
   }
   is_ultra_started_ = true;
   return 0;
@@ -100,25 +103,28 @@ int32_t UltraDevice::StopUltra() {
   uint8_t hex[8] = {0x01, 0x05, 0x00, 0x02, 0x00, 0x00, 0x6C, 0x0A};
   int32_t written = port_device_->Write(hex, sizeof(hex));
   if (written < 8) {
-    return -1;
+    return -2;
   }
 
   uint8_t hex_res[64] = {0};
   int32_t try_count = 0;
   int32_t readed = 0;
   while (try_count < 10) {
-    readed = port_device_->Read(hex_res, sizeof(hex_res));
-    if (readed > 0) {
+    int32_t r = port_device_->Read(hex_res + readed, sizeof(hex_res) - readed);
+    if (r > 0) {
+      readed += r;
+    }
+    if (readed >= 8) {
       break;
     }
     try_count++;
     anx::common::sleep_ms(10);
   }
   if (readed < 8) {
-    return -1;
+    return -3;
   }
   if (memcmp(hex, hex_res, 8) != 0) {
-    return -1;
+    return -4;
   }
   is_ultra_started_ = false;
   return 0;
@@ -140,22 +146,25 @@ int32_t UltraDevice::GetFaultCode() {
   uint8_t hex[8] = {0x01, 0x04, 0x00, 0x02, 0x00, 0x01, 0x90, 0x0A};
   int32_t written = port_device_->Write(hex, sizeof(hex));
   if (written < 8) {
-    return -1;
+    return -2;
   }
 
   uint8_t hex_res[64] = {0};
   int32_t try_count = 0;
   int32_t readed = 0;
   while (try_count < 10) {
-    readed = port_device_->Read(hex_res, sizeof(hex_res));
-    if (readed > 0) {
+    int32_t r = port_device_->Read(hex_res + readed, sizeof(hex_res) - readed);
+    if (r > 0) {
+      readed += r;
+    }
+    if (readed >= 7) {
       break;
     }
     try_count++;
     anx::common::sleep_ms(10);
   }
   if (readed < 7) {
-    return -1;
+    return -3;
   }
   /// get fault code
   int32_t fault_code = hex_res[3] * 256 + hex_res[4];
@@ -170,22 +179,25 @@ int32_t UltraDevice::GetCurrentFreq() {
   uint8_t hex[8] = {0x01, 0x04, 0x00, 0x01, 0x00, 0x01, 0x60, 0x0A};
   int32_t written = port_device_->Write(hex, sizeof(hex));
   if (written < 8) {
-    return -1;
+    return -2;
   }
 
   uint8_t hex_res[64] = {0};
   int32_t try_count = 0;
   int32_t readed = 0;
   while (try_count < 10) {
-    readed = port_device_->Read(hex_res, sizeof(hex_res));
-    if (readed > 0) {
+    int32_t r = port_device_->Read(hex_res + readed, sizeof(hex_res) - readed);
+    if (r > 0) {
+      readed += r;
+    }
+    if (readed >= 7) {
       break;
     }
     try_count++;
     anx::common::sleep_ms(10);
   }
   if (readed < 7) {
-    return -1;
+    return -3;
   }
   /// get freq
   int32_t freq = hex_res[3] * 256 + hex_res[4];
@@ -200,21 +212,24 @@ int32_t UltraDevice::GetCurrentPower() {
   uint8_t hex[8] = {0x01, 0x04, 0x00, 0x00, 0x00, 0x01, 0x31, 0xCA};
   int32_t written = port_device_->Write(hex, sizeof(hex));
   if (written < 8) {
-    return -1;
+    return -2;
   }
   uint8_t hex_res[64] = {0};
   int32_t try_count = 0;
   int32_t readed = 0;
   while (try_count < 10) {
-    readed = port_device_->Read(hex_res, sizeof(hex_res));
-    if (readed > 0) {
+    int32_t r = port_device_->Read(hex_res + readed, sizeof(hex_res) - readed);
+    if (r > 0) {
+      readed += r;
+    }
+    if (readed >= 7) {
       break;
     }
     try_count++;
     anx::common::sleep_ms(10);
   }
   if (readed < 7) {
-    return -1;
+    return -3;
   }
   /// get power
   int32_t power = hex_res[3] * 256 + hex_res[4];
@@ -227,7 +242,7 @@ int32_t UltraDevice::SetAmplitude(int32_t amplitude) {
   }
   // amplitude [20, 100]
   if (amplitude < 20 || amplitude > 100) {
-    return -1;
+    return -2;
   }
   // trans to hex
   uint8_t hex[8] = {0x01, 0x06, 0x00, 0x18, 0x00};
@@ -237,25 +252,28 @@ int32_t UltraDevice::SetAmplitude(int32_t amplitude) {
   hex[7] = (crc & 0xFF00) >> 8;
   int32_t written = port_device_->Write(hex, sizeof(hex));
   if (written != 8) {
-    return -1;
+    return -3;
   }
 
   uint8_t hex_res[64] = {0};
   int32_t try_count = 0;
   int32_t readed = 0;
   while (try_count < 10) {
-    readed = port_device_->Read(hex_res, sizeof(hex_res));
-    if (readed > 0) {
+    int32_t r = port_device_->Read(hex_res + readed, sizeof(hex_res) - readed);
+    if (r > 0) {
+      readed += r;
+    }
+    if (readed >= 8) {
       break;
     }
     try_count++;
     anx::common::sleep_ms(10);
   }
   if (readed < 8) {
-    return -1;
+    return -4;
   }
   if (memcmp(hex, hex_res, 8) != 0) {
-    return -1;
+    return -5;
   }
   return 0;
 }
@@ -268,29 +286,32 @@ int32_t UltraDevice::GetAmplitude() {
   uint8_t hex[8] = {0x01, 0x03, 0x00, 0x18, 0x00, 0x01, 0x04, 0x0D};
   int32_t written = port_device_->Write(hex, sizeof(hex));
   if (written != 8) {
-    return -1;
+    return -2;
   }
 
   uint8_t hex_res[64] = {0};
   int32_t try_count = 0;
   int32_t readed = 0;
   while (try_count < 10) {
-    readed = port_device_->Read(hex_res, sizeof(hex_res));
-    if (readed > 0) {
+    int32_t r = port_device_->Read(hex_res + readed, sizeof(hex_res) - readed);
+    if (r > 0) {
+      readed += r;
+    }
+    if (readed >= 7) {
       break;
     }
     try_count++;
     anx::common::sleep_ms(10);
   }
   if (readed < 7) {
-    return -1;
+    return -3;
   }
   if (hex_res[0] != 0x01 || hex_res[1] != 0x03 || hex_res[2] != 0x02) {
-    return -1;
+    return -4;
   }
   int32_t value = hex_res[4];
   if (value < 1 || value > 100) {
-    return -1;
+    return -5;
   }
   return value;
 }
@@ -300,7 +321,7 @@ int32_t UltraDevice::SetWedingTime(int32_t time_sec) {
     return -1;
   }
   if (time_sec < 0 || time_sec > 99) {
-    return -1;
+    return -2;
   }
   uint8_t hex[8] = {0x01, 0x06, 0x00, 0x19, 0x00};
   hex[5] = time_sec;
@@ -309,25 +330,28 @@ int32_t UltraDevice::SetWedingTime(int32_t time_sec) {
   hex[7] = (crc & 0xFF00) >> 8;
   int32_t written = port_device_->Write(hex, sizeof(hex));
   if (written < 8) {
-    return -1;
+    return -3;
   }
 
   uint8_t hex_res[64] = {0};
   int32_t try_count = 0;
   int32_t readed = 0;
   while (try_count < 10) {
-    readed = port_device_->Read(hex_res, sizeof(hex_res));
-    if (readed > 0) {
+    int32_t r = port_device_->Read(hex_res + readed, sizeof(hex_res) - readed);
+    if (r > 0) {
+      readed += r;
+    }
+    if (readed >= 8) {
       break;
     }
     try_count++;
     anx::common::sleep_ms(10);
   }
   if (readed < 8) {
-    return -1;
+    return -4;
   }
   if (memcmp(hex, hex_res, 8) != 0) {
-    return -1;
+    return -5;
   }
   return 0;
 }
@@ -340,32 +364,34 @@ int32_t UltraDevice::GetWedingTime() {
   uint8_t hex[8] = {0x01, 0x03, 0x00, 0x19, 0x00, 0x01, 0x55, 0xCD};
   int32_t written = port_device_->Write(hex, sizeof(hex));
   if (written < 8) {
-    return -1;
+    return -2;
   }
 
   uint8_t hex_res[64] = {0};
   int32_t try_count = 0;
   int32_t readed = 0;
   while (try_count < 10) {
-    readed = port_device_->Read(hex_res, sizeof(hex_res));
-    if (readed > 0) {
+    int32_t r = port_device_->Read(hex_res + readed, sizeof(hex_res) - readed);
+    if (r > 0) {
+      readed += r;
+    }
+    if (readed >= 7) {
       break;
     }
     try_count++;
     anx::common::sleep_ms(10);
   }
   if (readed < 7) {
-    return -1;
+    return -3;
   }
   if (hex_res[0] != 0x01 || hex_res[1] != 0x03 || hex_res[2] != 0x02) {
-    return -1;
+    return -4;
   }
   // value is pos 3 and 4
   int32_t value = hex_res[3] * 256 + hex_res[4];
   if (value < 0 || value > 999) {
-    return -1;
+    return -5;
   }
-  value = value;
   return value;
 }
 
@@ -377,30 +403,33 @@ int32_t UltraDevice::GetMaxFreq() {
   uint8_t hex[8] = {0x01, 0x03, 0x00, 0x03, 0x00, 0x01, 0x74, 0x0A};
   int32_t written = port_device_->Write(hex, sizeof(hex));
   if (written < 8) {
-    return -1;
+    return -2;
   }
 
   uint8_t hex_res[64] = {0};
   int32_t try_count = 0;
   int32_t readed = 0;
   while (try_count < 10) {
-    readed = port_device_->Read(hex_res, sizeof(hex_res));
-    if (readed > 0) {
+    int32_t r = port_device_->Read(hex_res + readed, sizeof(hex_res) - readed);
+    if (r > 0) {
+      readed += r;
+    }
+    if (readed >= 7) {
       break;
     }
     try_count++;
     anx::common::sleep_ms(10);
   }
   if (readed < 7) {
-    return -1;
+    return -3;
   }
   if (hex_res[0] != 0x01 || hex_res[1] != 0x03 || hex_res[2] != 0x02) {
-    return -1;
+    return -4;
   }
   // value is pos 3 and 4
   int32_t value = hex_res[3] * 256 + hex_res[4];
   if (value < 1 || value > 0xEFFF) {
-    return -1;
+    return -5;
   }
   return value;
 }
@@ -413,30 +442,33 @@ int32_t UltraDevice::GetMinFreq() {
   uint8_t hex[8] = {0x01, 0x03, 0x00, 0x04, 0x00, 0x01, 0xC5, 0xCB};
   int32_t written = port_device_->Write(hex, sizeof(hex));
   if (written < 8) {
-    return -1;
+    return -2;
   }
 
   uint8_t hex_res[64] = {0};
   int32_t try_count = 0;
   int32_t readed = 0;
   while (try_count < 10) {
-    readed = port_device_->Read(hex_res, sizeof(hex_res));
-    if (readed > 0) {
+    int32_t r = port_device_->Read(hex_res + readed, sizeof(hex_res) - readed);
+    if (r > 0) {
+      readed += r;
+    }
+    if (readed >= 7) {
       break;
     }
     try_count++;
     anx::common::sleep_ms(10);
   }
   if (readed < 7) {
-    return -1;
+    return -3;
   }
   if (hex_res[0] != 0x01 || hex_res[1] != 0x03 || hex_res[2] != 0x02) {
-    return -1;
+    return -4;
   }
   // value is pos 3 and 4
   int32_t value = hex_res[3] * 256 + hex_res[4];
   if (value < 1 || value > 0xEFFF) {
-    return -1;
+    return -5;
   }
   return value;
 }
@@ -449,30 +481,33 @@ int32_t UltraDevice::GetMaxPower() {
   uint8_t hex[8] = {0x01, 0x03, 0x00, 0x02, 0x00, 0x01, 0x25, 0xCA};
   int32_t written = port_device_->Write(hex, sizeof(hex));
   if (written <= 0) {
-    return -1;
+    return -2;
   }
 
   uint8_t hex_res[64] = {0};
   int32_t try_count = 0;
   int32_t readed = 0;
   while (try_count < 10) {
-    readed = port_device_->Read(hex_res, sizeof(hex_res));
-    if (readed > 0) {
+    int32_t r = port_device_->Read(hex_res + readed, sizeof(hex_res) - readed);
+    if (r > 0) {
+      readed += r;
+    }
+    if (readed >= 7) {
       break;
     }
     try_count++;
     anx::common::sleep_ms(10);
   }
   if (readed < 7) {
-    return -1;
+    return -3;
   }
   if (hex_res[0] != 0x01 || hex_res[1] != 0x03 || hex_res[2] != 0x02) {
-    return -1;
+    return -4;
   }
   // value is pos 3 and 4
   int32_t value = hex_res[3] * 256 + hex_res[4];
   if (value < 1 || value > 0xEFFF) {
-    return -1;
+    return -5;
   }
   return value;
 }
@@ -485,30 +520,33 @@ int32_t UltraDevice::GetFreqAtMachineOn() {
   uint8_t hex[8] = {0x01, 0x03, 0x00, 0x00, 0x00, 0x01, 0x84, 0x0A};
   int32_t written = port_device_->Write(hex, sizeof(hex));
   if (written < 8) {
-    return -1;
+    return -2;
   }
 
   uint8_t hex_res[64] = {0};
   int32_t try_count = 0;
   int32_t readed = 0;
   while (try_count < 10) {
-    readed = port_device_->Read(hex_res, sizeof(hex_res));
-    if (readed > 0) {
+    int32_t r = port_device_->Read(hex_res + readed, sizeof(hex_res) - readed);
+    if (r > 0) {
+      readed += r;
+    }
+    if (readed >= 7) {
       break;
     }
     try_count++;
     anx::common::sleep_ms(10);
   }
   if (readed < 7) {
-    return -1;
+    return -3;
   }
   if (hex_res[0] != 0x01 || hex_res[1] != 0x03 || hex_res[2] != 0x02) {
-    return -1;
+    return -4;
   }
   // value is pos 3 and 4
   int32_t value = hex_res[3] * 256 + hex_res[4];
   if (value < 1 || value > 0xEFFF) {
-    return -1;
+    return -5;
   }
   return value;
 }
@@ -521,30 +559,33 @@ int32_t UltraDevice::GetSoftTimeAtMachineOn() {
   uint8_t hex[8] = {0x01, 0x03, 0x00, 0x01, 0x00, 0x01, 0xD5, 0xCA};
   int32_t written = port_device_->Write(hex, sizeof(hex));
   if (written < 8) {
-    return -1;
+    return -2;
   }
 
   uint8_t hex_res[64] = {0};
   int32_t try_count = 0;
   int32_t readed = 0;
   while (try_count < 10) {
-    readed = port_device_->Read(hex_res, sizeof(hex_res));
-    if (readed > 0) {
+    int32_t r = port_device_->Read(hex_res + readed, sizeof(hex_res) - readed);
+    if (r > 0) {
+      readed += r;
+    }
+    if (readed >= 7) {
       break;
     }
     try_count++;
     anx::common::sleep_ms(10);
   }
   if (readed < 7) {
-    return -1;
+    return -3;
   }
   if (hex_res[0] != 0x01 || hex_res[1] != 0x03 || hex_res[2] != 0x02) {
-    return -1;
+    return -4;
   }
   // value is pos 3 and 4
   int32_t value = hex_res[3] * 256 + hex_res[4];
   if (value < 1 || value > 0xEFFF) {
-    return -1;
+    return -5;
   }
   return value;
 }
