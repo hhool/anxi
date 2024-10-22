@@ -368,7 +368,7 @@ void WorkWindowSecondPageData::RefreshSampleTimeControl(bool force) {
       return;
     }
     device_exp_data_settings_->sampling_interval_ = sample_time_interval;
-    value += to_string_with_precision((sample_time_interval * 100) / 1000.0f);
+    value += to_string_with_precision((sample_time_interval * 100) / 1000.0f, 1);
     value += "S";
     text_sample_interval_->SetText(anx::common::string2wstring(value).c_str());
     exp_data_info_->exp_sample_interval_ms_ = sample_time_interval * 100;
