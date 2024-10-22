@@ -102,6 +102,7 @@ int32_t Application::Run() {
   main_window_->CenterWindow();
   main_window_->ShowWindow(true, true);
   DuiLib::CPaintManagerUI::MessageLoop();
+  DuiLib::CPaintManagerUI::Term();
   return 0;
 }
 

@@ -331,4 +331,15 @@ else()
        ${PROJECT_SOURCE_DIR}/resource/runtime/release ${PROJECT_BINARY_DIR}/../bin/${CMAKE_BUILD_TYPE}/)
 endif()
 
-
+# ##############################################################################
+# package resource skin/* to skin_default.zip that file item without parent folder path
+# and copy the zip file to the target directory
+# the zip file will be used by the application to load the skin
+# the skin folder will be removed from the target directory
+# 1. cd ${PROJECT_SOURCE_DIR}/resource/skin
+# 2. tar cfv skin_default.zip --format=zip * ignore .gitignore .tmp .DS_Store
+# 3. copy skin_default.zip ${PROJECT_BINARY_DIR}/../bin/${CMAKE_BUILD_TYPE}/skin/
+add_custom_command(TARGET app_exe POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E tar "cfv" "${PROJECT_BINARY_DIR}/../bin/${CMAKE_BUILD_TYPE}/skin/skin_default.zip" --format=zip .
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/resource/skin)
+# ##############################################################################

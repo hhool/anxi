@@ -58,7 +58,7 @@ int main() {
   int Flag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
   Flag |= _CRTDBG_LEAK_CHECK_DF;
   _CrtSetDbgFlag(Flag);
-  //  _CrtSetBreakAlloc(269);
+  // _CrtSetBreakAlloc(269);
 #endif
   anx::common::Logger::add_sink(g_sink);
   anx::common::Logger::set_log_level(anx::common::LS_INFO);

@@ -64,20 +64,17 @@ class WorkWindow : public DuiLib::WindowImplBase,
   void OnClick(DuiLib::TNotifyUI& msg) override;
   virtual void OnSelectChanged(DuiLib::TNotifyUI& msg);  // NOLINT
 
-  DuiLib::CDuiString GetSkinFolder() override {
-#ifdef _DEBUG
-    return _T("skin\\");
-#else
-    return _T("skin\\");
-#endif
-  }
+  DuiLib::CDuiString GetSkinFolder() override { return _T("skin\\"); }
   DuiLib::CDuiString GetSkinFile() override { return _T("work_window.xml"); }
   DuiLib::UILIB_RESOURCETYPE GetResourceType() const override {
-#ifdef _DEBUG
+#if _DEBUG
     return DuiLib::UILIB_FILE;
 #else
     return DuiLib::UILIB_ZIP;
 #endif
+  }
+  DuiLib::CDuiString GetZIPFileName() const override {
+    return _T("skin_default.zip");
   }
   LPCTSTR GetWindowClassName(void) const override { return _T("work_window"); }
 

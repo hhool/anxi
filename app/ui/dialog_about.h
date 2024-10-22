@@ -40,20 +40,17 @@ class DialogAbout : public DuiLib::WindowImplBase {
   void OnFinalMessage(HWND hWnd) override;
   LRESULT ResponseDefaultKeyEvent(WPARAM wParam) override;
 
-  DuiLib::CDuiString GetSkinFolder() override {
-#ifdef _DEBUG
-    return _T("skin\\");
-#else
-    return _T("skin\\");
-#endif
-  }
+  DuiLib::CDuiString GetSkinFolder() override { return _T("skin\\"); }
   DuiLib::CDuiString GetSkinFile() override { return _T("dialog_about.xml"); }
   DuiLib::UILIB_RESOURCETYPE GetResourceType() const override {
-#ifdef _DEBUG
+#if _DEBUG
     return DuiLib::UILIB_FILE;
 #else
     return DuiLib::UILIB_ZIP;
 #endif
+  }
+  DuiLib::CDuiString GetZIPFileName() const override {
+    return _T("skin_default.zip");
   }
   LPCTSTR GetWindowClassName(void) const override { return _T("dialog_about"); }
 
