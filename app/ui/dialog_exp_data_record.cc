@@ -14,7 +14,9 @@
 #include <string>
 #include <vector>
 
+#include "app/common/file_utils.h"
 #include "app/common/logger.h"
+#include "app/common/module_utils.h"
 #include "app/common/string_utils.h"
 #include "app/expdata/experiment_data_base.h"
 #include "app/ui/ui_constants.h"
@@ -99,6 +101,10 @@ void DialogExpDataRecord::InitWindow() {
       this->m_PaintManager.FindControl(_T("date_time_start")));
   end_date_time_ = static_cast<DuiLib::CDateTimeUI*>(
       this->m_PaintManager.FindControl(_T("date_time_end")));
+  btn_open_folder_ = static_cast<DuiLib::CButtonUI*>(
+      this->m_PaintManager.FindControl(_T("btn_open_folder")));
+  exp_data_detail_layout_ = static_cast<DuiLib::CVerticalLayoutUI*>(
+      this->m_PaintManager.FindControl(_T("layout_exp_data_detail")));
   /// set the start time and end time
   SYSTEMTIME sys_time;
   GetLocalTime(&sys_time);
@@ -108,7 +114,8 @@ void DialogExpDataRecord::InitWindow() {
   /// bind the click event
   refresh_button_->OnNotify +=
       ::MakeDelegate(this, &DialogExpDataRecord::OnRefreshButtonClick);
-
+  btn_open_folder_->OnNotify +=
+      ::MakeDelegate(this, &DialogExpDataRecord::OnOpenFolderButtonClick);
   /// Traverse the directory expdata folder and get all the csv files
   anx::expdata::TraverseExpDataFolder(&exp_data_summary_list_);
   /// revert summarys
@@ -164,10 +171,11 @@ void DialogExpDataRecord::InitWindow() {
 
   /// show the first item detail
   if (exp_data_list_->GetCount() > 0) {
+    exp_data_detail_layout_->SetVisible(true);
     exp_data_list_->SelectItem(0);
     ShowSummaryItemDetail(0);
   } else {
-    ShowSummaryEmptyDetail();
+    exp_data_detail_layout_->SetVisible(false);
   }
   /// bind list item click event
   exp_data_list_->OnNotify +=
@@ -234,7 +242,13 @@ bool DialogExpDataRecord::OnRefreshButtonClick(void* msg) {
   /// convert the time to unix time
   uint64_t start_time_unix = SystemTimeToUnixTime(start_time);
   uint64_t end_time_unix = SystemTimeToUnixTime(end_time);
+  exp_data_summary_list_.clear();
+
   /// find the data from exp_data_summary_list_ to new list by the time
+  /// Traverse the directory expdata folder and get all the csv files
+  anx::expdata::TraverseExpDataFolder(&exp_data_summary_list_);
+  /// revert summarys
+  std::reverse(exp_data_summary_list_.begin(), exp_data_summary_list_.end());
   std::vector<anx::expdata::ExperimentFileSummary> new_list;
   for (const auto& summary : exp_data_summary_list_) {
     if (summary.start_time_ >= start_time_unix &&
@@ -271,7 +285,14 @@ bool DialogExpDataRecord::OnRefreshButtonClick(void* msg) {
     new_node->Add(new_h_lay);
     pList->Add(new_node);
   }
-
+  /// show the first item detail
+  if (pList->GetCount() > 0) {
+    exp_data_detail_layout_->SetVisible(true);
+    pList->SelectItem(0);
+    ShowSummaryItemDetail(0);
+  } else {
+    exp_data_detail_layout_->SetVisible(false);
+  }
   return true;
 }
 
@@ -372,19 +393,32 @@ bool DialogExpDataRecord::ShowSummaryItemDetail(int index) {
   return true;
 }
 
-void DialogExpDataRecord::ShowSummaryEmptyDetail() {
-  DuiLib::CLabelUI* pLabelUI = static_cast<DuiLib::CTextUI*>(
-      this->m_PaintManager.FindControl(_T("file_name")));
-  pLabelUI->SetText(_T(""));
-  pLabelUI = static_cast<DuiLib::CTextUI*>(
-      this->m_PaintManager.FindControl(_T("start_time")));
-  pLabelUI->SetText(_T(""));
-  pLabelUI = static_cast<DuiLib::CTextUI*>(
-      this->m_PaintManager.FindControl(_T("end_time")));
-  pLabelUI->SetText(_T(""));
-  pLabelUI = static_cast<DuiLib::CTextUI*>(
-      this->m_PaintManager.FindControl(_T("duration_time")));
-  pLabelUI->SetText(_T(""));
+bool DialogExpDataRecord::OnOpenFolderButtonClick(void* msg) {
+  TNotifyUI* pMsg = reinterpret_cast<TNotifyUI*>(msg);
+  if (pMsg == nullptr) {
+    return false;
+  }
+  if (pMsg->pSender != btn_open_folder_) {
+    return false;
+  }
+  /// check if click the open folder button
+  if (pMsg->sType != kClick) {
+    return false;
+  }
+  /// get the folder path that is absolute path
+  std::string folder_file_path = anx::common::GetAppPath();
+  folder_file_path += "\\expdata\\";
+  /// get selected file name
+
+  /// get current selected item
+  int index = exp_data_list_->GetCurSel();
+  if (index >= 0 && index < static_cast<int>(exp_data_summary_list_.size())) {
+    const auto& summary = exp_data_summary_list_[index];
+    /// get file name
+    std::string file_name = summary.file_name_;
+    folder_file_path += file_name;
+  }
+  return anx::common::OpenFolder(folder_file_path);
 }
 
 }  // namespace ui

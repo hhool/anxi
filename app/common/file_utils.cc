@@ -11,9 +11,16 @@
 
 #include "app/common/file_utils.h"
 
+#include <string>
+
+#include "app/common/logger.h"
+#include "app/common/string_utils.h"
+
 #if defined(_WIN32) || defined(_WIN64)
 #include <direct.h>
 #include <io.h>
+#include <shellapi.h>
+#include <windows.h>
 #else
 #include <sys/stat.h>
 #include <unistd.h>
@@ -133,5 +140,47 @@ bool GetFilesInFolder(const std::string& dir_path,
 #endif
   return true;
 }
+
+bool OpenFolder(const std::string& folder_file_path) {
+#if defined(_WIN32) || defined(_WIN64)
+  /// check if the folder_file_path is a folder path or a file path
+  bool is_folder = false;
+  std::string folder_path = folder_file_path;
+  if (FileExists(folder_file_path)) {
+    size_t pos = folder_file_path.find_last_of("\\");
+    if (pos == std::string::npos) {
+      return false;
+    }
+    /// get the filename from the folder_file_path
+    std::string file_name = folder_file_path.substr(pos + 1);
+    /// if the file_name is empty, mark as a folder path
+    if (file_name.empty()) {
+      is_folder = true;
+    } else {
+      is_folder = false;
+    }
+  }
+  /// browse the folder in the explorer window
+  /// open the folder in the explorer window
+  /// if the folder_file_path is a folder path, open the folder and select none
+  /// file, otherwise open the folder and select and highlight the file in the
+  /// explorer window
+  if (is_folder) {
+    ShellExecuteA(nullptr, "open", folder_path.c_str(), nullptr, nullptr,
+                  SW_SHOWMAXIMIZED);
+  } else {
+    ShellExecuteA(nullptr, nullptr, "explorer.exe",
+                  ("/select," + folder_path).c_str(), nullptr,
+                  SW_SHOWMAXIMIZED);
+  }
+#else
+  /// TODO(hhool): open the folder in the linux system
+  std::string cmd = "xdg-open ";
+  cmd += folder_file_path;
+  system(cmd.c_str());
+#endif
+  return true;
+}
+
 }  // namespace common
 }  // namespace anx

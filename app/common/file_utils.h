@@ -57,6 +57,11 @@ bool GetFilesInFolder(const std::string& dir_path,
 bool GetFilesInFolder(const std::string& dir_path,
                       const std::string& ext,
                       std::vector<std::string>* files);
+/// @brief  open the folder in the system, if folder_file_path is a file path,
+/// open the folder which contains the file and select the file in the folder
+/// otherwise open the folder
+/// @param folder_file_path  the folder path or the file path
+bool OpenFolder(const std::string& folder_file_path);
 }  // namespace common
 }  // namespace anx
 

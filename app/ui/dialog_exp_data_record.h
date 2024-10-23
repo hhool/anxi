@@ -69,14 +69,16 @@ class DialogExpDataRecord : public DuiLib::WindowImplBase {
   bool OnRefreshButtonClick(void* msg);  // NOLINT
   bool OnListItemClick(void* msg);       // NOLINT
   bool ShowSummaryItemDetail(int index);
-  void ShowSummaryEmptyDetail();
+  bool OnOpenFolderButtonClick(void* msg);  // NOLINT
 
  private:
   DuiLib::CButtonUI* close_button_;
   DuiLib::CButtonUI* refresh_button_;
   DuiLib::CDateTimeUI* start_date_time_;
   DuiLib::CDateTimeUI* end_date_time_;
+  DuiLib::CButtonUI* btn_open_folder_;
   DuiLib::CListUI* exp_data_list_;
+  DuiLib::CVerticalLayoutUI* exp_data_detail_layout_;
 
   std::vector<anx::expdata::ExperimentFileSummary> exp_data_summary_list_;
 };
