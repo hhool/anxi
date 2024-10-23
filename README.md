@@ -45,6 +45,16 @@ $ regsvr32 out/bin/Release/dmgraph.dll
 $ ./out/bin/Release/anxi
 ```
 
+## package
+
+```bash
+$ cd anxi
+$ cmake . -B out\package -G "Visual Studio 14 2015" -A Win32 -DCMAKE_BUILD_TYPE="Release"
+$ cmake --build out\package --config Release --target package
+```
+
+open explorer and go to `anxi\out\package` folder, you will see `anxi-x.x.x-win32.exe` file.
+
 ## install
 
  [how to install](package/README.install.md)
