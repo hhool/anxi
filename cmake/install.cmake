@@ -15,7 +15,6 @@ install(FILES ${PROJECT_SOURCE_DIR}/app/resource/pilot/etm/WanceMachine.mdb DEST
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/app/resource/default DESTINATION bin COMPONENT binaries)
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/app/resource/db DESTINATION bin COMPONENT binaries)
 install(FILES ${PROJECT_SOURCE_DIR}/package/README.install.zh.md DESTINATION bin COMPONENT binaries)
-install(FILES ${PROJECT_SOURCE_DIR}/package/README.install.zh.md DESTINATION bin COMPONENT binaries)
 install(FILES ${PROJECT_SOURCE_DIR}/package/anxi.bat DESTINATION bin COMPONENT binaries)
 install(FILES ${PROJECT_SOURCE_DIR}/third_party/dmgraph/script/install.bat DESTINATION bin COMPONENT binaries)
 install(FILES ${PROJECT_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}/dmgraph.dll DESTINATION bin COMPONENT binaries)

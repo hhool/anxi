@@ -408,8 +408,10 @@ bool DialogExpDataRecord::OnOpenFolderButtonClick(void* msg) {
   /// get the folder path that is absolute path
   std::string folder_file_path = anx::common::GetAppPath();
   folder_file_path += "\\expdata\\";
-  /// get selected file name
-
+  /// make sure the folder exists
+  if (!anx::common::DirectoryExists(folder_file_path)) {
+    anx::common::MakeSureFolderPathExist(folder_file_path);
+  }
   /// get current selected item
   int index = exp_data_list_->GetCurSel();
   if (index >= 0 && index < static_cast<int>(exp_data_summary_list_.size())) {

@@ -12,6 +12,7 @@ This is solution for 2000C machine remote control.
 - python2 python 2.7.18
 - vs2015 or later
 - git version 2.35.1.windows.2 or later
+- nsis 3.09.1
   
 ## get source code
 
