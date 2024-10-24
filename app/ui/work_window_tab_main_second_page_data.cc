@@ -154,9 +154,10 @@ class WorkWindowSecondPageData::ListVirtalDataView
           pHBox->GetItemAt(4)->GetInterface(DUI_CTR_LABEL));
       pText->SetText(dui_string);
 
-      LOG_F(LG_INFO) << "no:" << (nRow + 1) << " cycle:" << result[0]["cycle"]
-                     << " kHz:" << result[0]["kHz"] << " MPa:" << Mpa
-                     << " um:" << um;
+      LOG_F(LG_SENSITIVE) << "no:" << (nRow + 1)
+                          << " cycle:" << result[0]["cycle"]
+                          << " kHz:" << result[0]["kHz"] << " MPa:" << Mpa
+                          << " um:" << um;
     }
   }
 

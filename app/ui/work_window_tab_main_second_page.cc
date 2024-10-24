@@ -907,6 +907,10 @@ int32_t WorkWindowSecondPage::exp_start() {
 void WorkWindowSecondPage::exp_pause() {
   is_exp_state_ = 2;
   UpdateUIButton();
+
+  // stop the ultrasound
+  ultra_device_->StopUltra();
+
   DuiLib::TNotifyUI msg;
   msg.pSender = btn_exp_pause_;
   msg.sType = kClick;
@@ -948,6 +952,9 @@ void WorkWindowSecondPage::exp_resume() {
           work_window_second_page_graph_notify_pump_.get());
   graph_page->ClearGraphData();
 
+  // start the ultrasound
+  ultra_device_->StartUltra();
+
   dedss_ =
       std::move(anx::device::LoadDeviceExpDataSampleSettingsDefaultResource());
   exp_data_list_info_.exp_sample_interval_ms_ =
@@ -967,7 +974,8 @@ void WorkWindowSecondPage::exp_stop() {
   is_exp_state_ = 0;
   exp_data_pre_duration_exponential_ = 0;
   UpdateUIButton();
-
+  // stop the ultrasound
+  ultra_device_->StopUltra();
   // notify the exp stop
   DuiLib::TNotifyUI msg;
   msg.pSender = btn_exp_stop_;
