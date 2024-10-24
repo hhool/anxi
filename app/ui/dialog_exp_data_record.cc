@@ -139,7 +139,7 @@ void DialogExpDataRecord::InitWindow() {
     DuiLib::CTextUI* pLabelUI = new DuiLib::CTextUI();
     pLabelUI->SetAttributeList(_T("font=\"11\" algin=\"right\""));
     pLabelUI->SetText(
-        anx::common::string2wstring(summary.file_name_.c_str()).c_str());
+        anx::common::UTF8ToUnicode(summary.file_name_.c_str()).c_str());
     new_h_lay->Add(new_control);
     new_h_lay->Add(new_container);
     new_h_lay->Add(pLabelUI);
@@ -278,7 +278,7 @@ bool DialogExpDataRecord::OnRefreshButtonClick(void* msg) {
     DuiLib::CTextUI* pLabelUI = new DuiLib::CTextUI();
     pLabelUI->SetAttributeList(_T("font=\"11\" algin=\"right\""));
     pLabelUI->SetText(
-        anx::common::string2wstring(summary.file_name_.c_str()).c_str());
+        anx::common::UTF8ToUnicode(summary.file_name_.c_str()).c_str());
     new_h_lay->Add(new_control);
     new_h_lay->Add(new_container);
     new_h_lay->Add(pLabelUI);
@@ -323,7 +323,7 @@ bool DialogExpDataRecord::ShowSummaryItemDetail(int index) {
   DuiLib::CLabelUI* pLabelUI = static_cast<DuiLib::CTextUI*>(
       this->m_PaintManager.FindControl(_T("file_name")));
   pLabelUI->SetText(
-      anx::common::string2wstring(summary.file_name_.c_str()).c_str());
+      anx::common::UTF8ToUnicode(summary.file_name_.c_str()).c_str());
 
   /// splite file name to get the start time and end time of the file
   /// file name format: 2024-08-12_08-00-00_2024-08-12_08-00-00.csv
@@ -370,10 +370,10 @@ bool DialogExpDataRecord::ShowSummaryItemDetail(int index) {
   pLabelUI = static_cast<DuiLib::CTextUI*>(
       this->m_PaintManager.FindControl(_T("start_time")));
   pLabelUI->SetText(
-      anx::common::string2wstring(start_time_str.c_str()).c_str());
+      anx::common::UTF8ToUnicode(start_time_str.c_str()).c_str());
   pLabelUI = static_cast<DuiLib::CTextUI*>(
       this->m_PaintManager.FindControl(_T("end_time")));
-  pLabelUI->SetText(anx::common::string2wstring(end_time_str.c_str()).c_str());
+  pLabelUI->SetText(anx::common::UTF8ToUnicode(end_time_str.c_str()).c_str());
   // format duration time to string
   uint64_t duration_hour = duration_time / 3600;
   uint64_t duration_minute = (duration_time % 3600) / 60;
@@ -389,7 +389,7 @@ bool DialogExpDataRecord::ShowSummaryItemDetail(int index) {
   pLabelUI = static_cast<DuiLib::CTextUI*>(
       this->m_PaintManager.FindControl(_T("duration_time")));
   pLabelUI->SetText(
-      anx::common::string2wstring(duration_time_str.c_str()).c_str());
+      anx::common::UTF8ToUnicode(duration_time_str.c_str()).c_str());
   return true;
 }
 

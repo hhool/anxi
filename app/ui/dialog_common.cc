@@ -45,12 +45,12 @@ void DialogCommon::InitWindow() {
       this->m_PaintManager.FindControl(_T("content")));
   if (title != nullptr) {
     DuiLib::CDuiString dui_title(
-        anx::common::string2wstring(title_.c_str()).c_str());
+        anx::common::UTF8ToUnicode(title_.c_str()).c_str());
     title->SetText(dui_title);
   }
   if (content != nullptr) {
     DuiLib::CDuiString dui_content(
-        anx::common::string2wstring(content_.c_str()).c_str());
+        anx::common::UTF8ToUnicode(content_.c_str()).c_str());
     content->SetText(dui_content);
   }
 }
