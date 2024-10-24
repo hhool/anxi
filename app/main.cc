@@ -49,10 +49,17 @@ int main() {
                        _T("Global\\73E21C80-1960-472F-BF0B-3EE7CC7AF17E"));
   DWORD dwError = GetLastError();
   if (ERROR_ALREADY_EXISTS == dwError || ERROR_ACCESS_DENIED == dwError) {
+    HWND hWnd = FindWindow(_T("work_window"), nullptr);
+    if (hWnd == nullptr) {
+      hWnd = FindWindow(_T("main_window"), nullptr);
+    }
+    if (hWnd) {
+      SetForegroundWindow(hWnd);
+    }
     if (hMutex) {
       CloseHandle(hMutex);
-      return -1;
     }
+    return -1;
   }
 #endif
 #if defined(_DEBUG) && defined(_MSC_VER) && defined(WIN32)
