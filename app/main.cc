@@ -20,6 +20,7 @@
 #include <crtdbg.h>
 #endif
 
+#include "app/common/cmd_parser.h"
 #include "app/common/logger.h"
 
 static std::shared_ptr<anx::common::FileLoggerSink> g_sink(
@@ -29,7 +30,7 @@ static std::shared_ptr<anx::common::FileLoggerSink> g_sink(
 #if !defined(UNDER_CE)
 int APIENTRY WinMain(HINSTANCE hInstance,
                      HINSTANCE /*hPrevInstance*/,
-                     LPSTR /*lpCmdLine*/,
+                     LPSTR lpCmdLine,
                      int nCmdShow) {
   HANDLE hMutex = NULL;
 #else
@@ -60,8 +61,20 @@ int main() {
   _CrtSetDbgFlag(Flag);
   // _CrtSetBreakAlloc(269);
 #endif
+  /// parse the command line
+  /// -le  mean log level, value is 0: sensitive, 1: info, 2: warn, 3: error, 4:
+  /// fatal
+  /// anxi.exe -le 0
+
+  std::string cmd_line = lpCmdLine;
+  anx::common::CmdParser cmd_parser(cmd_line);
+#if defined(_DEBUG)
+  int32_t log_level = cmd_parser.GetKeyValue("-le", anx::common::LS_INFO);
+#else
+  int32_t log_level = cmd_parser.GetKeyValue("-le", anx::common::LS_ERROR);
+#endif
   anx::common::Logger::add_sink(g_sink);
-  anx::common::Logger::set_log_level(anx::common::LS_INFO);
+  anx::common::Logger::set_log_level(log_level);
   void* handle_app = anx::app::CreateApp(hInstance);
   if (handle_app == nullptr) {
 #if defined(WIN32)

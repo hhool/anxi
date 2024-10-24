@@ -15,6 +15,8 @@ message(STATUS "PROJECT_PATH: ${PROJECT_PATH}")
 include_directories(${PROJECT_PATH})
 
 set(COMMON_FILES
+    common/cmd_parser.cc
+    common/cmd_parser.h
     common/crc16.cc
     common/crc16.h
     common/file_utils.cc
