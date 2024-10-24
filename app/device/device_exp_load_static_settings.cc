@@ -23,12 +23,26 @@ namespace anx {
 namespace device {
 ////////////////////////////////////////////////////////////////////////
 // clz DeviceLoadStatic
-DeviceLoadStatic::DeviceLoadStatic() : direct_(0), speed_(0), retention_(0) {}
+DeviceLoadStatic::DeviceLoadStatic()
+    : direct_(0),
+      ctrl_type_(0),
+      speed_(50),
+      retention_(10),
+      displacement_(50),
+      keep_load_duration_(120) {}
 
 DeviceLoadStatic::DeviceLoadStatic(int32_t direct,
+                                   int32_t ctrl_type,
                                    int32_t speed,
-                                   int32_t retention)
-    : direct_(direct), speed_(speed), retention_(retention) {}
+                                   int32_t retention,
+                                   int32_t displacement,
+                                   int32_t keep_load_duration)
+    : direct_(direct),
+      ctrl_type_(ctrl_type),
+      speed_(speed),
+      retention_(retention),
+      displacement_(displacement),
+      keep_load_duration_(keep_load_duration) {}
 
 DeviceLoadStatic::~DeviceLoadStatic() {}
 
@@ -84,12 +98,21 @@ std::string DeviceLoadStaticSettings::ToXml(bool close_tag) const {
   xml += "<direct>";
   xml += ValueDirectToString();
   xml += "</direct>\r\n";
+  xml += "<ctrl_type>";
+  xml += std::to_string(ctrl_type_);
+  xml += "</ctrl_type>\r\n";
   xml += "<speed>";
   xml += std::to_string(speed_);
   xml += "</speed>\r\n";
   xml += "<retention>";
   xml += std::to_string(retention_);
   xml += "</retention>\r\n";
+  xml += "<displacement>";
+  xml += std::to_string(displacement_);
+  xml += "</displacement>\r\n";
+  xml += "<keep_load_duration>";
+  xml += std::to_string(keep_load_duration_);
+  xml += "</keep_load_duration>\r\n";
   if (close_tag) {
     xml += "</device_exp_load_static_settings>\r\n";
   }
@@ -108,6 +131,10 @@ std::unique_ptr<DeviceLoadStaticSettings> DeviceLoadStaticSettings::FromXml(
   if (ele_direct == nullptr) {
     return nullptr;
   }
+  tinyxml2::XMLElement* ele_ctrltype = root->FirstChildElement("ctrl_type");
+  if (ele_ctrltype == nullptr) {
+    return nullptr;
+  }
   tinyxml2::XMLElement* ele_speed = root->FirstChildElement("speed");
   if (ele_speed == nullptr) {
     return nullptr;
@@ -116,11 +143,25 @@ std::unique_ptr<DeviceLoadStaticSettings> DeviceLoadStaticSettings::FromXml(
   if (ele_retention == nullptr) {
     return nullptr;
   }
+  tinyxml2::XMLElement* ele_displacement =
+      root->FirstChildElement("displacement");
+  if (ele_displacement == nullptr) {
+    return nullptr;
+  }
+  tinyxml2::XMLElement* ele_keep_load_duration =
+      root->FirstChildElement("keep_load_duration");
+  if (ele_keep_load_duration == nullptr) {
+    return nullptr;
+  }
+
   std::unique_ptr<DeviceLoadStaticSettings> settings(
       new DeviceLoadStaticSettings());
   settings->direct_ = ValueDirectFromString(ele_direct->GetText());
+  settings->ctrl_type_ = std::stoi(ele_ctrltype->GetText());
   settings->speed_ = std::stoi(ele_speed->GetText());
   settings->retention_ = std::stoi(ele_retention->GetText());
+  settings->displacement_ = std::stoi(ele_displacement->GetText());
+  settings->keep_load_duration_ = std::stoi(ele_keep_load_duration->GetText());
   return settings;
 }
 

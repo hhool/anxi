@@ -160,10 +160,19 @@ void WorkWindowSecondPage::OnClick(TNotifyUI& msg) {
     } else if (msg.pSender == this->btn_exp_resume_) {
       exp_resume();
     } else if (msg.pSender == this->btn_sa_up_) {
+      /// update lss_;
+      lss_ =
+          std::move(anx::device::LoadDeviceLoadStaticSettingsDefaultResource());
       OnButtonStaticAircraftUp();
     } else if (msg.pSender == this->btn_sa_down_) {
+      /// update lss_;
+      lss_ =
+          std::move(anx::device::LoadDeviceLoadStaticSettingsDefaultResource());
       OnButtonStaticAircraftDown();
     } else if (msg.pSender == this->btn_sa_stop_) {
+      /// update lss_;
+      lss_ =
+          std::move(anx::device::LoadDeviceLoadStaticSettingsDefaultResource());
       OnButtonStaticAircraftStop();
     } else if (msg.pSender == this->btn_aa_setting_) {
       DialogAmplitudeCalibrationSettings*
@@ -284,9 +293,58 @@ void WorkWindowSecondPage::OnValueChanged(TNotifyUI& msg) {
       if (enmsg->type_ == enmsg_type_stload_value_cur) {
         anx::device::stload::STResult* st_result =
             reinterpret_cast<anx::device::stload::STResult*>(enmsg->ptr_);
+        if (st_load_is_running_ == false) {
+          return;
+        }
         if ((st_result->status_ & DSP_CMDEND) == DSP_CMDEND) {
-          LOG_F(LG_INFO) << "static load aircraft stop";
-          OnButtonStaticAircraftStop();
+          LOG_F(LG_INFO) << "static load aircraft achieve the target load:"
+                         << st_result->load_;
+          /// record first time achieve the target load time point in ms
+          /// value -1 is not achieve the target load, value > 0 is achieve
+          /// the target load first time point
+          if (st_load_achieve_target_time_ < 0) {
+            st_load_achieve_target_time_ = anx::common::GetCurrentTimeMillis();
+          }
+          /// ctrl_type is CTRL_LOAD is next action is to keep load action
+          if (lss_->ctrl_type_ == CTRL_LOAD) {
+            /// value 1 is next action is to keep load action
+            st_load_keep_load_ = 1;
+          }
+        }
+        if (st_load_keep_load_ == 1) {
+          int64_t current_time = anx::common::GetCurrentTimeMillis();
+          int64_t cur_duration = current_time - st_load_achieve_target_time_;
+          if (cur_duration > st_load_achieve_target_keep_duration_ms_) {
+            LOG_F(LG_INFO) << "static load aircraft keep the target load:"
+                           << st_result->load_ << " for "
+                           << st_load_achieve_target_keep_duration_ms_ << " ms"
+                           << " stop";
+            st_load_achieve_target_time_ = -1;
+            OnButtonStaticAircraftStop();
+          } else {
+            LOG_F(LG_INFO) << "static load aircraft keep the target load:"
+                           << st_result->load_ << " for "
+                           << st_load_achieve_target_keep_duration_ms_ << " ms"
+                           << " target load:" << lss_->retention_ << " continue"
+                           << " cur_duration:" << cur_duration << " ms"
+                           << " cur_load:" << st_result->load_;
+            double target_load = lss_->retention_;
+            if (target_load - st_result->load_ > 0.1) {
+              LOG_F(LG_INFO) << "static load aircraft achieve the target load:"
+                             << st_result->load_;
+              if (lss_->direct_ == 1) {
+                this->StaticAircraftDoMoveUp();
+              } else if (lss_->direct_ == 2) {
+                this->StaticAircraftDoMoveDown();
+              } else {
+                // do nothing
+              }
+              /// value 2 keep load action is done
+              st_load_keep_load_ = 2;
+            } else {
+              // do nothing
+            }
+          }
         }
         st_load_result_ = *st_result;
       } else if (enmsg->type_ == enmsg_type_exp_stress_amp) {
@@ -551,10 +609,19 @@ void WorkWindowSecondPage::Unbind() {
   paint_manager_ui_->KillTimer(btn_exp_start_, kTimerIdSampling);
   paint_manager_ui_->KillTimer(btn_exp_start_, kTimerIdRefresh);
 
+  /// @note stop ultra_device
   if (ultra_device_ != nullptr) {
     ultra_device_->GetPortDevice()->RemoveListener(this);
     ultra_device_ = nullptr;
   }
+
+  /// @note stop stload device
+  anx::device::stload::STLoadHelper::st_load_loader_.st_api_.stop_run();
+  /// direct to the settings of the static load
+  /// and save it to the resource file
+  lss_ = std::move(anx::device::LoadDeviceLoadStaticSettingsDefaultResource());
+  lss_->direct_ = 0;
+  anx::device::SaveDeviceLoadStaticSettingsDefaultResource(*lss_);
   /// @brief drop the exp_data table
   anx::db::helper::DropDataTable(anx::db::helper::kDefaultDatabasePathname,
                                  anx::db::helper::kTableExpDataGraph);
@@ -775,52 +842,52 @@ void WorkWindowSecondPage::UpdateUIButton() {
     edit_max_cycle_count_->SetEnabled(false);
     edit_max_cycle_power_->SetEnabled(false);
     edit_frequency_fluctuations_range_->SetEnabled(false);
+  }
+
+  if (is_exp_state_ == 0) {
+    btn_sa_reset_->SetEnabled(true);
+    btn_exp_start_->SetEnabled(true);
+    layout_exp_resume_->SetVisible(false);
+    layout_exp_pause_->SetVisible(true);
+    btn_exp_pause_->SetEnabled(false);
+    btn_exp_stop_->SetEnabled(false);
+
+    chk_exp_clip_set_->SetEnabled(true);
+    edit_exp_clip_time_duration_->SetEnabled(true);
+    edit_exp_clip_time_paused_->SetEnabled(true);
+    edit_max_cycle_count_->SetEnabled(true);
+    edit_max_cycle_power_->SetEnabled(true);
+    edit_frequency_fluctuations_range_->SetEnabled(true);
+  } else if (is_exp_state_ == 1) {
+    btn_sa_reset_->SetEnabled(false);
+    btn_exp_start_->SetEnabled(false);
+    layout_exp_resume_->SetVisible(false);
+    layout_exp_pause_->SetVisible(true);
+    btn_exp_pause_->SetEnabled(true);
+    btn_exp_stop_->SetEnabled(true);
+
+    chk_exp_clip_set_->SetEnabled(false);
+    edit_exp_clip_time_duration_->SetEnabled(false);
+    edit_exp_clip_time_paused_->SetEnabled(false);
+    edit_max_cycle_count_->SetEnabled(false);
+    edit_max_cycle_power_->SetEnabled(false);
+    edit_frequency_fluctuations_range_->SetEnabled(false);
+  } else if (is_exp_state_ == 2) {
+    btn_sa_reset_->SetEnabled(true);
+    btn_exp_start_->SetEnabled(false);
+    layout_exp_resume_->SetVisible(true);
+    layout_exp_pause_->SetVisible(false);
+    btn_exp_pause_->SetEnabled(false);
+    btn_exp_stop_->SetEnabled(true);
+
+    chk_exp_clip_set_->SetEnabled(true);
+    edit_exp_clip_time_duration_->SetEnabled(true);
+    edit_exp_clip_time_paused_->SetEnabled(true);
+    edit_max_cycle_count_->SetEnabled(true);
+    edit_max_cycle_power_->SetEnabled(true);
+    edit_frequency_fluctuations_range_->SetEnabled(true);
   } else {
-    if (is_exp_state_ == 0) {
-      btn_sa_reset_->SetEnabled(true);
-      btn_exp_start_->SetEnabled(true);
-      layout_exp_resume_->SetVisible(false);
-      layout_exp_pause_->SetVisible(true);
-      btn_exp_pause_->SetEnabled(false);
-      btn_exp_stop_->SetEnabled(false);
-
-      chk_exp_clip_set_->SetEnabled(true);
-      edit_exp_clip_time_duration_->SetEnabled(true);
-      edit_exp_clip_time_paused_->SetEnabled(true);
-      edit_max_cycle_count_->SetEnabled(true);
-      edit_max_cycle_power_->SetEnabled(true);
-      edit_frequency_fluctuations_range_->SetEnabled(true);
-    } else if (is_exp_state_ == 1) {
-      btn_sa_reset_->SetEnabled(false);
-      btn_exp_start_->SetEnabled(false);
-      layout_exp_resume_->SetVisible(false);
-      layout_exp_pause_->SetVisible(true);
-      btn_exp_pause_->SetEnabled(true);
-      btn_exp_stop_->SetEnabled(true);
-
-      chk_exp_clip_set_->SetEnabled(false);
-      edit_exp_clip_time_duration_->SetEnabled(false);
-      edit_exp_clip_time_paused_->SetEnabled(false);
-      edit_max_cycle_count_->SetEnabled(false);
-      edit_max_cycle_power_->SetEnabled(false);
-      edit_frequency_fluctuations_range_->SetEnabled(false);
-    } else if (is_exp_state_ == 2) {
-      btn_sa_reset_->SetEnabled(true);
-      btn_exp_start_->SetEnabled(false);
-      layout_exp_resume_->SetVisible(true);
-      layout_exp_pause_->SetVisible(false);
-      btn_exp_pause_->SetEnabled(false);
-      btn_exp_stop_->SetEnabled(true);
-
-      chk_exp_clip_set_->SetEnabled(true);
-      edit_exp_clip_time_duration_->SetEnabled(true);
-      edit_exp_clip_time_paused_->SetEnabled(true);
-      edit_max_cycle_count_->SetEnabled(true);
-      edit_max_cycle_power_->SetEnabled(true);
-      edit_frequency_fluctuations_range_->SetEnabled(true);
-    } else {
-      // TODO(hhool):
-    }
+    // TODO(hhool):
   }
 }
 
@@ -989,7 +1056,8 @@ void WorkWindowSecondPage::exp_stop() {
 
 void WorkWindowSecondPage::OnButtonStaticAircraftClear() {
   // clear the data
-  if (is_exp_state_) {
+  if (is_exp_state_ > 0) {
+    LOG_F(LG_WARN) << "exp is running, can not clear the data";
     return;
   }
   LOG_F(LG_INFO) << "clear the data";
@@ -1015,6 +1083,8 @@ void WorkWindowSecondPage::OnButtonStaticAircraftSetting() {
       UI_WNDSTYLE_FRAME, WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
   dialog_static_load_guaranteed_settings->CenterWindow();
   dialog_static_load_guaranteed_settings->ShowModal();
+  /// update lss_;
+  lss_ = std::move(anx::device::LoadDeviceLoadStaticSettingsDefaultResource());
 }
 
 void WorkWindowSecondPage::OnButtonStaticAircraftReset() {
@@ -1063,80 +1133,118 @@ void WorkWindowSecondPage::OnButtonStaticAircraftReset() {
 /// @brief Static aircraft releated button
 void WorkWindowSecondPage::OnButtonStaticAircraftUp() {
   if (st_load_is_running_) {
+    LOG_F(LG_WARN) << "static load is running, can not up";
     return;
   }
-  float speed = 2.0f / 60.0f;
-  std::unique_ptr<anx::device::DeviceLoadStaticSettings> lss =
-      anx::device::LoadDeviceLoadStaticSettingsDefaultResource();
-  if (lss == nullptr) {
-    MessageBox(this->pWorkWindow_->GetHWND(), _T("静载机配置文件加载失败"),
-               _T("错误"), MB_OK);
+  if (!StaticAircraftDoMoveUp()) {
+    LOG_F(LG_ERROR) << "StaticAircraftDoMoveUp error";
     return;
   }
-  anx::device::stload::STLoadHelper::st_load_loader_.st_api_.set_test_dir(1);
-  speed = lss->speed_ / 60.0f;
-  float end_value = lss->retention_ * 1.0f;
-  /// RUN the static load, the direction is up and the speed is 2.0f / 60.0f
-  bool bSuccess =
-      anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_200(
-          CTRL_LOAD, END_LOAD, speed, end_value, 1, true, DIR_NO, 0, 1, 0)
-          ? true
-          : false;
-  if (!bSuccess) {
-    MessageBox(this->pWorkWindow_->GetHWND(), _T("carry_200_error"),
-               _T("carry_200"), MB_OK);
-  }
-
+  st_load_is_running_ = true;
+  /// update the releated button state
+  btn_sa_setting_->SetEnabled(false);
   btn_sa_up_->SetEnabled(false);
   btn_sa_down_->SetEnabled(false);
   btn_sa_stop_->SetEnabled(true);
-  st_load_is_running_ = true;
-  ////
-  lss->direct_ = 1;
-  anx::device::SaveDeviceLoadStaticSettingsDefaultResource(*lss);
+  //// direct to the settings of the static load
+  /// and save it to the resource file
+  lss_->direct_ = 1;
+  anx::device::SaveDeviceLoadStaticSettingsDefaultResource(*lss_);
+}
+
+bool WorkWindowSecondPage::StaticAircraftDoMoveUp() {
+  assert(lss_ != nullptr);
+  float speed = 2.0f / 60.0f;
+  st_load_achieve_target_keep_duration_ms_ = lss_->keep_load_duration_ * 1000;
+  anx::device::stload::STLoadHelper::st_load_loader_.st_api_.set_test_dir(1);
+  speed = lss_->speed_ / 60.0f;
+  /// RUN the static load, the direction is up and the speed is 2.0f / 60.0f
+  int32_t ctrl_type = CTRL_LOAD;
+  int32_t endtype = END_LOAD;
+  float end_value = lss_->retention_ * 1.0f;
+  if (lss_->ctrl_type_ == CTRL_POSI) {
+    ctrl_type = CTRL_POSI;
+    endtype = END_POSI;
+    end_value = lss_->displacement_ * 1.0f;
+  }
+  // TODO(hhool):
+  bool bSuccess =
+      anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_200(
+          ctrl_type, endtype, speed, end_value, 0, true, DIR_NO, 0, 1, 0)
+          ? true
+          : false;
+  if (!bSuccess) {
+    LOG_F(LG_ERROR) << "carry_200 error";
+    return false;
+  }
+  return true;
 }
 
 void WorkWindowSecondPage::OnButtonStaticAircraftDown() {
-  bool isAE = false;
-  float speed = 2.0f / 60.0f;
-  std::unique_ptr<anx::device::DeviceLoadStaticSettings> lss =
-      anx::device::LoadDeviceLoadStaticSettingsDefaultResource();
-  if (lss == nullptr) {
-    MessageBox(this->pWorkWindow_->GetHWND(), _T("静载机配置文件加载失败"),
-               _T("错误"), MB_OK);
+  if (st_load_is_running_) {
+    LOG_F(LG_WARN) << "static load is running, can not down";
     return;
   }
-  anx::device::stload::STLoadHelper::st_load_loader_.st_api_.set_test_dir(0);
-  speed = lss->speed_ / 60.0f;
-  float end_value = lss->retention_ * 1.0f;
-
-  /// RUN the static load, the direction is up and the speed is 2.0f / 60.0f
-  bool bSuccess =
-      anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_200(
-          CTRL_LOAD, END_LOAD, speed, end_value, 1, true, DIR_NO, 0, 1, 0)
-          ? true
-          : false;
-  if (!bSuccess) {
-    MessageBox(this->pWorkWindow_->GetHWND(), _T("carry_200_error"),
-               _T("carry_200"), MB_OK);
+  if (!StaticAircraftDoMoveDown()) {
+    LOG_F(LG_ERROR) << "StaticAircraftDoMoveDown error";
+    return;
   }
+  st_load_is_running_ = true;
 
+  /// update the releated button state
+  btn_sa_setting_->SetEnabled(false);
   btn_sa_up_->SetEnabled(false);
   btn_sa_down_->SetEnabled(false);
   btn_sa_stop_->SetEnabled(true);
-  st_load_is_running_ = true;
-  ////
-  lss->direct_ = 2;
-  anx::device::SaveDeviceLoadStaticSettingsDefaultResource(*lss);
+  /// direct to the settings of the static load
+  /// and save it to the resource file
+  lss_->direct_ = 2;
+  anx::device::SaveDeviceLoadStaticSettingsDefaultResource(*lss_);
+}
+
+bool WorkWindowSecondPage::StaticAircraftDoMoveDown() {
+  assert(lss_ != nullptr);
+  float speed = 2.0f / 60.0f;
+  st_load_achieve_target_keep_duration_ms_ = lss_->keep_load_duration_ * 1000;
+  anx::device::stload::STLoadHelper::st_load_loader_.st_api_.set_test_dir(0);
+  speed = lss_->speed_ / 60.0f;
+  int32_t ctrl_type = CTRL_LOAD;
+  int32_t endtype = END_LOAD;
+  float end_value = lss_->retention_ * 1.0f;
+  if (lss_->ctrl_type_ == CTRL_POSI) {
+    ctrl_type = CTRL_POSI;
+    endtype = END_POSI;
+    end_value = lss_->displacement_ * 1.0f;
+  }
+  /// RUN the static load, the direction is down and the speed is 2.0f / 60.0f
+  // TODO(hhool):
+  bool bSuccess =
+      anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_200(
+          ctrl_type, endtype, speed, end_value, 0, true, DIR_NO, 0, 1, 0)
+          ? true
+          : false;
+  if (!bSuccess) {
+    LOG_F(LG_ERROR) << "carry_200 error";
+    return false;
+  }
+  return true;
 }
 
 void WorkWindowSecondPage::OnButtonStaticAircraftStop() {
   // anx::device::stload::STLoadHelper::st_load_loader_.st_api_.end_read();
   LOG_F(LG_INFO) << "stop the static load";
   anx::device::stload::STLoadHelper::st_load_loader_.st_api_.stop_run();
+  btn_sa_setting_->SetEnabled(true);
+  btn_sa_clear_->SetEnabled(true);
   btn_sa_up_->SetEnabled(true);
   btn_sa_down_->SetEnabled(true);
   st_load_is_running_ = false;
+  st_load_achieve_target_time_ = -1;
+  st_load_keep_load_ = -1;
+  /// direct to the settings of the static load
+  /// and save it to the resource file
+  lss_->direct_ = 0;
+  anx::device::SaveDeviceLoadStaticSettingsDefaultResource(*lss_);
 }
 
 void WorkWindowSecondPage::OnDataReceived(

@@ -267,16 +267,13 @@ void WorkWindowSecondPageData::OnValueChanged(TNotifyUI& msg) {
 }
 
 bool WorkWindowSecondPageData::OnOptDataSampleChange(void* param) {
-  if (param == nullptr) {
+  TNotifyUI* pMsg = reinterpret_cast<TNotifyUI*>(param);
+  if (pMsg == nullptr) {
     return false;
   }
-  DuiLib::COptionUI* pOpt = reinterpret_cast<DuiLib::COptionUI*>(param);
-  if (pOpt == nullptr) {
-    return false;
-  }
-  if (pOpt == option_sample_mode_exp_) {
+  if (pMsg->pSender == option_sample_mode_exp_) {
     device_exp_data_settings_->sample_mode_ = 0;
-  } else if (pOpt == option_sample_mode_linear_) {
+  } else if (pMsg->pSender == option_sample_mode_linear_) {
     device_exp_data_settings_->sample_mode_ = 1;
   }
   SaveSettingsFromControl();

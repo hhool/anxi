@@ -280,16 +280,17 @@ void WorkWindowThirdPage::OnValueChanged(TNotifyUI& msg) {
             reinterpret_cast<anx::device::stload::STResult*>(enmsg->ptr_);
         // update the label_displacement_ with random value
         double pos = st_result->pos_;
-        // format the number keep 5 decimal
-        std::string num_pos_str = to_string_with_precision(pos, 5);
+        // format the number keep 1 decimal
+        std::string num_pos_str = to_string_with_precision(pos, 1);
         label_displacement_->SetText(
             anx::common::string2wstring(num_pos_str).c_str());
         // update the label_strength_ with random value
         double load = st_result->load_;
-        std::string num_load_str = to_string_with_precision(load, 5);
+        std::string num_load_str = to_string_with_precision(load, 1);
         label_strength_->SetText(
             anx::common::string2wstring(num_load_str).c_str());
       } else if (enmsg->type_ == enmsg_type_exp_stress_amp) {
+        // TODO(hhool):
       }
     } else {
       // do nothing

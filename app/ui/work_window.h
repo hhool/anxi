@@ -216,6 +216,8 @@ class WorkWindow : public DuiLib::WindowImplBase,
   CButtonUI* btn_args_area_value_max_stress_;
   CButtonUI* btn_args_area_value_static_load_;
   CButtonUI* btn_args_area_value_stress_ratio_;
+  CButtonUI* btn_args_area_name_static_load_n_;
+  CButtonUI* btn_args_area_value_static_load_n_;
 };
 }  // namespace ui
 }  // namespace anx

@@ -19,6 +19,7 @@
 #include <string>
 
 #include "app/device/device_com.h"
+#include "app/device/device_exp_load_static_settings.h"
 #include "app/device/device_exp_ultrasound_settings.h"
 #include "app/device/stload/stload_helper.h"
 #include "app/device/ultrasonic/ultra_device.h"
@@ -85,8 +86,12 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   void OnButtonStaticAircraftReset();
   /// @brief static load aircraft up
   void OnButtonStaticAircraftUp();
+  /// @brief static load aircraft do move up
+  bool StaticAircraftDoMoveUp();
   /// @brief static load aircraft down
   void OnButtonStaticAircraftDown();
+  /// @brief static load aircraft do move down
+  bool StaticAircraftDoMoveDown();
   /// @brief static load aircraft stop
   void OnButtonStaticAircraftStop();
 
@@ -138,6 +143,21 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   std::unique_ptr<anx::device::DeviceExpDataSampleSettings> dedss_;
   int64_t exp_data_pre_duration_exponential_ = 0;
   bool start_time_pos_has_deal_ = false;
+
+  std::unique_ptr<anx::device::DeviceLoadStaticSettings> lss_;
+  /// @note load achieve target keep duration time in ms
+  /// 20s default value
+  int64_t st_load_achieve_target_keep_duration_ms_ = 200 * 1000;
+  /// @note record first time achieve the target load time point in ms
+  /// value -1 is not achieve the target load, value > 0 is achieve the
+  /// target load first time point.
+  int64_t st_load_achieve_target_time_ = -1;
+  /// @note load keep load value actual state.
+  /// value -1 is not achieve the target load, value == 1 is achieve the target
+  /// load first time point. will detect the load value with target load value
+  /// periodically. if the load value is not equal to the target load value,
+  /// then keep do the action for target load value. eg up or down.
+  int64_t st_load_keep_load_ = -1;
 
   DuiLib::CTabLayoutUI* btn_tablayout_;
   DuiLib::CButtonUI* btn_tab_graph_;

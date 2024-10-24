@@ -60,7 +60,7 @@ class DialogStaticLoadGuaranteedSettings : public DuiLib::WindowImplBase {
 
  protected:
   void OnPrepare(const DuiLib::TNotifyUI& msg);
-
+  bool OnCtrlTypeChanged(void* param);
   void UpdateControlFromSettings();
   void SaveSettingsFromControl();
 
@@ -68,11 +68,12 @@ class DialogStaticLoadGuaranteedSettings : public DuiLib::WindowImplBase {
   CButtonUI* btn_close_;
   CButtonUI* btn_ok_;
   CButtonUI* btn_cancel_;
-  /*
-  COptionUI* opt_direct_up_;
-  COptionUI* opt_direct_down_;*/
+  COptionUI* opt_displacement_;
+  COptionUI* opt_retention_;
   CEditUI* edit_speed_;
   CEditUI* edit_retention_;
+  CEditUI* edit_displacement_;
+  CEditUI* edit_keep_load_duration_;
 };
 }  // namespace ui
 }  // namespace anx

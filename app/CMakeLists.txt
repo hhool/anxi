@@ -238,8 +238,6 @@ if(WIN32)
     set(RES_FILES
         resource.rc)
     source_group("resource" FILES ${RES_FILES})
-
-    # list(APPEND APP_SOURCES resource.rc)
 endif()
 
 # add library

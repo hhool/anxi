@@ -12,6 +12,8 @@
 #include "app/ui/work_window.h"
 
 #include <iostream>
+#include <map>
+#include <memory>
 #include <utility>
 #include <vector>
 
@@ -23,6 +25,7 @@
 #include "app/device/device_com_settings.h"
 #include "app/device/device_com_settings_helper.h"
 #include "app/device/device_exp_data_sample_settings.h"
+#include "app/device/device_exp_load_static_settings.h"
 #include "app/device/stload/stload_helper.h"
 #include "app/device/ultrasonic/ultra_helper.h"
 #include "app/esolution/solution_design.h"
@@ -250,7 +253,10 @@ void WorkWindow::InitWindow() {
       m_PaintManager.FindControl(_T("args_area_value_static_load")));
   btn_args_area_value_stress_ratio_ = static_cast<CButtonUI*>(
       m_PaintManager.FindControl(_T("args_area_value_stress_ratio")));
-
+  btn_args_area_name_static_load_n_ = static_cast<CButtonUI*>(
+      m_PaintManager.FindControl(_T("args_area_name_static_load_n")));
+  btn_args_area_value_static_load_n_ = static_cast<CButtonUI*>(
+      m_PaintManager.FindControl(_T("args_area_value_static_load_n")));
   BOOL ret =
       anx::device::stload::STLoadHelper::st_load_loader_.st_api_.set_dest_wnd(
           this->GetHWND());
@@ -555,23 +561,43 @@ LRESULT WorkWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
       if (anx::device::stload::STLoadHelper::Is_Stload_Simulation()) {
         pos = static_cast<double>(rand() % 100) * 1.0f;
         load = static_cast<double>(rand() % 100) * 1.0f;
-        std::unique_ptr<anx::esolution::SolutionDesign> design =
-            solution_design_base_->SolutionDesignFromPage();
-        if (design != nullptr) {
-          if (design->result_->solution_type_ ==
-              anx::esolution::kSolutionName_Stresses_Adjustable) {
-            load = reinterpret_cast<
-                       anx::esolution::ExpDesignResultStressesAdjustable*>(
-                       design->result_.get())
-                       ->f_static_load_MPa_;
-          } else if (design->result_->solution_type_ ==
-                     anx::esolution::kSolutionName_Th3point_Bending) {
-            load = reinterpret_cast<
-                       anx::esolution::ExpDesignResultTh3pointBending*>(
-                       design->result_.get())
-                       ->f_static_load_MPa_;
-          }
+      }
+      double target_load_n = -1.0f;
+      std::unique_ptr<anx::device::DeviceLoadStaticSettings> lss;
+      std::unique_ptr<anx::esolution::SolutionDesign> design =
+          solution_design_base_->SolutionDesignFromPage();
+      if (design != nullptr) {
+        if (design->result_->solution_type_ ==
+            anx::esolution::kSolutionName_Stresses_Adjustable) {
+          /// update lss;
+          lss = std::move(
+              anx::device::LoadDeviceLoadStaticSettingsDefaultResource());
+          target_load_n = lss->retention_;
+        } else if (design->result_->solution_type_ ==
+                   anx::esolution::kSolutionName_Th3point_Bending) {
+          /// update lss;
+          lss = std::move(
+              anx::device::LoadDeviceLoadStaticSettingsDefaultResource());
+          target_load_n = lss->retention_;
         }
+      }
+      DuiLib::CDuiString value;
+      if (target_load_n > 0) {
+        value.Format(_T("静载力(N) %.1f"), target_load_n);
+      } else {
+        value.Format(_T("静载力(N)"));
+      }
+      btn_args_area_name_static_load_n_->SetText(value);
+      if (lss != nullptr) {
+        /// move up
+        if (lss->direct_ == 1) {
+          value.Format(_T("↑ %.1f"), load);
+        } else if (lss->direct_ == 2) {
+          value.Format(_T("↓ %.1f"), load);
+        } else {
+          value.Format(_T("%.1f"), load);
+        }
+		btn_args_area_value_static_load_n_->SetText(value);
       }
       // notify third page to update the data
       // notify second page to update the chart
@@ -600,7 +626,7 @@ LRESULT WorkWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
                  sizeof(GUID)) == 0) {
         unsigned int lid_state = *(unsigned int*)ppbs->Data;
         if (lid_state == 1) {
-          // 盖子是打开的
+          ///  The lid is open
         } else {
           if (is_exp_state_ != 0) {
             DuiLib::TNotifyUI msg;
