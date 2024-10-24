@@ -50,7 +50,7 @@ void Logger::remove_sink(std::shared_ptr<LoggerSink> sink) {
   }
 }
 
-void Logger::Log(int level, std::string& log) {
+void Logger::Log(int level, const std::string& log) {
   std::lock_guard<std::mutex> lock(mutex_);
   if (level < log_level_) {
     return;
@@ -117,9 +117,12 @@ LoggerStream::~LoggerStream() {
 //////////////////////////////////////////////////////////////////////////
 // ConsoleLoggerSink
 
-void ConsoleLoggerSink::Log(int level, std::string& log) {
+void ConsoleLoggerSink::Log(int level, const std::string& log) {
   std::string level_str;
   switch (level) {
+    case LS_SENSITIVE:
+      level_str = "SENSITIVE";
+      break;
     case LS_INFO:
       level_str = "INFO";
       break;
@@ -153,9 +156,12 @@ FileLoggerSink::~FileLoggerSink() {
   file_.close();
 }
 
-void FileLoggerSink::Log(int level, std::string& log) {
+void FileLoggerSink::Log(int level, const std::string& log) {
   std::string level_str;
   switch (level) {
+    case LS_SENSITIVE:
+      level_str = "SENSITIVE";
+      break;
     case LS_INFO:
       level_str = "INFO";
       break;

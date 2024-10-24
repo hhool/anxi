@@ -23,7 +23,7 @@ namespace anx {
 namespace common {
 class LoggerSinkMock : public LoggerSink {
  public:
-  void Log(int level, std::string& log) override {
+  void Log(int level, const std::string& log) override {
 #ifdef _WIN32
     OutputDebugStringA((log + "\n").c_str());
 #endif

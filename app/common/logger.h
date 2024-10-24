@@ -31,10 +31,11 @@ namespace anx {
 namespace common {
 
 enum LogLevel {
-  LS_INFO = 0,
-  LS_WARN = 1,
-  LS_ERROR = 2,
-  LS_FATAL = 3,
+  LS_SENSITIVE = 0,
+  LS_INFO = 1,
+  LS_WARN = 2,
+  LS_ERROR = 3,
+  LS_FATAL = 4,
 };
 
 class LoggerSink {
@@ -42,7 +43,7 @@ class LoggerSink {
   LoggerSink() = default;
   virtual ~LoggerSink() = default;
 
-  virtual void Log(int level, std::string& log) = 0;
+  virtual void Log(int level, const std::string& log) = 0;
 };
 
 /// @brief logger class for logging
@@ -58,7 +59,7 @@ class Logger {
   static void clear_sinks();
   static void add_sink(std::shared_ptr<LoggerSink> sink);
   static void remove_sink(std::shared_ptr<LoggerSink> sink);
-  static void Log(int level, std::string& log);
+  static void Log(int level, const std::string& log);
 
  private:
   static int log_level_;
@@ -96,7 +97,7 @@ class ConsoleLoggerSink : public LoggerSink {
   ConsoleLoggerSink() = default;
   virtual ~ConsoleLoggerSink() = default;
 
-  void Log(int level, std::string& log) override;
+  void Log(int level, const std::string& log) override;
 };
 
 class FileLoggerSink : public LoggerSink {
@@ -105,7 +106,7 @@ class FileLoggerSink : public LoggerSink {
   explicit FileLoggerSink(const FileLoggerSink& other) = delete;
   virtual ~FileLoggerSink();
 
-  void Log(int level, std::string& log) override;
+  void Log(int level, const std::string& log) override;
 
  private:
   std::fstream file_;
@@ -114,6 +115,7 @@ class FileLoggerSink : public LoggerSink {
 }  // namespace common
 }  // namespace anx
 
+#define LG_SENSITIVE anx::common::LS_SENSITIVE
 #define LG_INFO anx::common::LS_INFO
 #define LG_WARN anx::common::LS_WARN
 #define LG_ERROR anx::common::LS_ERROR
