@@ -13,7 +13,22 @@ project(app LANGUAGES CXX)
 set(PROJECT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/..")
 message(STATUS "PROJECT_PATH: ${PROJECT_PATH}")
 include_directories(${PROJECT_PATH})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include(generate_product_version)
 
+# ##############################################################################
+# version defined
+generate_product_version(
+    VersionFilesOutputVariable
+    NAME "anxi"
+    VERSION_MAJOR 1
+    VERSION_MINOR 0
+    VERSION_PATCH 0
+    VERSION_REVISION ${BUILD_REVISION}
+)
+
+# ##############################################################################
+# source files
 set(COMMON_FILES
     common/cmd_parser.cc
     common/cmd_parser.h
@@ -231,15 +246,6 @@ if(WIN32)
     list(APPEND APP_SOURCES ${UI_FILES})
 endif()
 
-# resource files
-if(WIN32)
-    enable_language("RC")
-    set_source_files_properties(${CMAKE_SOURCE_DIR}/resource.rc LANGUAGE RC)
-    set(RES_FILES
-        resource.rc)
-    source_group("resource" FILES ${RES_FILES})
-endif()
-
 # add library
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
 add_library(app_ui STATIC ${APP_SOURCES})
@@ -270,7 +276,7 @@ add_dependencies(app_ui SQLite::SQLite3)
 
 # ##############################################################################
 # add executable
-add_executable(app_exe main.cc ${RES_FILES})
+add_executable(app_exe main.cc ${RES_FILES} ${VersionFilesOutputVariable})
 add_dependencies(app_exe app_ui)
 target_link_libraries(app_exe app_ui)
 set_target_properties(app_exe PROPERTIES FOLDER "app")
@@ -321,14 +327,15 @@ add_custom_command(TARGET app_exe POST_BUILD
 add_custom_command(TARGET app_exe POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${PROJECT_SOURCE_DIR}/../package/ ${PROJECT_BINARY_DIR}/../bin/${CMAKE_BUILD_TYPE}/)
-if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+
+if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
     add_custom_command(TARGET app_exe POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
-       ${PROJECT_SOURCE_DIR}/resource/runtime/debug ${PROJECT_BINARY_DIR}/../bin/${CMAKE_BUILD_TYPE}/)
+        ${PROJECT_SOURCE_DIR}/resource/runtime/debug ${PROJECT_BINARY_DIR}/../bin/${CMAKE_BUILD_TYPE}/)
 else()
     add_custom_command(TARGET app_exe POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
-       ${PROJECT_SOURCE_DIR}/resource/runtime/release ${PROJECT_BINARY_DIR}/../bin/${CMAKE_BUILD_TYPE}/)
+        ${PROJECT_SOURCE_DIR}/resource/runtime/release ${PROJECT_BINARY_DIR}/../bin/${CMAKE_BUILD_TYPE}/)
 endif()
 
 # ##############################################################################
@@ -342,4 +349,5 @@ endif()
 add_custom_command(TARGET app_exe POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E tar "cfv" "${PROJECT_BINARY_DIR}/../bin/${CMAKE_BUILD_TYPE}/skin/skin_default.zip" --format=zip .
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/resource/skin)
+
 # ##############################################################################

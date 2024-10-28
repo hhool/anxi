@@ -19,7 +19,9 @@
 
 #include "app/db/database_factory.h"
 
-#include "resource.h"
+#if !defined(IDI_ICON_APP)
+#define IDI_ICON_APP 101
+#endif
 
 namespace anx {
 namespace app {
