@@ -82,50 +82,55 @@ BOOL CALL SetDestWnd(HWND dest_wnd) {
 
 BOOL CALL LoadHareWareParameters(int nMachineType) {
   printf("LoadHareWareParameters\n");
+  /// @note Get module directory
+  std::string module_dir = anx::common::GetModuleDir();
+  /// @note Get the dll path
+  std::string dll_path = module_dir + "/stload_simulation.dll";
+  LOG_F(LG_INFO) << "module st load dll: " << dll_path;
   return TRUE;
 }
 
 char* CALL GetLoadSensors() {
-  printf("GetLoadSensors\n");
+  LOG_F(LG_INFO) << "GetLoadSensors";
   return "GetLoadSensors";
 }
 
 char* CALL GetExtensions() {
-  printf("GetExtensions\n");
+  LOG_F(LG_INFO) << "GetExtensions";
   return "GetExtensions";
 }
 
 char* CALL GetExtendSensors() {
-  printf("GetExtendSensors\n");
+  LOG_F(LG_INFO) << "GetExtendSensors";
   return "GetExtendSensors";
 }
 
 void CALL SetTestDir(long dir) {  // NOLINT
-  printf("SetTestDir\n");
+  LOG_F(LG_INFO) << "SetTestDir";
 }
 
 BOOL CALL CarryPID(long channel, long Kp, long Ki, long Kd) {  // NOLINT
-  printf("CarryPID\n");
+  LOG_F(LG_INFO) << "CarryPID";
   return TRUE;
 }
 
 BOOL CALL OpenDevice(long uUnit) {  // NOLINT
-  printf("OpenDevice\n");
+  LOG_F(LG_INFO) << "OpenDevice";
   return TRUE;
 }
 
 BOOL CALL CloseDevice() {
-  printf("CloseDevice\n");
+  LOG_F(LG_INFO) << "CloseDevice";
   return TRUE;
 }
 
 BOOL CALL StartRead() {
-  printf("StartRead\n");
+  LOG_F(LG_INFO) << "StartRead";
   return TRUE;
 }
 
 BOOL CALL EndRead() {
-  printf("EndRead\n");
+  LOG_F(LG_INFO) << "EndRead";
   return TRUE;
 }
 
@@ -140,7 +145,7 @@ BOOL CALL OnLine(long channelNo,  // NOLINT
                  BYTE CloseOfflineCheck,
                  int dataBlockSize,
                  BOOL isAE) {
-  printf("OnLine\n");
+  LOG_F(LG_INFO) << "OnLine";
   if (g_thread.get() != nullptr) {
     return FALSE;
   }
@@ -151,7 +156,7 @@ BOOL CALL OnLine(long channelNo,  // NOLINT
 }
 
 BOOL CALL OffLine() {
-  printf("OffLine\n");
+  LOG_F(LG_INFO) << "OffLine";
   if (g_thread.get() == nullptr) {
     return FALSE;
   }
@@ -172,91 +177,91 @@ BOOL CALL Carry200(long control,  // NOLINT
                    long keepdatum,  // NOLINT /* 1 */
                    long TestModle   // NOLINT /* 0* */
 ) {                                 // NOLINT
-  printf("Carry200\n");
+  LOG_F(LG_INFO) << "Carry200";
   return TRUE;
 }
 
 BOOL CALL Carry210(long lOpen) {  // NOLINT
-  printf("Carry210\n");
+  LOG_F(LG_INFO) << "Carry210";
   return TRUE;
 }
 
 BOOL CALL StopRun() {
-  printf("StopRun\n");
+  LOG_F(LG_INFO) << "StopRun";
   return TRUE;
 }
 
 BOOL CALL BeforeGetSample() {
-  printf("BeforeGetSample\n");
+  LOG_F(LG_INFO) << "BeforeGetSample";
   return TRUE;
 }
 
 void CALL AfterGetSample() {
-  printf("AfterGetSample\n");
+  LOG_F(LG_INFO) << "AfterGetSample";
 }
 
 void CALL SetSectCorrA(long channel, double corr) {  // NOLINT
-  printf("SetSectCorrA\n");
+  LOG_F(LG_INFO) << "SetSectCorrA";
 }
 
 BOOL CALL SetResolve(long channel,  // NOLINT
                      DWORD resolve,
                      float norinal) {  // NOLINT
-  printf("SetResolve\n");
+  LOG_F(LG_INFO) << "SetResolve";
   return TRUE;
 }
 
 double CALL GetLoad() {
-  printf("GetLoad\n");
+  LOG_F(LG_INFO) << "GetLoad";
   return 0.0;
 }
 
 double CALL GetPosi() {
-  printf("GetPosi\n");
+  LOG_F(LG_INFO) << "GetPosi";
   return 0.0;
 }
 
 double CALL GetExtn() {
-  printf("GetExtn\n");
+  LOG_F(LG_INFO) << "GetExtn";
   return 0.0;
 }
 
 double CALL GetExt1() {
-  printf("GetExt1\n");
+  LOG_F(LG_INFO) << "GetExt1";
   return 0.0;
 }
 
 double CALL GetTestTime() {
-  printf("GetTestTime\n");
+  LOG_F(LG_INFO) << "GetTestTime";
   return 0.0;
 }
 
 DWORD CALL GetTestStatus() {
-  printf("GetTestStatus\n");
+  LOG_F(LG_INFO) << "GetTestStatus";
   return 0;
 }
 
 BOOL CALL TareLoad() {
-  printf("TareLoad\n");
+  LOG_F(LG_INFO) << "TareLoad";
   return TRUE;
 }
 
 BOOL CALL TarePosi() {
-  printf("TarePosi\n");
+  LOG_F(LG_INFO) << "TarePosi";
   return TRUE;
 }
 
 BOOL CALL TareExtn() {
-  printf("TareExtn\n");
+  LOG_F(LG_INFO) << "TareExtn";
   return TRUE;
 }
 
 BOOL CALL TareExt1() {
-  printf("TareExt1\n");
+  LOG_F(LG_INFO) << "TareExt1";
   return TRUE;
 }
 
 BOOL CALL TareTime() {
-  printf("TareTime\n");
+  LOG_F(LG_INFO) << "TareTime";
   return TRUE;
 }

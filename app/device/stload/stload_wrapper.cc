@@ -16,6 +16,8 @@
 #include <string>
 #include <vector>
 
+#include "app/common/logger.h"
+#include "app/common/module_utils.h"
 #include "app/common/string_utils.h"
 
 namespace anx {
@@ -37,7 +39,7 @@ bool STLoadLoader::Load(const std::string& dll_path) {
   if (h_module_ != nullptr) {
     return false;
   }
-
+  LOG_F(LG_INFO) << "Load st load dll: " << dll_path;
   h_module_ =
       LoadLibraryW(anx::common::string2wstring(dll_path.c_str()).c_str());
   if (h_module_ == nullptr) {
@@ -127,6 +129,7 @@ bool STLoadLoader::Load(const std::string& dll_path) {
   }
 
   handle_ = h_module_;
+  ForceModuleAsCurrentWorkingDirectory();
   return true;
 }
 
@@ -137,6 +140,11 @@ void STLoadLoader::Unload() {
     h_module_ = nullptr;
     handle_ = nullptr;
   }
+}
+
+void STLoadLoader::ForceModuleAsCurrentWorkingDirectory() {
+  std::string module_dir = anx::common::GetAppPath();
+  SetCurrentDirectory(anx::common::string2wstring(module_dir.c_str()).c_str());
 }
 
 }  // namespace stload

@@ -31,6 +31,15 @@ class STLoadLoader {
   static void Unload();
   static void* handle_;
   static stload_api st_api_;
+
+ protected:
+  /// @brief force the module as the current working directory
+  /// This is CTRL.dll specific, it will find dependency files in the same
+  /// directory as the DLL. This is a workaround for the DLL not being able to
+  /// find the dependency files. app open the file dialog, the file dialog will
+  /// will open the file and will change the current working directory to the
+  /// file directory. This will cause the DLL to not find the dependency files.
+  static void ForceModuleAsCurrentWorkingDirectory();
 };
 }  // namespace stload
 }  // namespace device
