@@ -309,10 +309,14 @@ void WorkWindow::Notify(DuiLib::TNotifyUI& msg) {
     int32_t ret = LoadFileWithDialog();
     if (ret < 0) {
       if (ret == -3) {
-        MessageBox(*this, _T("与当前试件设计类型不匹配"), _T("加载失败"),
-                   MB_OK);
+        MessageBox(
+            *this,
+            anx::common::UTF8ToUnicode("与当前试件设计类型不匹配").c_str(),
+            anx::common::UTF8ToUnicode("加载失败").c_str(), MB_OK);
       } else {
-        MessageBox(*this, _T("试件设计文件错误"), _T("加载失败"), MB_OK);
+        MessageBox(*this,
+                   anx::common::UTF8ToUnicode("试件设计文件错误").c_str(),
+                   anx::common::UTF8ToUnicode("加载失败").c_str(), MB_OK);
       }
       return;
     } else {
@@ -321,10 +325,14 @@ void WorkWindow::Notify(DuiLib::TNotifyUI& msg) {
   } else if (msg.sType == kMenu_Design_Save_Solution) {
     int32_t ret = SaveFileWithDialog();
     if (ret < 0) {
-      MessageBox(*this, _T("保存失败"), _T("保存失败"), MB_OK);
+      MessageBox(*this,
+                 anx::common::UTF8ToUnicode("试件设计文件保存错误").c_str(),
+                 anx::common::UTF8ToUnicode("保存失败").c_str(), MB_OK);
       return;
     } else if (ret == 0) {
-      MessageBox(*this, _T("保存成功"), _T("保存成功"), MB_OK);
+      MessageBox(*this,
+                 anx::common::UTF8ToUnicode("试件设计文件保存成功").c_str(),
+                 anx::common::UTF8ToUnicode("保存成功").c_str(), MB_OK);
     } else {
       // do nothing
     }
@@ -597,7 +605,7 @@ LRESULT WorkWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
         } else {
           value.Format(_T("%.1f"), load);
         }
-		btn_args_area_value_static_load_n_->SetText(value);
+        btn_args_area_value_static_load_n_->SetText(value);
       }
       // notify third page to update the data
       // notify second page to update the chart
@@ -670,14 +678,16 @@ void WorkWindow::OnPrepare(DuiLib::TNotifyUI& msg) {
 
 void WorkWindow::UpdateWorkWindowTileWithSolution(int32_t solution_type) {
   if (solution_type == anx::esolution::kSolutionName_Axially_Symmetrical) {
-    btn_title_->SetText(_T("轴向对称拉压疲劳试验"));
+    btn_title_->SetText(
+        anx::common::UTF8ToUnicode("轴向对称拉压疲劳试验").c_str());
   } else if (solution_type ==
              anx::esolution::kSolutionName_Stresses_Adjustable) {
-    btn_title_->SetText(_T("可调应力轴向拉压疲劳试验"));
+    btn_title_->SetText(
+        anx::common::UTF8ToUnicode("可调应力轴向拉压疲劳试验").c_str());
   } else if (solution_type == anx::esolution::kSolutionName_Th3point_Bending) {
-    btn_title_->SetText(_T("三点弯曲疲劳试验"));
+    btn_title_->SetText(anx::common::UTF8ToUnicode("三点弯曲疲劳试验").c_str());
   } else if (solution_type == anx::esolution::kSolutionName_Vibration_Bending) {
-    btn_title_->SetText(_T("振动弯曲疲劳试验"));
+    btn_title_->SetText(anx::common::UTF8ToUnicode("振动弯曲疲劳试验").c_str());
   } else {
     assert(false && "Invalid solution type");
   }
@@ -859,14 +869,16 @@ void WorkWindow::OnMenuDeviceConnectClicked(DuiLib::TNotifyUI& msg) {
     is_device_ultra_connected_ = true;
   } else if (ret < 0) {
     is_device_ultra_connected_ = false;
-    MessageBox(*this, _T("超声连接失败"), _T("连接失败"), MB_OK);
+    MessageBox(*this, anx::common::UTF8ToUnicode("超声连接失败").c_str(),
+               anx::common::UTF8ToUnicode("连接失败").c_str(), MB_OK);
   }
   ret = OpenDeviceCom(anx::device::kDeviceCom_StaticLoad);
   if (ret == 0) {
     is_device_stload_connected_ = true;
   } else if (ret < 0) {
     is_device_stload_connected_ = false;
-    MessageBox(*this, _T("静载机连接失败"), _T("连接失败"), MB_OK);
+    MessageBox(*this, anx::common::UTF8ToUnicode("静载机连接失败").c_str(),
+               anx::common::UTF8ToUnicode("连接失败").c_str(), MB_OK);
   }
 }
 
@@ -1003,7 +1015,8 @@ void WorkWindow::OnExpStart() {
 
 void WorkWindow::ClearArgsFreqNum() {
   // clear freq num
-  btn_args_area_value_freq_num_->SetText(_T("0"));
+  btn_args_area_value_freq_num_->SetText(
+      anx::common::UTF8ToUnicode("0").c_str());
 }
 
 void WorkWindow::UpdateArgsArea(int64_t cycle_count,

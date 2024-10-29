@@ -65,11 +65,11 @@ void WorkWindowStatusBar::OnTimer(TNotifyUI& msg) {
       paint_manager_ui_->FindControl(_T("status_device_linked"));
 
   if (pWorkWindow_->IsDeviceComInterfaceConnected()) {
-    ui_text_connected->SetText(_T("联机"));
+    ui_text_connected->SetText(anx::common::UTF8ToUnicode("联机").c_str());
     ui_unconnected->SetVisible(false);
     ui_connected->SetVisible(true);
   } else {
-    ui_text_connected->SetText(_T("脱机"));
+    ui_text_connected->SetText(anx::common::UTF8ToUnicode("脱机").c_str());
     ui_unconnected->SetVisible(true);
     ui_connected->SetVisible(false);
   }
