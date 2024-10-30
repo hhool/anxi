@@ -58,6 +58,4 @@ open explorer and go to `anxi\out\package` folder, you will see `anxi-x.x.x-win3
 
 ## install
 
- [how to install](package/README.install.md)
-
- [如何安装](package/README.install.zh.md)
+ [how to install](package/README.install.help.en.md)
