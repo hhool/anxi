@@ -25,7 +25,7 @@ namespace ultrasonic {
 class UltrasonicHelper {
  public:
   static bool InitUltrasonic();
-  static void UnInitUltrasonic();
+  static void UnInitUltrasonic() {}
 
   static bool Is_Ultrasonic_Simulation();
 

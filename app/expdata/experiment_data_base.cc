@@ -54,9 +54,9 @@ uint64_t StringToTime(const std::string& time_str) {
   return mktime(&tm);
 }
 
-const std::string kCsvHeader = "id,cycle_count,KHz,MPa,um\n";
-const std::string kCsvFormat = "%lu,%lu,%f,%f,%f\n";
-const std::string kCsvDefaultPath = "expdata";
+const char kCsvHeader[] = "id,cycle_count,KHz,MPa,um\n";
+const char kCsvFormat[] = "%lu,%lu,%f,%f,%f\n";
+const char kCsvDefaultPath[] = "expdata";
 }  // namespace
 
 /// helper function

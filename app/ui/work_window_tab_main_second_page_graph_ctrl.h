@@ -71,7 +71,7 @@ class WorkWindowSecondWorkWindowSecondPageGraphCtrl {
   WorkWindowSecondWorkWindowSecondPageGraphCtrl(
       GraphCtrlEventInterface* event_interface,
       DuiLib::CActiveXUI* activex,
-      const std::string name,
+      const std::string& name,
       double x_min,
       double x_duration,
       double y_min_,
