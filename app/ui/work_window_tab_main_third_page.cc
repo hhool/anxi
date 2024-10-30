@@ -99,7 +99,7 @@ class WorkWindowThirdPage::ListSendGetter
         pControl->GetInterface(DUI_CTR_LISTHBOXELEMENT));
     if (pHBox) {
       CDuiString strFormat =
-          anx::common::string2wstring(result[0]["content"].c_str()).c_str();
+          anx::common::String2WString(result[0]["content"].c_str()).c_str();
       pHBox->GetItemAt(0)->SetText(strFormat);
     }
   }
@@ -151,7 +151,7 @@ class WorkWindowThirdPage::ListRecvGetter
         pControl->GetInterface(DUI_CTR_LISTHBOXELEMENT));
     if (pHBox) {
       CDuiString strFormat =
-          anx::common::string2wstring(result[0]["content"].c_str()).c_str();
+          anx::common::String2WString(result[0]["content"].c_str()).c_str();
       pHBox->GetItemAt(0)->SetText(strFormat);
     }
   }
@@ -203,7 +203,7 @@ class WorkWindowThirdPage::ListRecvNotifyGetter
         pControl->GetInterface(DUI_CTR_LISTHBOXELEMENT));
     if (pHBox) {
       CDuiString strFormat =
-          anx::common::string2wstring(result[0]["content"].c_str()).c_str();
+          anx::common::String2WString(result[0]["content"].c_str()).c_str();
       pHBox->GetItemAt(0)->SetText(strFormat);
     }
   }
@@ -283,12 +283,12 @@ void WorkWindowThirdPage::OnValueChanged(TNotifyUI& msg) {
         // format the number keep 1 decimal
         std::string num_pos_str = to_string_with_precision(pos, 1);
         label_displacement_->SetText(
-            anx::common::string2wstring(num_pos_str).c_str());
+            anx::common::String2WString(num_pos_str).c_str());
         // update the label_strength_ with random value
         double load = st_result->load_;
         std::string num_load_str = to_string_with_precision(load, 1);
         label_strength_->SetText(
-            anx::common::string2wstring(num_load_str).c_str());
+            anx::common::String2WString(num_load_str).c_str());
       } else if (enmsg->type_ == enmsg_type_exp_stress_amp) {
         // TODO(hhool):
       }
@@ -398,9 +398,9 @@ void WorkWindowThirdPage::UpdateControlFromSettings() {
   opt_direct_up_->Selected(lss->direct_ == 1);
   opt_direct_down_->Selected(lss->direct_ == 2);
   edit_speed_->SetText(
-      anx::common::string2wstring(std::to_string(lss->speed_).c_str()).c_str());
+      anx::common::String2WString(std::to_string(lss->speed_).c_str()).c_str());
   edit_retention_->SetText(
-      anx::common::string2wstring(std::to_string(lss->retention_).c_str())
+      anx::common::String2WString(std::to_string(lss->retention_).c_str())
           .c_str());
 }
 

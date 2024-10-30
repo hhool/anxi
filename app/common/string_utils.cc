@@ -107,7 +107,7 @@ std::string ToString(const std::wstring& wstr) {
   return result;
 }
 #if defined(_WIN32) || defined(_WIN64)
-std::wstring string2wstring(std::string str) {
+std::wstring String2WString(const std::string& str) {
   std::wstring result;
   int len = ::MultiByteToWideChar(CP_ACP, 0, str.c_str(), str.size(), NULL, 0);
   TCHAR* buffer = new TCHAR[len + 1];
@@ -118,7 +118,7 @@ std::wstring string2wstring(std::string str) {
   return result;
 }
 
-std::string wstring2string(std::wstring wstr) {
+std::string WString2String(const std::wstring& wstr) {
   std::string result;
   int len = ::WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), wstr.size(), NULL, 0,
                                   NULL, NULL);

@@ -42,7 +42,7 @@ R get_value_from_edit(const std::string& ctrl_name,
   std::string ctrl_name_with_prefix = ctrl_name + prefix;
   DuiLib::CDuiString dui_str_name;
   dui_str_name.Append(
-      anx::common::string2wstring(ctrl_name_with_prefix.c_str()).c_str());
+      anx::common::String2WString(ctrl_name_with_prefix.c_str()).c_str());
   DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
       paint_manager_ui->FindControl(dui_str_name));
   return get_value_from_edit<R>(edit);
@@ -66,7 +66,7 @@ void set_value_to_edit(const std::string& ctrl_name,
   std::string ctrl_name_with_prefix = ctrl_name + prefix;
   DuiLib::CDuiString dui_str_name;
   dui_str_name.Append(
-      anx::common::string2wstring(ctrl_name_with_prefix.c_str()).c_str());
+      anx::common::String2WString(ctrl_name_with_prefix.c_str()).c_str());
   DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
       paint_manager_ui->FindControl(dui_str_name));
   set_value_to_edit(edit, value);
@@ -79,7 +79,7 @@ void set_value_to_edit(const std::string& ctrl_name,
   std::string ctrl_name_with_prefix = ctrl_name + prefix;
   DuiLib::CDuiString dui_str_name;
   dui_str_name.Append(
-      anx::common::string2wstring(ctrl_name_with_prefix.c_str()).c_str());
+      anx::common::String2WString(ctrl_name_with_prefix.c_str()).c_str());
   DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
       paint_manager_ui->FindControl(dui_str_name));
   set_value_to_edit(edit, value);
@@ -195,7 +195,7 @@ PageSolutionDesignBase::UpadateTabMainFirstPageElementViewHeaderAndBaseParam() {
   std::string t_prefix =
       anx::esolution::ToTailPrefixName(header->solution_type_);
   DuiLib::CDuiString tail_prefix;
-  tail_prefix.Append(anx::common::string2wstring(t_prefix).c_str());
+  tail_prefix.Append(anx::common::String2WString(t_prefix).c_str());
 
   // update header
   {
@@ -224,7 +224,7 @@ PageSolutionDesignBase::UpadateTabMainFirstPageElementViewHeaderAndBaseParam() {
       material_name.assign(base_param->material_name_,
                            base_param->material_name_ + 255);
       LPCSTR result = material_name.c_str();
-      std::wstring result_str(anx::common::string2wstring(result));
+      std::wstring result_str(anx::common::String2WString(result));
       int count = edit->GetCount();
       for (int i = 0; i < count; i++) {
         DuiLib::CDuiString text = edit->GetItemAt(i)->GetText();
@@ -256,7 +256,7 @@ PageSolutionDesignBase::ExpDesignHeaderFromControl() {
   DuiLib::CDuiString name_specimensa = _T("tm_page_first_left_name_specimens");
   DuiLib::CDuiString tail_prefix;
   tail_prefix.Append(
-      (LPCTSTR)(anx::common::string2wstring(t_prefix.c_str()).c_str()));
+      (LPCTSTR)(anx::common::String2WString(t_prefix.c_str()).c_str()));
   DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
       paint_manager_ui_->FindControl(name_specimensa + tail_prefix));
   DuiLib::CDuiString value = edit->GetText().GetData();
@@ -274,7 +274,7 @@ PageSolutionDesignBase::ExpDesignBaseParamFromControl() {
   std::string t_prefix = anx::esolution::ToTailPrefixName(design_type_);
   DuiLib::CDuiString tail_prefix;
   tail_prefix.Append(
-      (LPCTSTR)(anx::common::string2wstring(t_prefix.c_str()).c_str()));
+      (LPCTSTR)(anx::common::String2WString(t_prefix.c_str()).c_str()));
   DuiLib::CDuiString name_material = _T("tm_page_first_left_material");
   DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
       paint_manager_ui_->FindControl(name_material + tail_prefix));
@@ -285,7 +285,7 @@ PageSolutionDesignBase::ExpDesignBaseParamFromControl() {
     value = _T("");
   }
   anx::esolution::ExpDesignBaseParam exp_design_base_param;
-  std::string material_name = anx::common::wstring2string(value.GetData());
+  std::string material_name = anx::common::WString2String(value.GetData());
   memcpy(exp_design_base_param.material_name_, material_name.data(), 255);
   exp_design_base_param.f_elastic_modulus_GPa_ = get_value_from_edit<float>(
       "tm_page_first_left_elastic", t_prefix, paint_manager_ui_);
@@ -555,7 +555,7 @@ void WorkWindowFirstPageTh3pointBending::Notify(TNotifyUI& msg) {
   if (name.IsEmpty()) {
     return;
   }
-  std::string ctrl_name = anx::common::wstring2string(name.GetData());
+  std::string ctrl_name = anx::common::WString2String(name.GetData());
   // check ctrl_name contain tm_page_first_left_elastic
   if (ctrl_name.find("tm_page_first_left_elastic") != std::string::npos) {
     if (msg.sType == DUI_MSGTYPE_KILLFOCUS) {

@@ -128,11 +128,11 @@ std::string DialogComPortSettings::GetComPortNameFromControl(
   DuiLib::CDuiString name = _T("com_port_");
   DuiLib::CDuiString prefix;
   prefix.Append(
-      (LPCTSTR)(anx::common::string2wstring(tail_prefix.c_str()).c_str()));
+      (LPCTSTR)(anx::common::String2WString(tail_prefix.c_str()).c_str()));
   DuiLib::CEditUI* com_port_name_edit =
       static_cast<DuiLib::CEditUI*>(m_PaintManager.FindControl(name + prefix));
   DuiLib::CDuiString s = com_port_name_edit->GetText().GetData();
-  return anx::common::wstring2string(s.GetData());
+  return anx::common::WString2String(s.GetData());
 }
 
 std::string DialogComPortSettings::GetBaudRateFromControl(
@@ -140,11 +140,11 @@ std::string DialogComPortSettings::GetBaudRateFromControl(
   DuiLib::CDuiString name = _T("baud_rate_");
   DuiLib::CDuiString prefix;
   prefix.Append(
-      (LPCTSTR)(anx::common::string2wstring(tail_prefix.c_str()).c_str()));
+      (LPCTSTR)(anx::common::String2WString(tail_prefix.c_str()).c_str()));
   DuiLib::CEditUI* baud_rate_edit =
       static_cast<DuiLib::CEditUI*>(m_PaintManager.FindControl(name + prefix));
   DuiLib::CDuiString s = baud_rate_edit->GetText().GetData();
-  return anx::common::wstring2string(s.GetData());
+  return anx::common::WString2String(s.GetData());
 }
 
 std::string DialogComPortSettings::GetDataBitsFromControl(
@@ -152,11 +152,11 @@ std::string DialogComPortSettings::GetDataBitsFromControl(
   DuiLib::CDuiString name = _T("data_bits_");
   DuiLib::CDuiString prefix;
   prefix.Append(
-      (LPCTSTR)(anx::common::string2wstring(tail_prefix.c_str()).c_str()));
+      (LPCTSTR)(anx::common::String2WString(tail_prefix.c_str()).c_str()));
   DuiLib::CEditUI* data_bits_edit =
       static_cast<DuiLib::CEditUI*>(m_PaintManager.FindControl(name + prefix));
   DuiLib::CDuiString s = data_bits_edit->GetText().GetData();
-  return anx::common::wstring2string(s.GetData());
+  return anx::common::WString2String(s.GetData());
 }
 
 std::string DialogComPortSettings::GetStopBitsFromControl(
@@ -164,11 +164,11 @@ std::string DialogComPortSettings::GetStopBitsFromControl(
   DuiLib::CDuiString name = _T("stop_bits_");
   DuiLib::CDuiString prefix;
   prefix.Append(
-      (LPCTSTR)(anx::common::string2wstring(tail_prefix.c_str()).c_str()));
+      (LPCTSTR)(anx::common::String2WString(tail_prefix.c_str()).c_str()));
   DuiLib::CEditUI* stop_bits_edit =
       static_cast<DuiLib::CEditUI*>(m_PaintManager.FindControl(name + prefix));
   DuiLib::CDuiString s = stop_bits_edit->GetText().GetData();
-  return anx::common::wstring2string(s.GetData());
+  return anx::common::WString2String(s.GetData());
 }
 
 std::string DialogComPortSettings::GetParityFromControl(
@@ -176,11 +176,11 @@ std::string DialogComPortSettings::GetParityFromControl(
   DuiLib::CDuiString name = _T("parity_");
   DuiLib::CDuiString prefix;
   prefix.Append(
-      (LPCTSTR)(anx::common::string2wstring(tail_prefix.c_str()).c_str()));
+      (LPCTSTR)(anx::common::String2WString(tail_prefix.c_str()).c_str()));
   DuiLib::CEditUI* parity_edit =
       static_cast<DuiLib::CEditUI*>(m_PaintManager.FindControl(name + prefix));
   DuiLib::CDuiString s = parity_edit->GetText().GetData();
-  return anx::common::wstring2string(s.GetData());
+  return anx::common::WString2String(s.GetData());
 }
 
 std::string DialogComPortSettings::GetFlowControlFromControl(
@@ -188,11 +188,11 @@ std::string DialogComPortSettings::GetFlowControlFromControl(
   DuiLib::CDuiString name = _T("flow_control_");
   DuiLib::CDuiString prefix;
   prefix.Append(
-      (LPCTSTR)(anx::common::string2wstring(tail_prefix.c_str()).c_str()));
+      (LPCTSTR)(anx::common::String2WString(tail_prefix.c_str()).c_str()));
   DuiLib::CEditUI* flow_control_edit =
       static_cast<DuiLib::CEditUI*>(m_PaintManager.FindControl(name + prefix));
   DuiLib::CDuiString s = flow_control_edit->GetText().GetData();
-  return anx::common::wstring2string(s.GetData());
+  return anx::common::WString2String(s.GetData());
 }
 
 void DialogComPortSettings::UpdateControlFromComInfoAll() {
@@ -224,7 +224,7 @@ void DialogComPortSettings::SetComPortNameToControl(std::string tail_prefix,
   DuiLib::CDuiString name = _T("com_port_");
   DuiLib::CDuiString prefix;
   prefix.Append(
-      (LPCTSTR)(anx::common::string2wstring(tail_prefix.c_str()).c_str()));
+      (LPCTSTR)(anx::common::String2WString(tail_prefix.c_str()).c_str()));
   DuiLib::CComboUI* com_port_name_edit =
       static_cast<DuiLib::CComboUI*>(m_PaintManager.FindControl(name + prefix));
   if (com_port_name_edit == nullptr) {
@@ -234,7 +234,7 @@ void DialogComPortSettings::SetComPortNameToControl(std::string tail_prefix,
   for (int i = 0; i < count; i++) {
     DuiLib::CDuiString s = com_port_name_edit->GetItemAt(i)->GetText();
     if (s.CompareNoCase(
-            anx::common::string2wstring(com_port_name.c_str()).c_str()) == 0) {
+            anx::common::String2WString(com_port_name.c_str()).c_str()) == 0) {
       com_port_name_edit->SelectItem(i);
       return;
     }
@@ -246,7 +246,7 @@ void DialogComPortSettings::SetBaudRateToControl(std::string tail_prefix,
   DuiLib::CDuiString name = _T("baud_rate_");
   DuiLib::CDuiString prefix;
   prefix.Append(
-      (LPCTSTR)(anx::common::string2wstring(tail_prefix.c_str()).c_str()));
+      (LPCTSTR)(anx::common::String2WString(tail_prefix.c_str()).c_str()));
   DuiLib::CComboUI* baud_rate_edit =
       static_cast<DuiLib::CComboUI*>(m_PaintManager.FindControl(name + prefix));
   if (baud_rate_edit == nullptr) {
@@ -256,7 +256,7 @@ void DialogComPortSettings::SetBaudRateToControl(std::string tail_prefix,
   for (int i = 0; i < count; i++) {
     DuiLib::CDuiString s = baud_rate_edit->GetItemAt(i)->GetText();
     if (s.CompareNoCase(
-            anx::common::string2wstring(baud_rate.c_str()).c_str()) == 0) {
+            anx::common::String2WString(baud_rate.c_str()).c_str()) == 0) {
       baud_rate_edit->SelectItem(i);
       return;
     }
@@ -268,7 +268,7 @@ void DialogComPortSettings::SetDataBitsToControl(std::string tail_prefix,
   DuiLib::CDuiString name = _T("data_bits_");
   DuiLib::CDuiString prefix;
   prefix.Append(
-      (LPCTSTR)(anx::common::string2wstring(tail_prefix.c_str()).c_str()));
+      (LPCTSTR)(anx::common::String2WString(tail_prefix.c_str()).c_str()));
   DuiLib::CComboUI* data_bits_edit =
       static_cast<DuiLib::CComboUI*>(m_PaintManager.FindControl(name + prefix));
   if (data_bits_edit == nullptr) {
@@ -278,7 +278,7 @@ void DialogComPortSettings::SetDataBitsToControl(std::string tail_prefix,
   for (int i = 0; i < count; i++) {
     DuiLib::CDuiString s = data_bits_edit->GetItemAt(i)->GetText();
     if (s.CompareNoCase(
-            anx::common::string2wstring(data_bits.c_str()).c_str()) == 0) {
+            anx::common::String2WString(data_bits.c_str()).c_str()) == 0) {
       data_bits_edit->SelectItem(i);
       return;
     }
@@ -290,7 +290,7 @@ void DialogComPortSettings::SetStopBitsToControl(std::string tail_prefix,
   DuiLib::CDuiString name = _T("stop_bits_");
   DuiLib::CDuiString prefix;
   prefix.Append(
-      (LPCTSTR)(anx::common::string2wstring(tail_prefix.c_str()).c_str()));
+      (LPCTSTR)(anx::common::String2WString(tail_prefix.c_str()).c_str()));
   DuiLib::CComboUI* stop_bits_edit =
       static_cast<DuiLib::CComboUI*>(m_PaintManager.FindControl(name + prefix));
   if (stop_bits_edit == nullptr) {
@@ -300,7 +300,7 @@ void DialogComPortSettings::SetStopBitsToControl(std::string tail_prefix,
   for (int i = 0; i < count; i++) {
     DuiLib::CDuiString s = stop_bits_edit->GetItemAt(i)->GetText();
     if (s.CompareNoCase(
-            anx::common::string2wstring(stop_bits.c_str()).c_str()) == 0) {
+            anx::common::String2WString(stop_bits.c_str()).c_str()) == 0) {
       stop_bits_edit->SelectItem(i);
       return;
     }
@@ -312,7 +312,7 @@ void DialogComPortSettings::SetParityToControl(std::string tail_prefix,
   DuiLib::CDuiString name = _T("parity_");
   DuiLib::CDuiString prefix;
   prefix.Append(
-      (LPCTSTR)(anx::common::string2wstring(tail_prefix.c_str()).c_str()));
+      (LPCTSTR)(anx::common::String2WString(tail_prefix.c_str()).c_str()));
   DuiLib::CComboUI* parity_edit =
       static_cast<DuiLib::CComboUI*>(m_PaintManager.FindControl(name + prefix));
   if (parity_edit == nullptr) {
@@ -321,7 +321,7 @@ void DialogComPortSettings::SetParityToControl(std::string tail_prefix,
   int count = parity_edit->GetCount();
   for (int i = 0; i < count; i++) {
     DuiLib::CDuiString s = parity_edit->GetItemAt(i)->GetText();
-    if (s.CompareNoCase(anx::common::string2wstring(parity.c_str()).c_str()) ==
+    if (s.CompareNoCase(anx::common::String2WString(parity.c_str()).c_str()) ==
         0) {
       parity_edit->SelectItem(i);
       return;
@@ -334,7 +334,7 @@ void DialogComPortSettings::SetFlowControlToControl(std::string tail_prefix,
   DuiLib::CDuiString name = _T("flow_control_");
   DuiLib::CDuiString prefix;
   prefix.Append(
-      (LPCTSTR)(anx::common::string2wstring(tail_prefix.c_str()).c_str()));
+      (LPCTSTR)(anx::common::String2WString(tail_prefix.c_str()).c_str()));
   DuiLib::CComboUI* flow_control_edit =
       static_cast<DuiLib::CComboUI*>(m_PaintManager.FindControl(name + prefix));
   if (flow_control_edit == nullptr) {
@@ -344,7 +344,7 @@ void DialogComPortSettings::SetFlowControlToControl(std::string tail_prefix,
   for (int i = 0; i < count; i++) {
     DuiLib::CDuiString s = flow_control_edit->GetItemAt(i)->GetText();
     if (s.CompareNoCase(
-            anx::common::string2wstring(flow_control.c_str()).c_str()) == 0) {
+            anx::common::String2WString(flow_control.c_str()).c_str()) == 0) {
       flow_control_edit->SelectItem(i);
       return;
     }

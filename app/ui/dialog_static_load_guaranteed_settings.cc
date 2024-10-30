@@ -132,15 +132,15 @@ void DialogStaticLoadGuaranteedSettings::UpdateControlFromSettings() {
     edit_retention_->SetEnabled(false);
   }
   edit_speed_->SetText(
-      anx::common::string2wstring(std::to_string(lss->speed_).c_str()).c_str());
+      anx::common::String2WString(std::to_string(lss->speed_).c_str()).c_str());
   edit_retention_->SetText(
-      anx::common::string2wstring(std::to_string(lss->retention_).c_str())
+      anx::common::String2WString(std::to_string(lss->retention_).c_str())
           .c_str());
   edit_displacement_->SetText(
-      anx::common::string2wstring(std::to_string(lss->displacement_).c_str())
+      anx::common::String2WString(std::to_string(lss->displacement_).c_str())
           .c_str());
   edit_keep_load_duration_->SetText(
-      anx::common::string2wstring(
+      anx::common::String2WString(
           std::to_string(lss->keep_load_duration_).c_str())
           .c_str());
 }

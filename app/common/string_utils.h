@@ -66,11 +66,11 @@ std::string Join(const std::vector<std::string>& str,
 
 //// @brief Convert from string to wstring
 /// @param str the string to be converted
-std::wstring string2wstring(std::string str);
+std::wstring String2WString(const std::string& str);
 
 /// @brief Convert from wstring to string
 /// @param str the string to be converted
-std::string wstring2string(std::wstring wstr);
+std::string WString2String(const std::wstring& wstr);
 
 /// @brief  Convert from utf8 to unicode
 /// @param str  the string to be converted

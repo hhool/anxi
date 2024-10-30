@@ -41,7 +41,7 @@ bool STLoadLoader::Load(const std::string& dll_path) {
   }
   LOG_F(LG_INFO) << "Load st load dll: " << dll_path;
   h_module_ =
-      LoadLibraryW(anx::common::string2wstring(dll_path.c_str()).c_str());
+      LoadLibraryW(anx::common::String2WString(dll_path.c_str()).c_str());
   if (h_module_ == nullptr) {
     return false;
   }
@@ -144,7 +144,7 @@ void STLoadLoader::Unload() {
 
 void STLoadLoader::ForceModuleAsCurrentWorkingDirectory() {
   std::string module_dir = anx::common::GetAppPath();
-  SetCurrentDirectory(anx::common::string2wstring(module_dir.c_str()).c_str());
+  SetCurrentDirectory(anx::common::String2WString(module_dir.c_str()).c_str());
 }
 
 }  // namespace stload

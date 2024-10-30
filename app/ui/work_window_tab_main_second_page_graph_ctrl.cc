@@ -228,7 +228,7 @@ void WorkWindowSecondWorkWindowSecondPageGraphCtrl::Init(
   hr = spDispatch_->QueryInterface(&spGraphElement_);
   CHECK_HROBJ(hr, spGraphElement_);
   hr = spGraphElement_->put_Name(
-      (BSTR)anx::common::string2wstring(name_).c_str());
+      (BSTR)anx::common::String2WString(name_).c_str());
 
   hr = spGraphElement_->put_LineType(LineType::XYStep);
   hr = spGraphElement_->put_PointSymbol(SymbolType::Dots);

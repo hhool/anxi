@@ -116,7 +116,7 @@ int32_t SaveExperimentDataToCsvWithDefaultPath(
 // check if dir exists
 #if defined(_WIN32)
     DWORD dwAttr = GetFileAttributes(
-        anx::common::string2wstring(module_dir.c_str()).c_str());
+        anx::common::String2WString(module_dir.c_str()).c_str());
     if (dwAttr == 0xffffffff || !(dwAttr & FILE_ATTRIBUTE_DIRECTORY)) {
 #else
     if (access(module_dir.c_str(), 0) != 0) {
@@ -140,7 +140,7 @@ int32_t TraverseDir(
     std::vector<anx::expdata::ExperimentFileSummary>* summarys) {
 #if defined(_WIN32)
   WIN32_FIND_DATA find_data;
-  HANDLE hFind = FindFirstFile(anx::common::string2wstring(dir + "\\*").c_str(),
+  HANDLE hFind = FindFirstFile(anx::common::String2WString(dir + "\\*").c_str(),
                                &find_data);
   if (hFind == INVALID_HANDLE_VALUE) {
     return -1;
@@ -150,11 +150,11 @@ int32_t TraverseDir(
       continue;
     }
     /* file_list->push_back(dir + "\\" +
-                          anx::common::wstring2string(find_data.cFileName));*/
+                          anx::common::WString2String(find_data.cFileName));*/
     // parse file content to get the start_time, end_time.
     // file name format is start_time_stop_time.csv
     // represent as 2024-08-11_12-00-00_2024-08-11_12-00-00.csv
-    std::string file_name = anx::common::wstring2string(find_data.cFileName);
+    std::string file_name = anx::common::WString2String(find_data.cFileName);
     std::string start_time_str = file_name.substr(0, 19);
     std::string end_time_str = file_name.substr(20, 19);
     anx::expdata::ExperimentFileSummary file_summary;
@@ -180,7 +180,7 @@ int32_t TraverseExpDataFolder(
   // check if dir exists
 #if defined(_WIN32)
   DWORD dwAttr = GetFileAttributes(
-      anx::common::string2wstring(module_dir.c_str()).c_str());
+      anx::common::String2WString(module_dir.c_str()).c_str());
   if (dwAttr == 0xffffffff || !(dwAttr & FILE_ATTRIBUTE_DIRECTORY)) {
 #else
   if (access(module_dir.c_str(), 0) != 0) {

@@ -55,7 +55,7 @@ void WorkWindowStatusBar::OnTimer(TNotifyUI& msg) {
   int64_t current_time = anx::common::GetCurrentTimeMillis();
   char date_time[256] = {0};
   anx::common::GetCurrentDateTime(date_time);
-  ui_text->SetText(anx::common::string2wstring(date_time).c_str());
+  ui_text->SetText(anx::common::String2WString(date_time).c_str());
 
   DuiLib::CTextUI* ui_text_connected = static_cast<DuiLib::CTextUI*>(
       paint_manager_ui_->FindControl(_T("status_bar_connected")));
@@ -85,7 +85,7 @@ void WorkWindowStatusBar::OnTimer(TNotifyUI& msg) {
   DuiLib::CTextUI* ui_text_device = static_cast<DuiLib::CTextUI*>(
       paint_manager_ui_->FindControl(_T("status_bar_num_of_device")));
   std::wstring text =
-      anx::common::string2wstring(std::to_string(connected_device_num));
+      anx::common::String2WString(std::to_string(connected_device_num));
   ui_text_device->SetText(text.c_str());
 }
 

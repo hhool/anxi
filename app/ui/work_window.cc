@@ -146,7 +146,7 @@ WorkWindow::~WorkWindow() {
   solution_design_base_->Dispose();
   for (auto& tab_main_page : tab_main_pages_) {
     DuiLib::CDuiString name(
-        anx::common::string2wstring(tab_main_page.first).c_str());
+        anx::common::String2WString(tab_main_page.first).c_str());
     this->RemoveVirtualWnd(name);
   }
 
@@ -345,7 +345,7 @@ void WorkWindow::Notify(DuiLib::TNotifyUI& msg) {
     dialog_exp_data_record->ShowModal();
   } else if (msg.sType == DUI_MSGTYPE_KILLFOCUS) {
     DuiLib::CDuiString name = msg.pSender->GetName();
-    std::string name_str = anx::common::wstring2string(name.GetData());
+    std::string name_str = anx::common::WString2String(name.GetData());
     // compare name_str partion compare with
     // "tm_page_first_left_max_stress" and "tm_page_first_left_ratio_stress"
     if (name_str.find("tm_page_first_left_max_stress") != std::string::npos) {
@@ -800,7 +800,7 @@ int32_t WorkWindow::LoadFileWithDialog() {
   if (!GetOpenFileName(&ofn)) {
     return 1;
   }
-  std::string filepath = anx::common::wstring2string(ofn.lpstrFile);
+  std::string filepath = anx::common::WString2String(ofn.lpstrFile);
   int32_t ret = solution_design_base_->LoadSolutionDesingFile(filepath);
   if (ret != 0) {
     return ret;
@@ -824,7 +824,7 @@ int32_t WorkWindow::SaveFileWithDialog() {
   }
 
   // create file with ofn.lpstrFile
-  std::string filepath = anx::common::wstring2string(ofn.lpstrFile);
+  std::string filepath = anx::common::WString2String(ofn.lpstrFile);
   // get file extension
   std::string extension = filepath.substr(filepath.find_last_of(".") + 1);
   if (extension != "xml") {

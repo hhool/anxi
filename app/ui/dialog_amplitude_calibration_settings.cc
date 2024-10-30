@@ -112,16 +112,16 @@ void DialogAmplitudeCalibrationSettings::UpdateControlFromSettings() {
 void DialogAmplitudeCalibrationSettings::SaveSettingsFromControl() {
   std::map<int32_t, int32_t> exp_power2amp_map;
   exp_power2amp_map[20] = std::stoi(
-      anx::common::wstring2string(edit_amp_level_one_->GetText().GetData())
+      anx::common::WString2String(edit_amp_level_one_->GetText().GetData())
           .c_str());
   exp_power2amp_map[40] = std::stoi(
-      anx::common::wstring2string(edit_amp_level_two_->GetText().GetData())
+      anx::common::WString2String(edit_amp_level_two_->GetText().GetData())
           .c_str());
   exp_power2amp_map[60] = std::stoi(
-      anx::common::wstring2string(edit_amp_level_third_->GetText().GetData())
+      anx::common::WString2String(edit_amp_level_third_->GetText().GetData())
           .c_str());
   exp_power2amp_map[80] = std::stoi(
-      anx::common::wstring2string(edit_amp_level_fourth_->GetText().GetData())
+      anx::common::WString2String(edit_amp_level_fourth_->GetText().GetData())
           .c_str());
 
   anx::device::SaveDeviceExpAmplitudeSettingsDefaultResource(exp_power2amp_map);

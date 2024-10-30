@@ -197,7 +197,7 @@ void anx::ui::MainWindow::Switch_ThirdApp() {
     return;
   }
   ShellExecute(NULL, _T("open"),
-               anx::common::string2wstring(path.c_str()).c_str(), NULL, NULL,
+               anx::common::String2WString(path.c_str()).c_str(), NULL, NULL,
                SW_SHOW);
 }
 

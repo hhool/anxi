@@ -123,12 +123,12 @@ class WorkWindowSecondPageData::ListVirtalDataView
         pControl->GetInterface(DUI_CTR_LISTCONTAINERELEMENT));
     if (pHBox) {
       CDuiString dui_string =
-          anx::common::string2wstring(result[0]["id"]).c_str();
+          anx::common::String2WString(result[0]["id"]).c_str();
       DuiLib::CLabelUI* pText = static_cast<DuiLib::CLabelUI*>(
           pHBox->GetItemAt(0)->GetInterface(DUI_CTR_LABEL));
       pText->SetText(dui_string);
 
-      dui_string = anx::common::string2wstring(result[0]["cycle"]).c_str();
+      dui_string = anx::common::String2WString(result[0]["cycle"]).c_str();
       pText = static_cast<DuiLib::CLabelUI*>(
           pHBox->GetItemAt(1)->GetInterface(DUI_CTR_LABEL));
       pText->SetText(dui_string);
@@ -368,7 +368,7 @@ void WorkWindowSecondPageData::RefreshSampleTimeControl(bool force) {
     device_exp_data_settings_->sampling_interval_ = sample_time_interval;
     value += to_string_with_precision((sample_time_interval * 100) / 1000.0f, 1);
     value += "S";
-    text_sample_interval_->SetText(anx::common::string2wstring(value).c_str());
+    text_sample_interval_->SetText(anx::common::String2WString(value).c_str());
     exp_data_info_->exp_sample_interval_ms_ = sample_time_interval * 100;
   }
 }
@@ -426,14 +426,14 @@ void WorkWindowSecondPageData::UpdateControlFromSettings() {
       option_sample_mode_linear_->Selected(true);
     }
     edit_sample_start_pos_->SetText(
-        anx::common::string2wstring(
+        anx::common::String2WString(
             std::to_string(settings->sampling_start_pos_))
             .c_str());
     edit_sample_end_pos_->SetText(
-        anx::common::string2wstring(std::to_string(settings->sampling_end_pos_))
+        anx::common::String2WString(std::to_string(settings->sampling_end_pos_))
             .c_str());
     edit_sample_interval_->SetText(
-        anx::common::string2wstring(
+        anx::common::String2WString(
             std::to_string(settings->sampling_interval_))
             .c_str());
 

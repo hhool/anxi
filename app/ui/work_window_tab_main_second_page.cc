@@ -63,7 +63,7 @@ template <typename R>
 R get_value_from_edit(const std::string& ctrl_name,
                       DuiLib::CPaintManagerUI* paint_manager_ui) {
   DuiLib::CDuiString dui_str_name;
-  dui_str_name.Append(anx::common::string2wstring(ctrl_name.c_str()).c_str());
+  dui_str_name.Append(anx::common::String2WString(ctrl_name.c_str()).c_str());
   DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
       paint_manager_ui->FindControl(dui_str_name));
   return get_value_from_edit<R>(edit);
@@ -662,7 +662,7 @@ void WorkWindowSecondPage::RefreshExpClipTimeControl() {
     value += to_string_with_precision(f_value, 1);
     value += "S";
     text_exp_clip_time_duration_->SetText(
-        anx::common::string2wstring(value).c_str());
+        anx::common::String2WString(value).c_str());
   }
 
   int32_t exp_clip_time_paused = _ttoi(edit_exp_clip_time_paused_->GetText());
@@ -677,7 +677,7 @@ void WorkWindowSecondPage::RefreshExpClipTimeControl() {
     value += to_string_with_precision(f_value, 1);
     value += ("S");
     text_exp_clip_time_paused_->SetText(
-        anx::common::string2wstring(value).c_str());
+        anx::common::String2WString(value).c_str());
   }
 
   int32_t exp_max_cycle_count = _ttoi(edit_max_cycle_count_->GetText());
@@ -773,13 +773,13 @@ void WorkWindowSecondPage::UpdateExpClipTimeFromControl() {
   value += to_string_with_precision((exp_clip_time_duration) / 10.0f, 1);
   value += "S";
   text_exp_clip_time_duration_->SetText(
-      anx::common::string2wstring(value).c_str());
+      anx::common::String2WString(value).c_str());
   // exp_clip_time_paused append "S"
   value = ("=");
   value += to_string_with_precision((exp_clip_time_paused) / 10.0f, 1);
   value += "S";
   text_exp_clip_time_paused_->SetText(
-      anx::common::string2wstring(value).c_str());
+      anx::common::String2WString(value).c_str());
 }
 
 void WorkWindowSecondPage::UpdateUIButton() {
