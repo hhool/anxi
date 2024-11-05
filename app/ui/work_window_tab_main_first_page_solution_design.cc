@@ -633,7 +633,6 @@ void WorkWindowFirstPageTh3pointBending::OnClick(TNotifyUI& msg) {
       double f_length = anx::esolution::algorithm::CalcTh3Design(
           f_elastic_modulus_GPa, f_height, f_density_kg_m3, 20, f_width,
           f_height, anx::esolution::algorithm::kConstForLenghtOfTh3Design);
-      LOG_F(LG_INFO) << "CalculateTh3pointBending:f_length:" << f_length;
       set_value_to_edit("tm_page_first_left_speciments_length", t_prefix_,
                         paint_manager_ui_, f_length);
       double f_length_parallel = anx::esolution::algorithm::CalcTh3Design(
@@ -641,43 +640,51 @@ void WorkWindowFirstPageTh3pointBending::OnClick(TNotifyUI& msg) {
           f_height, anx::esolution::algorithm::kConstForLength0OfTh3Design);
       set_value_to_edit("tm_page_first_left_length_parallel", t_prefix_,
                         paint_manager_ui_, f_length_parallel);
+      LOG_F(LG_INFO) << "CalculateTh3pointBending:f_length:" << f_length
+                     << " f_length_parallel:" << f_length_parallel;
+      if (f_max_stress_MPa >= 0) {
+        f_static_load_MPa = (1 + f_stress_ratio) / 2 * f_max_stress_MPa;
+        LOG_F(LG_INFO) << "CalculateTh3pointBending:f_static_load_MPa:"
+                       << f_static_load_MPa;
+        set_value_to_edit("tm_page_first_left_static_load", t_prefix_,
+                          paint_manager_ui_, f_static_load_MPa);
+      }
 
-      f_static_load_MPa = (1 + f_stress_ratio) / 2 * f_max_stress_MPa;
-      LOG_F(LG_INFO) << "CalculateTh3pointBending:f_static_load_MPa:"
-                     << f_static_load_MPa;
-      set_value_to_edit("tm_page_first_left_static_load", t_prefix_,
-                        paint_manager_ui_, f_static_load_MPa);
-
-      double f_dc_stress = get_value_from_edit<double>(
-          "tm_page_first_left_dc_stress", t_prefix_, paint_manager_ui_);
-      double f_dc_stress_cal =
+      double f_theroy_dc_stress = get_value_from_edit<double>(
+          "tm_page_first_left_theory_dc_stress", t_prefix_, paint_manager_ui_);
+      double f_theroy_dc_stress_cal =
           sqrt(12 * f_density_kg_m3 * f_elastic_modulus_GPa * f_height *
                f_height) *
           0.000653;
-      // check f_dc_stress_cal and f_dc_stress is equal or not and f_dc_stress
-      // is not 0
-      if (fabs(f_dc_stress_cal - f_dc_stress) > 0.0001 && f_dc_stress != 0.0) {
-        // use f_dc_stress to cal f_amplitude
-        f_amplitude = (1 - f_stress_ratio) / 2 * f_max_stress_MPa / f_dc_stress;
-      } else {
-        f_amplitude =
-            (1 - f_stress_ratio) / 2 * f_max_stress_MPa / f_dc_stress_cal;
-        f_dc_stress = f_dc_stress_cal;
+      double f_theory_eamplitude = -1.f;
+      // f_theroy_dc_stress_cal is not 0
+      if (f_theroy_dc_stress_cal != 0.0) {
+        f_theroy_dc_stress = f_theroy_dc_stress_cal;
+        // use f_theroy_dc_stress_cal to cal f_theory_eamplitude
+        f_theory_eamplitude =
+            (1 - f_stress_ratio) / 2 * f_max_stress_MPa / f_theroy_dc_stress;
+        set_value_to_edit("tm_page_first_left_theory_amplitude", t_prefix_,
+                          paint_manager_ui_, f_theory_eamplitude);
+        set_value_to_edit("tm_page_first_left_theory_dc_stress", t_prefix_,
+                          paint_manager_ui_, f_theroy_dc_stress);
+        LOG_F(LG_INFO) << "CalculateTh3pointBending:f_theory_dc_stress:"
+                       << f_theroy_dc_stress
+                       << " f_theory_eamplitude:" << f_theory_eamplitude;
       }
-      LOG_F(LG_INFO) << "CalculateTh3pointBending:f_dc_stress:" << f_dc_stress
-                     << " f_amplitude:" << f_amplitude;
-      set_value_to_edit("tm_page_first_left_dc_stress", t_prefix_,
-                        paint_manager_ui_, f_dc_stress);
-      set_value_to_edit("tm_page_first_left_amplitude", t_prefix_,
-                        paint_manager_ui_, f_amplitude);
-      double f_theroy_dc_stress = get_value_from_edit<double>(
-          "tm_page_first_left_theory_dc_stress", t_prefix_, paint_manager_ui_);
-      double f_theory_eamplitude =
-          (1 - f_stress_ratio) / 2 * f_max_stress_MPa / f_theroy_dc_stress;
-      set_value_to_edit("tm_page_first_left_theory_amplitude", t_prefix_,
-                        paint_manager_ui_, f_theory_eamplitude);
-      LOG_F(LG_INFO) << "CalculateTh3pointBending:f_theory_eamplitude:"
-                     << f_theory_eamplitude;
+
+      double f_dc_stress = get_value_from_edit<double>(
+          "tm_page_first_left_dc_stress", t_prefix_, paint_manager_ui_);
+      // f_dc_stress  is not 0
+      if (f_dc_stress != 0.0) {
+        // use f_dc_stress_cal to cal f_amplitude
+        f_amplitude = (1 - f_stress_ratio) / 2 * f_max_stress_MPa / f_dc_stress;
+        LOG_F(LG_INFO) << "CalculateTh3pointBending:f_dc_stress:" << f_dc_stress
+                       << " f_amplitude:" << f_amplitude;
+        set_value_to_edit("tm_page_first_left_amplitude", t_prefix_,
+                          paint_manager_ui_, f_amplitude);
+      } else {
+        f_amplitude = -1.0f;
+      }
       pOwner_->UpdateArgsArea(-1, -1, f_amplitude, f_static_load_MPa);
     }
   }

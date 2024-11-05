@@ -309,6 +309,9 @@ void WorkWindowSecondPage::OnValueChanged(TNotifyUI& msg) {
           if (lss_->ctrl_type_ == CTRL_LOAD) {
             /// value 1 is next action is to keep load action
             st_load_keep_load_ = 1;
+          } else {
+            /// ctrl_type is CTRL_POSI, then stop the action
+            OnButtonStaticAircraftStop();
           }
         }
         if (st_load_keep_load_ == 1) {

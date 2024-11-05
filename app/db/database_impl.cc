@@ -14,6 +14,8 @@
 
 #include <sqlite3.h>
 
+#include "app/common/string_utils.h"
+
 namespace anx {
 namespace db {
 
@@ -27,7 +29,13 @@ bool Database::Open(const std::string& db_name) {
   if (db_ != nullptr) {
     return false;
   }
-  int ret = sqlite3_open(db_name.c_str(), reinterpret_cast<sqlite3**>(&db_));
+  std::string name = db_name;
+  /// transfer db_name to Unicode
+#if defined(WIN32)
+  std::wstring w_name = anx::common::String2WString(db_name.c_str());
+  name = anx::common::UnicodeToUTF8(w_name.c_str());
+#endif
+  int ret = sqlite3_open(name.c_str(), reinterpret_cast<sqlite3**>(&db_));
   if (ret != SQLITE_OK) {
     return false;
   }
