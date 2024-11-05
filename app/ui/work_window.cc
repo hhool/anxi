@@ -257,6 +257,10 @@ void WorkWindow::InitWindow() {
       m_PaintManager.FindControl(_T("args_area_name_static_load_n")));
   btn_args_area_value_static_load_n_ = static_cast<CButtonUI*>(
       m_PaintManager.FindControl(_T("args_area_value_static_load_n")));
+  btn_args_area_name_static_shift_mm_ = static_cast<CButtonUI*>(
+      m_PaintManager.FindControl(_T("args_area_name_static_shift_mm")));
+  btn_args_area_value_static_shift_mm_ = static_cast<CButtonUI*>(
+      m_PaintManager.FindControl(_T("args_area_value_static_shift_mm")));
   BOOL ret =
       anx::device::stload::STLoadHelper::st_load_loader_.st_api_.set_dest_wnd(
           this->GetHWND());
@@ -571,6 +575,7 @@ LRESULT WorkWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
         load = static_cast<double>(rand() % 100) * 1.0f;
       }
       double target_load_n = -1.0f;
+      double target_load_pos = -1.0f;
       std::unique_ptr<anx::device::DeviceLoadStaticSettings> lss;
       std::unique_ptr<anx::esolution::SolutionDesign> design =
           solution_design_base_->SolutionDesignFromPage();
@@ -581,12 +586,14 @@ LRESULT WorkWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
           lss = std::move(
               anx::device::LoadDeviceLoadStaticSettingsDefaultResource());
           target_load_n = lss->retention_;
+          target_load_pos = lss->displacement_;
         } else if (design->result_->solution_type_ ==
                    anx::esolution::kSolutionName_Th3point_Bending) {
           /// update lss;
           lss = std::move(
               anx::device::LoadDeviceLoadStaticSettingsDefaultResource());
           target_load_n = lss->retention_;
+          target_load_pos = lss->displacement_;
         }
       }
       DuiLib::CDuiString value;
@@ -606,6 +613,25 @@ LRESULT WorkWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
           value.Format(_T("%.1f"), load);
         }
         btn_args_area_value_static_load_n_->SetText(value);
+      }
+
+      value.Empty();
+      if (target_load_pos > 0) {
+        value.Format(_T("静载位移(mm) %.1f"), target_load_pos);
+      } else {
+        value.Format(_T("静载位移(mm)"));
+      }
+      btn_args_area_name_static_shift_mm_->SetText(value);
+      if (lss != nullptr) {
+        /// move up
+        if (lss->direct_ == 1) {
+          value.Format(_T("↑ %.1f"), pos);
+        } else if (lss->direct_ == 2) {
+          value.Format(_T("↓ %.1f"), pos);
+        } else {
+          value.Format(_T("%.1f"), pos);
+        }
+        btn_args_area_value_static_shift_mm_->SetText(value);
       }
       // notify third page to update the data
       // notify second page to update the chart
