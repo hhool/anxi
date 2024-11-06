@@ -24,7 +24,7 @@ TEST(Library_win, test_LoadLibrary) {
 #endif
 #if defined(UNICODE) || defined(_UNICODE)
   HMODULE hModule =
-      LoadLibrary(anx::common::string2wstring(module_path.c_str()).c_str());
+      LoadLibrary(anx::common::String2WString(module_path.c_str()).c_str());
 #else
 #endif
   EXPECT_NE(hModule, nullptr);
@@ -43,7 +43,7 @@ TEST(Library_win, test_LoadLibrary_find_api) {
 #endif
 #if defined(UNICODE) || defined(_UNICODE)
   HMODULE hModule =
-      LoadLibrary(anx::common::string2wstring(module_path.c_str()).c_str());
+      LoadLibrary(anx::common::String2WString(module_path.c_str()).c_str());
 #else
 #endif
   EXPECT_NE(hModule, nullptr);

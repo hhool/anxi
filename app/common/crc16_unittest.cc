@@ -1,3 +1,14 @@
+/**
+ * @file crc16_unittest.cc
+ * @author hhool (hhool@outlook.com)
+ * @brief crc16 checksum calculation function unit test
+ * @version 0.1
+ * @date 2024-11-06
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
+
 #include <iostream>
 #include <vector>
 

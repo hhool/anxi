@@ -49,6 +49,23 @@ set(COMMON_FILES
 source_group("common" FILES ${COMMON_FILES})
 list(APPEND APP_SOURCES ${COMMON_FILES})
 
+# unittest files
+if(ANXI_BUILD_UNITTEST)
+    set(APP_UNITTEST_FILES
+        common/cmd_parser_unittest.cc
+        common/crc16_unittest.cc
+        common/file_utils_unittest.cc
+        common/logger_unittest.cc
+        common/module_utils_unittest.cc
+        common/string_utils_unittest.cc
+        common/thread_unittest.cc
+        common/time_utils_unittest.cc)
+    source_group("common_unittest" FILES ${APP_UNITTEST_FILES})
+    add_executable(app_common_unittest ${APP_UNITTEST_FILES})
+    target_link_libraries(app_common_unittest app_ui gtest_main gtest)
+    set_target_properties(app_common_unittest PROPERTIES FOLDER "app_unittest")
+endif()
+
 set(DB_FILES
     db/database_factory.cc
     db/database_factory.h
@@ -60,6 +77,15 @@ set(DB_FILES
     db/database.h)
 source_group("db" FILES ${DB_FILES})
 list(APPEND APP_SOURCES ${DB_FILES})
+
+if(ANXI_BUILD_UNITTEST)
+    set(APP_DB_UNITTEST_FILES
+        db/database_unittest.cc)
+    source_group("db_unittest" FILES ${APP_DB_UNITTEST_FILES})
+    add_executable(app_db_unittest ${APP_DB_UNITTEST_FILES})
+    target_link_libraries(app_db_unittest gtest_main gtest app_ui)
+    set_target_properties(app_db_unittest PROPERTIES FOLDER "app_unittest")
+endif()
 
 set(DEVICE_FILES
     device/device_com_factory.cc
@@ -120,7 +146,6 @@ if(WIN32)
         set(APP_DEVICE_ULTRASONIC_UNITTEST_FILES
             device/ultrasonic/ultra_device_unittest.cc)
         source_group("device_utral_unittest" FILES ${APP_DEVICE_ULTRASONIC_UNITTEST_FILES})
-        list(APPEND APP_DEVICE_ULTRASONIC_UNITTEST_FILES ${APP_DEVICE_ULTRASONIC_UNITTEST_FILES})
         add_executable(app_device_ultra_unittest ${APP_DEVICE_ULTRASONIC_UNITTEST_FILES})
         target_link_libraries(app_device_ultra_unittest gtest_main gtest app_ui)
         set_target_properties(app_device_ultra_unittest PROPERTIES FOLDER "app_unittest")
@@ -132,7 +157,6 @@ if(ANXI_BUILD_UNITTEST)
         set(APP_DEVICE_UNITTEST_FILES
             device/stload/stload_wrapper_unittest.cc)
         source_group("device_stload_unittest" FILES ${APP_DEVICE_UNITTEST_FILES})
-        list(APPEND APP_DEVICE_UNITTEST_FILES ${APP_DEVICE_UNITTEST_FILES})
         add_executable(app_device_stload_unittest ${APP_DEVICE_UNITTEST_FILES})
         target_link_libraries(app_device_stload_unittest gtest_main gtest app_ui)
         set_target_properties(app_device_stload_unittest PROPERTIES FOLDER "app_unittest")
@@ -168,7 +192,6 @@ if(ANXI_BUILD_UNITTEST)
     set(APP_ESOLUTION_UNITTEST_FILES
         esolution/solution_design_default_unittest.cc)
     source_group("esoution_unittest" FILES ${APP_ESOLUTION_UNITTEST_FILES})
-    list(APPEND APP_ESOLUTION_UNITTEST_SOURCES ${APP_ESOLUTION_UNITTEST_FILES})
     add_executable(app_esolution_unittest ${APP_ESOLUTION_UNITTEST_FILES})
     target_link_libraries(app_esolution_unittest gtest_main gtest app_ui)
     set_target_properties(app_esolution_unittest PROPERTIES FOLDER "app_unittest")
@@ -184,7 +207,6 @@ if(ANXI_BUILD_UNITTEST)
     set(APP_ESOLUTION_ALG_UNITTEST_FILES
         esolution/algorithm/alg_unittest.cc)
     source_group("algorithm_unittest" FILES ${APP_ESOLUTION_ALG_UNITTEST_FILES})
-    list(APPEND APP_ESOLUTION_ALG_UNITTEST_SOURCES ${APP_ESOLUTION_ALG_UNITTEST_FILES})
     add_executable(app_esolution_alg_unittest ${APP_ESOLUTION_ALG_UNITTEST_FILES})
     target_link_libraries(app_esolution_alg_unittest gtest_main gtest app_ui)
     set_target_properties(app_esolution_alg_unittest PROPERTIES FOLDER "app_unittest")
@@ -293,19 +315,6 @@ endif()
 
 # rename the output file to product name
 set_target_properties(app_exe PROPERTIES OUTPUT_NAME ${PRODUCT_NAME})
-
-# unittest files
-if(ANXI_BUILD_UNITTEST)
-    set(APP_UNITTEST_FILES
-        common/crc16_unittest.cc
-        common/logger_unittest.cc
-        db/database_unittest.cc)
-    source_group("common_unittest" FILES ${APP_UNITTEST_FILES})
-    list(APPEND APP_UNITTEST_SOURCES ${APP_UNITTEST_FILES})
-    add_executable(app_unittest ${APP_UNITTEST_FILES})
-    target_link_libraries(app_unittest app_ui gtest_main gtest)
-    set_target_properties(app_unittest PROPERTIES FOLDER "app_unittest")
-endif()
 
 # ##############################################################################
 # copy folder resource/skin resource/default to the target directory
