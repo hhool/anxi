@@ -113,7 +113,7 @@ class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
   ExpDataInfo* exp_data_info_;
 
   int64_t exp_start_date_time_ = 0;
-  int64_t exp_time_interval_num_;
+  int64_t exp_time_interval_num_ = 0;
 
   /// @brief sample mode option button
   DuiLib::COptionUI* option_sample_mode_exp_;

@@ -27,14 +27,19 @@ class DeviceExpDataSample {
   virtual ~DeviceExpDataSample();
 
  public:
+  /// @brief  sample mode 0: exponent, 1: linear
+  enum {
+    kSampleModeExponent = 0,
+    kSampleModeLinear = 1,
+  };
   /// @brief  sample mode 0: exponent, 1: linear.
-  int32_t sample_mode_;
-  /// @brief  sampling frequency start position.
-  int32_t sampling_start_pos_;
-  /// @brief  sampling frequency end position.
-  int32_t sampling_end_pos_;
-  /// @brief  sampling frequency step.
-  int32_t sampling_interval_;
+  int32_t sample_mode_ = kSampleModeExponent;
+  /// @brief  sampling frequency start position. unit: 100ms
+  int32_t sampling_start_pos_ = 0;
+  /// @brief  sampling frequency end position. unit: 100ms
+  int32_t sampling_end_pos_ = 0;
+  /// @brief  sampling frequency step. unit: 100ms
+  int32_t sampling_interval_ = 20;
 
  public:
   std::string ValueSampleModeToString() const;

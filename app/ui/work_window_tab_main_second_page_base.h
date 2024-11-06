@@ -61,6 +61,12 @@ class ExpDataInfo {
   /// for graph ctrl display
   int32_t exp_data_view_current_start_no_ = 1;
   /// @brief exp start time. in miliseconds
+  /// @note exp_start_time_ms_ is the start time of exp data sample,
+  /// exp_start_time_ms_ = 0, means exp data sample is not started
+  /// is not initialized: !0: is initialized and valid.
+  /// for data list ctrl display and exp data sample time calculation
+  /// when hard real time exp data sample is started, exp_start_time_ms_ is
+  /// updated to current time.
   int64_t exp_start_time_ms_ = 0;
   /// @brief exp data sample interval in miliseconds, 2000ms default
   int32_t exp_sample_interval_ms_ = 2000;

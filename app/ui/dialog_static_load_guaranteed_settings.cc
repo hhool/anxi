@@ -40,6 +40,10 @@ void DialogStaticLoadGuaranteedSettings::InitWindow() {
       m_PaintManager.FindControl(_T("tab_page_three_left_opt_displacement")));
   opt_retention_ = static_cast<COptionUI*>(
       m_PaintManager.FindControl(_T("tab_page_three_left_opt_retention")));
+  opt_up_ = static_cast<COptionUI*>(
+      m_PaintManager.FindControl(_T("tab_page_three_left_opt_move_up")));
+  opt_down_ = static_cast<COptionUI*>(
+      m_PaintManager.FindControl(_T("tab_page_three_left_opt_move_down")));
   edit_speed_ = static_cast<CEditUI*>(
       m_PaintManager.FindControl(_T("tab_page_three_left_speed")));
   edit_retention_ = static_cast<CEditUI*>(
@@ -112,6 +116,19 @@ bool DialogStaticLoadGuaranteedSettings::OnCtrlTypeChanged(void* param) {
     edit_displacement_->SetEnabled(false);
     edit_retention_->SetEnabled(true);
     edit_keep_load_duration_->SetEnabled(true);
+  }
+  return true;
+}
+
+bool DialogStaticLoadGuaranteedSettings::OnCtrlMoveChanged(void* param) {
+  TNotifyUI* pMsg = reinterpret_cast<TNotifyUI*>(param);
+  if (pMsg == nullptr) {
+    return false;
+  }
+  if (pMsg->pSender == opt_up_) {
+    opt_down_->Selected(false);
+  } else if (pMsg->pSender == opt_down_) {
+    opt_up_->Selected(false);
   }
   return true;
 }

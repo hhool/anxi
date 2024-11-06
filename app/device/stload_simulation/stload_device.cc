@@ -38,6 +38,12 @@ std::unique_ptr<anx::common::Mutex> g_mutex;
 std::unique_ptr<anx::common::Thread> g_thread;
 std::shared_ptr<anx::device::DeviceComInterface> g_device_com_sl_;
 
+#if 0
+static int32_t LOG_LEVEL = LG_INFO;
+#else
+static int32_t LOG_LEVEL = LG_SENSITIVE;
+#endif
+
 namespace {
 class Worker : public anx::common::Runnable {
  public:
@@ -75,62 +81,61 @@ class Worker : public anx::common::Runnable {
 std::unique_ptr<Worker> g_worker;
 
 BOOL CALL SetDestWnd(HWND dest_wnd) {
-  printf("SetDestWnd\n");
   g_dest_wnd = dest_wnd;
+  LOG_F(LOG_LEVEL) << "SetDestWnd: " << dest_wnd;
   return TRUE;
 }
 
 BOOL CALL LoadHareWareParameters(int nMachineType) {
-  printf("LoadHareWareParameters\n");
   /// @note Get module directory
   std::string module_dir = anx::common::GetModuleDir();
   /// @note Get the dll path
   std::string dll_path = module_dir + "/stload_simulation.dll";
-  LOG_F(LG_INFO) << "module st load dll: " << dll_path;
+  LOG_F(LOG_LEVEL) << "module st load dll: " << dll_path;
   return TRUE;
 }
 
 char* CALL GetLoadSensors() {
-  LOG_F(LG_INFO) << "GetLoadSensors";
+  LOG_F(LOG_LEVEL) << "GetLoadSensors";
   return "GetLoadSensors";
 }
 
 char* CALL GetExtensions() {
-  LOG_F(LG_INFO) << "GetExtensions";
+  LOG_F(LOG_LEVEL) << "GetExtensions";
   return "GetExtensions";
 }
 
 char* CALL GetExtendSensors() {
-  LOG_F(LG_INFO) << "GetExtendSensors";
+  LOG_F(LOG_LEVEL) << "GetExtendSensors";
   return "GetExtendSensors";
 }
 
 void CALL SetTestDir(long dir) {  // NOLINT
-  LOG_F(LG_INFO) << "SetTestDir";
+  LOG_F(LOG_LEVEL) << "SetTestDir";
 }
 
 BOOL CALL CarryPID(long channel, long Kp, long Ki, long Kd) {  // NOLINT
-  LOG_F(LG_INFO) << "CarryPID";
+  LOG_F(LOG_LEVEL) << "CarryPID";
   return TRUE;
 }
 
 BOOL CALL OpenDevice(long uUnit) {  // NOLINT
-  LOG_F(LG_INFO) << "OpenDevice";
+  LOG_F(LOG_LEVEL) << "OpenDevice";
   return TRUE;
 }
 
 BOOL CALL CloseDevice() {
-  LOG_F(LG_INFO) << "CloseDevice";
+  LOG_F(LOG_LEVEL) << "CloseDevice";
   return TRUE;
 }
 
 BOOL CALL StartRead() {
-  LOG_F(LG_INFO) << "StartRead";
+  LOG_F(LOG_LEVEL) << "StartRead";
   return TRUE;
 }
 
 BOOL CALL EndRead() {
-  LOG_F(LG_INFO) << "EndRead";
+  LOG_F(LOG_LEVEL) << "EndRead";
   return TRUE;
 }
 
@@ -145,7 +150,7 @@ BOOL CALL OnLine(long channelNo,  // NOLINT
                  BYTE CloseOfflineCheck,
                  int dataBlockSize,
                  BOOL isAE) {
-  LOG_F(LG_INFO) << "OnLine";
+  LOG_F(LOG_LEVEL) << "OnLine";
   if (g_thread.get() != nullptr) {
     return FALSE;
   }
@@ -156,7 +161,7 @@ BOOL CALL OnLine(long channelNo,  // NOLINT
 }
 
 BOOL CALL OffLine() {
-  LOG_F(LG_INFO) << "OffLine";
+  LOG_F(LOG_LEVEL) << "OffLine";
   if (g_thread.get() == nullptr) {
     return FALSE;
   }
@@ -177,91 +182,91 @@ BOOL CALL Carry200(long control,  // NOLINT
                    long keepdatum,  // NOLINT /* 1 */
                    long TestModle   // NOLINT /* 0* */
 ) {                                 // NOLINT
-  LOG_F(LG_INFO) << "Carry200";
+  LOG_F(LOG_LEVEL) << "Carry200";
   return TRUE;
 }
 
 BOOL CALL Carry210(long lOpen) {  // NOLINT
-  LOG_F(LG_INFO) << "Carry210";
+  LOG_F(LOG_LEVEL) << "Carry210";
   return TRUE;
 }
 
 BOOL CALL StopRun() {
-  LOG_F(LG_INFO) << "StopRun";
+  LOG_F(LOG_LEVEL) << "StopRun";
   return TRUE;
 }
 
 BOOL CALL BeforeGetSample() {
-  LOG_F(LG_INFO) << "BeforeGetSample";
+  LOG_F(LOG_LEVEL) << "BeforeGetSample";
   return TRUE;
 }
 
 void CALL AfterGetSample() {
-  LOG_F(LG_INFO) << "AfterGetSample";
+  LOG_F(LOG_LEVEL) << "AfterGetSample";
 }
 
 void CALL SetSectCorrA(long channel, double corr) {  // NOLINT
-  LOG_F(LG_INFO) << "SetSectCorrA";
+  LOG_F(LOG_LEVEL) << "SetSectCorrA";
 }
 
 BOOL CALL SetResolve(long channel,  // NOLINT
                      DWORD resolve,
                      float norinal) {  // NOLINT
-  LOG_F(LG_INFO) << "SetResolve";
+  LOG_F(LOG_LEVEL) << "SetResolve";
   return TRUE;
 }
 
 double CALL GetLoad() {
-  LOG_F(LG_INFO) << "GetLoad";
+  LOG_F(LOG_LEVEL) << "GetLoad";
   return 0.0;
 }
 
 double CALL GetPosi() {
-  LOG_F(LG_INFO) << "GetPosi";
+  LOG_F(LOG_LEVEL) << "GetPosi";
   return 0.0;
 }
 
 double CALL GetExtn() {
-  LOG_F(LG_INFO) << "GetExtn";
+  LOG_F(LOG_LEVEL) << "GetExtn";
   return 0.0;
 }
 
 double CALL GetExt1() {
-  LOG_F(LG_INFO) << "GetExt1";
+  LOG_F(LOG_LEVEL) << "GetExt1";
   return 0.0;
 }
 
 double CALL GetTestTime() {
-  LOG_F(LG_INFO) << "GetTestTime";
+  LOG_F(LOG_LEVEL) << "GetTestTime";
   return 0.0;
 }
 
 DWORD CALL GetTestStatus() {
-  LOG_F(LG_INFO) << "GetTestStatus";
+  LOG_F(LOG_LEVEL) << "GetTestStatus";
   return 0;
 }
 
 BOOL CALL TareLoad() {
-  LOG_F(LG_INFO) << "TareLoad";
+  LOG_F(LOG_LEVEL) << "TareLoad";
   return TRUE;
 }
 
 BOOL CALL TarePosi() {
-  LOG_F(LG_INFO) << "TarePosi";
+  LOG_F(LOG_LEVEL) << "TarePosi";
   return TRUE;
 }
 
 BOOL CALL TareExtn() {
-  LOG_F(LG_INFO) << "TareExtn";
+  LOG_F(LOG_LEVEL) << "TareExtn";
   return TRUE;
 }
 
 BOOL CALL TareExt1() {
-  LOG_F(LG_INFO) << "TareExt1";
+  LOG_F(LOG_LEVEL) << "TareExt1";
   return TRUE;
 }
 
 BOOL CALL TareTime() {
-  LOG_F(LG_INFO) << "TareTime";
+  LOG_F(LOG_LEVEL) << "TareTime";
   return TRUE;
 }

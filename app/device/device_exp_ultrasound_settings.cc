@@ -27,8 +27,8 @@ namespace device {
 DeviceUltrasound::DeviceUltrasound() {}
 
 DeviceUltrasound::DeviceUltrasound(int32_t exp_clipping_enable,
-                                   int32_t exp_clip_time_duration,
-                                   int32_t exp_clip_time_paused,
+                                   int64_t exp_clip_time_duration,
+                                   int64_t exp_clip_time_paused,
                                    int64_t exp_max_cycle_count,
                                    int32_t exp_max_cycle_power,
                                    int32_t exp_frequency_fluctuations_range)
@@ -117,8 +117,8 @@ std::unique_ptr<DeviceUltrasoundSettings> DeviceUltrasoundSettings::FromXml(
   }
 
   int32_t exp_clipping_enable = 0;
-  int32_t exp_clip_time_duration = 0;
-  int32_t exp_clip_time_paused = 0;
+  int64_t exp_clip_time_duration = 0;
+  int64_t exp_clip_time_paused = 0;
   int64_t exp_max_cycle_count = 0;
   int32_t exp_max_cycle_power = 0;
   int32_t exp_frequency_fluctuations_range = 0;
@@ -134,12 +134,12 @@ std::unique_ptr<DeviceUltrasoundSettings> DeviceUltrasoundSettings::FromXml(
 
   element = root->FirstChildElement("exp_clip_time_duration");
   if (element != nullptr) {
-    exp_clip_time_duration = std::stoi(element->GetText());
+    exp_clip_time_duration = std::stoll(element->GetText());
   }
 
   element = root->FirstChildElement("exp_clip_time_paused");
   if (element != nullptr) {
-    exp_clip_time_paused = std::stoi(element->GetText());
+    exp_clip_time_paused = std::stoll(element->GetText());
   }
 
   element = root->FirstChildElement("exp_max_cycle_count");

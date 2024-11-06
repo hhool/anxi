@@ -272,9 +272,11 @@ bool WorkWindowSecondPageData::OnOptDataSampleChange(void* param) {
     return false;
   }
   if (pMsg->pSender == option_sample_mode_exp_) {
-    device_exp_data_settings_->sample_mode_ = 0;
+    device_exp_data_settings_->sample_mode_ =
+        anx::device::DeviceExpDataSample::kSampleModeExponent;
   } else if (pMsg->pSender == option_sample_mode_linear_) {
-    device_exp_data_settings_->sample_mode_ = 1;
+    device_exp_data_settings_->sample_mode_ =
+        anx::device::DeviceExpDataSample::kSampleModeLinear;
   }
   SaveSettingsFromControl();
   return true;
@@ -405,9 +407,9 @@ WorkWindowSecondPageData::UpdateExpClipTimeFromControl() {
     return nullptr;
   }
   if (option_sample_mode_exp_->IsSelected()) {
-    des.sample_mode_ = 0;
+    des.sample_mode_ = anx::device::DeviceExpDataSample::kSampleModeExponent;
   } else {
-    des.sample_mode_ = 1;
+    des.sample_mode_ = anx::device::DeviceExpDataSample::kSampleModeLinear;
   }
   des.sampling_start_pos_ = static_cast<int32_t>(sample_start_pos);
   des.sampling_end_pos_ = static_cast<int32_t>(sample_end_pos);
@@ -420,7 +422,8 @@ void WorkWindowSecondPageData::UpdateControlFromSettings() {
   std::unique_ptr<anx::device::DeviceExpDataSampleSettings> settings =
       anx::device::LoadDeviceExpDataSampleSettingsDefaultResource();
   if (settings != nullptr) {
-    if (settings->sample_mode_ == 0) {
+    if (settings->sample_mode_ ==
+        anx::device::DeviceExpDataSample::kSampleModeExponent) {
       option_sample_mode_exp_->Selected(true);
     } else {
       option_sample_mode_linear_->Selected(true);
@@ -484,6 +487,7 @@ void WorkWindowSecondPageData::OnDataReceived(
   if (exp_data_info_->exp_time_interval_num_ <= exp_time_interval_num_) {
     return;
   }
+  /// @note process intermittent exp clipping enabled
   if (!ultra_device_->IsUltraStarted()) {
     LOG_F(LG_INFO) << "is not run";
     return;
@@ -520,6 +524,7 @@ void WorkWindowSecondPageData::OnExpPause() {
 void WorkWindowSecondPageData::OnExpResume() {
   UpdateUIWithExpStatus(1);
   is_exp_state_ = 1;
+  exp_time_interval_num_ = 0;
 }
 
 void WorkWindowSecondPageData::ClearExpData() {

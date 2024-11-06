@@ -68,12 +68,15 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   void CheckDeviceComConnectedStatus();
   void RefreshExpClipTimeControl();
   void UpdateControlFromSettings();
-  void SaveSettingsFromControl();
+  void SaveExpClipSettingsFromControl();
   void UpdateExpClipTimeFromControl();
 
  protected:
-
   int32_t exp_start();
+  /// @brief exp pause
+  /// @note if the exp is not started, then do nothing
+  /// if the exp is started, then pause the exp and update the button state
+  /// stop the ultrasound hard ware and update the button state
   void exp_pause();
   void exp_stop();
   void exp_resume();
@@ -81,7 +84,7 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   /// @brief static load aircraft clear
   void OnButtonStaticAircraftClear();
   /// @brief static load aircraft setting
-  void OnButtonStaticAircraftSetting();
+  void OnButtonStaticAircraftKeepLoad();
   /// @brief static load aircraft reset
   void OnButtonStaticAircraftReset();
   /// @brief static load aircraft up
@@ -125,12 +128,40 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   UIVirtualWndBase* work_window_second_page_data_virtual_wnd_;
   /// @brief exp status
   /// 0 - stop, 1 - start, 2 - pause, <0 - unvalid
-  int32_t is_exp_state_;
+  enum {
+    kExpStateStop = 0,
+    kExpStateStart = 1,
+    kExpStatePause = 2,
+    kExpStateUnvalid = -1
+  };
+  const std::string ExpStateToString() const {
+    switch (is_exp_state_) {
+      case kExpStateStop:
+        return "stop";
+      case kExpStateStart:
+        return "start";
+      case kExpStatePause:
+        return "pause";
+      default:
+        return "unvalid";
+    }
+  }
+  int32_t is_exp_state_ = kExpStateUnvalid;
   anx::device::UltraDevice* ultra_device_;
   int32_t initial_frequency_;
   int32_t initial_power_;
   int32_t cur_freq_;
   int32_t cur_power_;
+  /// @brief current cycle count value
+  /// if the value is -1, then the exp is not started
+  /// if the value is >= 0, then the exp is started
+  /// cur_cycle_count_ will increase with the cycle count value and increase
+  /// with pre_cycle_count_ value and current exp cycle count value
+  int64_t cur_cycle_count_ = -1;
+  /// @brief pre cycle count value for record total cycle count value
+  /// when the exp is paused. then the cycle count value will not increase
+  /// and the pre cycle count value will record the last cycle count value
+  int64_t pre_cycle_count_ = 0;
   anx::device::DeviceUltrasoundSettings dus_;
   double exp_amplitude_;
   double exp_statc_load_mpa_;
@@ -158,6 +189,15 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   /// periodically. if the load value is not equal to the target load value,
   /// then keep do the action for target load value. eg up or down.
   int64_t st_load_keep_load_ = -1;
+  /// @note Aircraft static load event from who.
+  /// value -1 no event from, value 0 is from button (up and down), value 1 is
+  /// from button (keep load button)
+  enum {
+    kSTLoadEventNone = -1,
+    kSTLoadEventFromButtonUpDown = 0,
+    kSTLoadEventFromKeepLoadButton = 1
+  };
+  int32_t st_load_event_from_ = kSTLoadEventNone;
 
   DuiLib::CTabLayoutUI* btn_tablayout_;
   DuiLib::CButtonUI* btn_tab_graph_;
@@ -168,7 +208,7 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   /// @brief Static aircraft clear button
   DuiLib::CButtonUI* btn_sa_clear_;
   /// @brief Static aircraft setting button
-  DuiLib::CButtonUI* btn_sa_setting_;
+  DuiLib::CButtonUI* btn_sa_keep_load_;
   /// @brief Static aircraft reset button
   DuiLib::CButtonUI* btn_sa_reset_;
 
@@ -216,6 +256,7 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   DuiLib::CEditUI* edit_max_cycle_count_;
   DuiLib::CEditUI* edit_max_cycle_power_;
   DuiLib::CEditUI* edit_frequency_fluctuations_range_;
+  DuiLib::CTextUI* text_max_cycle_duration_;
 
   /// @brief exp data sample settings
 };

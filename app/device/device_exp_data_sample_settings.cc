@@ -24,7 +24,7 @@ namespace device {
 ////////////////////////////////////////////////////////////////////
 // clz DeviceExpDataSample
 DeviceExpDataSample::DeviceExpDataSample()
-    : sample_mode_(0),
+    : sample_mode_(kSampleModeExponent),
       sampling_start_pos_(0),
       sampling_end_pos_(0),
       sampling_interval_(20) {}
@@ -41,9 +41,9 @@ DeviceExpDataSample::DeviceExpDataSample(int32_t sample_mode,
 DeviceExpDataSample::~DeviceExpDataSample() {}
 
 std::string DeviceExpDataSample::ValueSampleModeToString() const {
-  if (sample_mode_ == 0) {
+  if (sample_mode_ == kSampleModeExponent) {
     return "exponent";
-  } else if (sample_mode_ == 1) {
+  } else if (sample_mode_ == kSampleModeLinear) {
     return "linear";
   } else {
     return "exponent";
