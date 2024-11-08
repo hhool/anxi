@@ -24,8 +24,9 @@ namespace anx {
 namespace ui {
 DialogCommon::DialogCommon(const std::string& title,
                            const std::string& content,
-                           int32_t& result)
-    : title_(title), content_(content), result_(result) {}
+                           int32_t* result,
+                           DialogCommonStyle style)
+    : title_(title), content_(content), result_(result), style_(style) {}
 
 DialogCommon::~DialogCommon() {}
 
@@ -34,10 +35,13 @@ void DialogCommon::InitWindow() {
 
   btn_close_ = static_cast<CButtonUI*>(
       m_PaintManager.FindControl(kCloseButtonControlName));
-  btn_ok_ = static_cast<DuiLib::CButtonUI*>(
-      this->m_PaintManager.FindControl(_T("okbtn")));
-  btn_cancel_ = static_cast<DuiLib::CButtonUI*>(
-      this->m_PaintManager.FindControl(_T("cancelbtn")));
+  if (style_ == kDialogCommonStyleOk) {
+    m_PaintManager.FindControl(_T("hl_ok"))->SetVisible(true);
+    m_PaintManager.FindControl(_T("hl_okcancel"))->SetVisible(false);
+  } else {
+    m_PaintManager.FindControl(_T("hl_ok"))->SetVisible(false);
+    m_PaintManager.FindControl(_T("hl_okcancel"))->SetVisible(true);
+  }
 
   DuiLib::CLabelUI* title = static_cast<DuiLib::CLabelUI*>(
       this->m_PaintManager.FindControl(kTitleControlName));
@@ -59,15 +63,21 @@ void DialogCommon::Notify(DuiLib::TNotifyUI& msg) {
   if (msg.sType == kClick) {
     if (msg.pSender == btn_close_) {
       this->Close();
-      result_ = 0;
+      if (result_ != nullptr) {
+        *result_ = 0;
+      }
       return;
-    } else if (msg.pSender == btn_ok_) {
+    } else if (msg.pSender->GetName() == _T("okbtn")) {
       this->Close();
-      result_ = 1;
+      if (result_ != nullptr) {
+        *result_ = 1;
+      }
       return;
-    } else if (msg.pSender == btn_cancel_) {
+    } else if (msg.pSender->GetName() == _T("cancelbtn")) {
       this->Close();
-      result_ = 0;
+      if (result_ != nullptr) {
+        *result_ = 0;
+      }
       return;
     }
   }

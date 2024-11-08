@@ -30,8 +30,8 @@ DeviceExpDataSample::DeviceExpDataSample()
       sampling_interval_(20) {}
 
 DeviceExpDataSample::DeviceExpDataSample(int32_t sample_mode,
-                                         int32_t sampling_start_pos,
-                                         int32_t sampling_end_pos,
+                                         int64_t sampling_start_pos,
+                                         int64_t sampling_end_pos,
                                          int32_t sampling_interval)
     : sample_mode_(sample_mode),
       sampling_start_pos_(sampling_start_pos),
@@ -129,8 +129,8 @@ DeviceExpDataSampleSettings::FromXml(const std::string& xml) {
   settings->sample_mode_ =
       DeviceExpDataSampleSettings::ValueSampleModeFromString(
           ele_sample_mode->GetText());
-  settings->sampling_start_pos_ = std::atoi(ele_sampling_start_pos->GetText());
-  settings->sampling_end_pos_ = std::atoi(ele_sampling_end_pos->GetText());
+  settings->sampling_start_pos_ = std::atoll(ele_sampling_start_pos->GetText());
+  settings->sampling_end_pos_ = std::atoll(ele_sampling_end_pos->GetText());
   settings->sampling_interval_ = std::atoi(ele_sampling_interval->GetText());
   return settings;
 }

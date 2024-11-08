@@ -21,8 +21,8 @@ class DeviceExpDataSample {
  public:
   DeviceExpDataSample();
   DeviceExpDataSample(int32_t sample_mode,
-                      int32_t sampling_start_pos,
-                      int32_t sampling_end_pos,
+                      int64_t sampling_start_pos,
+                      int64_t sampling_end_pos,
                       int32_t sampling_interval);
   virtual ~DeviceExpDataSample();
 
@@ -35,10 +35,10 @@ class DeviceExpDataSample {
   /// @brief  sample mode 0: exponent, 1: linear.
   int32_t sample_mode_ = kSampleModeExponent;
   /// @brief  sampling frequency start position. unit: 100ms
-  int32_t sampling_start_pos_ = 0;
+  int64_t sampling_start_pos_ = 0;
   /// @brief  sampling frequency end position. unit: 100ms
-  int32_t sampling_end_pos_ = 0;
-  /// @brief  sampling frequency step. unit: 100ms
+  int64_t sampling_end_pos_ = 0;
+  /// @brief  sampling frequency step. unit: 100ms range[1,100]
   int32_t sampling_interval_ = 20;
 
  public:

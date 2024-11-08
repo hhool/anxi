@@ -117,7 +117,7 @@ WorkWindowSecondPage::WorkWindowSecondPage(
     DuiLib::CPaintManagerUI* paint_manager_ui)
     : pWorkWindow_(pWorkWindow),
       paint_manager_ui_(paint_manager_ui),
-      is_exp_state_(-1) {
+      is_exp_state_(kExpStateUnvalid) {
   WorkWindowSecondPageGraph* graph_page = new WorkWindowSecondPageGraph(
       pWorkWindow, paint_manager_ui, &exp_data_graph_info_);
   work_window_second_page_graph_virtual_wnd_ = graph_page;
@@ -151,10 +151,10 @@ void WorkWindowSecondPage::OnClick(TNotifyUI& msg) {
     } else if (msg.pSender == this->btn_sa_reset_) {
       OnButtonStaticAircraftReset();
     } else if (msg.pSender == this->btn_exp_start_) {
-      exp_start();
+      OnExpStart();
     } else if (msg.pSender == this->btn_exp_stop_) {
       int32_t result = 0;
-      DialogCommon* about = new DialogCommon("提示", "是否停止试验", result);
+      DialogCommon* about = new DialogCommon("提示", "是否停止试验", &result);
       about->Create(*pWorkWindow_, _T("dialog_common"), UI_WNDSTYLE_FRAME,
                     WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
       about->CenterWindow();
@@ -162,11 +162,22 @@ void WorkWindowSecondPage::OnClick(TNotifyUI& msg) {
       if (result == 0) {
         return;
       }
-      exp_stop();
+      OnExpStop();
     } else if (msg.pSender == this->btn_exp_pause_) {
-      exp_pause();
+#if defined(_DEBUG)
+      // TODO(hhool): will be remove
+      int32_t result = 0;
+      DialogCommon* about =
+          new DialogCommon("提示", "是否暂停试验", &result,
+                           anx::ui::DialogCommon::kDialogCommonStyleOk);
+      about->Create(*pWorkWindow_, _T("dialog_common"), UI_WNDSTYLE_FRAME,
+                    WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
+      about->CenterWindow();
+      about->ShowModal();
+#endif
+      OnExpPause();
     } else if (msg.pSender == this->btn_exp_resume_) {
-      exp_resume();
+      OnExpResume();
     } else if (msg.pSender == this->btn_sa_up_) {
       /// update lss_;
       lss_ =
@@ -200,7 +211,7 @@ void WorkWindowSecondPage::OnClick(TNotifyUI& msg) {
 void WorkWindowSecondPage::OnTimer(TNotifyUI& msg) {
   uint32_t id_timer = msg.wParam;
   if (id_timer == kTimerIdSampling) {
-    if (is_exp_state_ == 1) {
+    if (is_exp_state_ == kExpStateStart) {
       if (ultra_device_) {
         cur_freq_ = ultra_device_->GetCurrentFreq();
         cur_power_ = ultra_device_->GetCurrentPower();
@@ -208,13 +219,33 @@ void WorkWindowSecondPage::OnTimer(TNotifyUI& msg) {
           LOG_F(LG_ERROR) << "exp_stop: cur_freq:" << cur_freq_
                           << " cur_power:" << cur_power_;
           exp_stop();
+          exp_pause_stop_reason_ = kExpPauseStopReasonUnkown;
+          // TODO(hhool): msg box with unkown reason
+          int32_t result = 0;
+          DialogCommon* about =
+              new DialogCommon("提示", "设备未知错误,请检查硬件连接", &result,
+                               anx::ui::DialogCommon::kDialogCommonStyleOk);
+          about->Create(*pWorkWindow_, _T("dialog_common"), UI_WNDSTYLE_FRAME,
+                        WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
+          about->CenterWindow();
+          about->ShowModal();
           return;
         }
         if (fabs(cur_freq_ - initial_frequency_) >
             dus_.exp_frequency_fluctuations_range_) {
           LOG_F(LG_ERROR) << "exp_stop: frequency fluctuation:" << cur_freq_
                           << " initial frequency:" << initial_frequency_;
-          exp_stop();
+          exp_pause();
+          exp_pause_stop_reason_ = kExpPauseStopReasonOutFrequecyRange;
+          // TODO(hhool): msg box with frequency fluctuation reason
+          int32_t result = 0;
+          DialogCommon* about =
+              new DialogCommon("提示", "超出频率波动范围", &result,
+                               anx::ui::DialogCommon::kDialogCommonStyleOk);
+          about->Create(*pWorkWindow_, _T("dialog_common"), UI_WNDSTYLE_FRAME,
+                        WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
+          about->CenterWindow();
+          about->ShowModal();
           return;
         }
         /////////////////////////////////////////////////////////////////////////
@@ -231,9 +262,11 @@ void WorkWindowSecondPage::OnTimer(TNotifyUI& msg) {
                            << " sampling_start_pos:"
                            << this->dedss_->sampling_start_pos_;
             if (ultra_device_->StartUltra() < 0) {
+              /// TODO(hhool): msg box with unkown reason.
               is_exp_state_ = 0;
               return;
             }
+            exp_data_graph_info_.exp_start_time_ms_ = current_time_ms;
             start_time_pos_has_deal_ = true;
           }
         }
@@ -387,11 +420,12 @@ void WorkWindowSecondPage::OnValueChanged(TNotifyUI& msg) {
     } else if (msg.pSender->GetName() == _T("args_area_value_amplitude")) {
       if (msg.wParam == PBT_APMQUERYSUSPEND) {
         exp_stop();
+        exp_pause_stop_reason_ = kExpPauseStopReasonSystemStandby;
       } else {
-        // do nothing
+        // TODO(hhool): do nothing
       }
     } else {
-      // do nothing
+      // TODO(hhool): do nothing
     }
   }
 }
@@ -403,8 +437,9 @@ bool WorkWindowSecondPage::OnExpClipChanged(void* msg) {
   }
   LOG_F(LG_INFO) << pMsg->pSender->GetName() << " " << pMsg->sType << " "
                  << pMsg->wParam << " " << pMsg->lParam;
-  if (pMsg->sType != DUI_MSGTYPE_KILLFOCUS) {
-    return true;
+  if (pMsg->sType != DUI_MSGTYPE_KILLFOCUS &&
+      pMsg->sType != DUI_MSGTYPE_RETURN) {
+    return false;
   }
 
   if (pMsg->pSender == edit_exp_clip_time_duration_) {
@@ -526,7 +561,7 @@ bool WorkWindowSecondPage::OnExpClipChanged(void* msg) {
       // TODO(hhool): do nothing
     }
   } else {
-    // do nothing
+    return false;
   }
   return true;
 }
@@ -663,6 +698,47 @@ void WorkWindowSecondPage::Unbind() {
                                  anx::db::helper::kTableExpDataGraph);
   anx::db::helper::DropDataTable(anx::db::helper::kDefaultDatabasePathname,
                                  anx::db::helper::kTableExpDataList);
+}
+
+void WorkWindowSecondPage::OnExpStart() {
+  assert(is_exp_state_ == kExpStateStop);
+  if (is_exp_state_ != kExpStateStop) {
+    return;
+  }
+  exp_pause_stop_reason_ = kExpPauseStopReasonNone;
+  /// @note start the ultrasound device
+  exp_start();
+}
+
+void WorkWindowSecondPage::OnExpStop() {
+  assert(is_exp_state_ != kExpStateStop);
+  if (is_exp_state_ == kExpStateStop) {
+    LOG_F(LG_WARN) << "exp_stop: is_exp_state_:" << ExpStateToString();
+    return;
+  }
+  /// @note stop the ultrasound device
+  exp_stop();
+  exp_pause_stop_reason_ = kExpPauseStopReasonNone;
+}
+
+void WorkWindowSecondPage::OnExpPause() {
+  assert(is_exp_state_ != kExpStatePause);
+  if (is_exp_state_ == kExpStatePause) {
+    LOG_F(LG_WARN) << "exp_pause: is_exp_state_:" << ExpStateToString();
+    return;
+  }
+  /// @note pause the ultrasound device
+  exp_pause();
+}
+
+void WorkWindowSecondPage::OnExpResume() {
+  assert(is_exp_state_ == kExpStatePause);
+  if (is_exp_state_ != kExpStatePause) {
+    LOG_F(LG_WARN) << "exp_resume: is_exp_state_:" << ExpStateToString();
+    return;
+  }
+  /// @note resume the ultrasound device
+  exp_resume();
 }
 
 void WorkWindowSecondPage::CheckDeviceComConnectedStatus() {
@@ -1064,6 +1140,8 @@ int32_t WorkWindowSecondPage::exp_start() {
                    << " initial_power_:" << initial_power_;
     return -1;
   }
+  /// @brief start the ultrasound device if the sampling start pos is 0
+  /// else will done with OnTimer
   if (dedss_->sampling_start_pos_ == 0) {
     if (ultra_device_->StartUltra() < 0) {
       is_exp_state_ = kExpStateUnvalid;
@@ -1071,12 +1149,17 @@ int32_t WorkWindowSecondPage::exp_start() {
       return -1;
     }
   }
+
+  cur_cycle_count_ = 0;
+  pre_exp_start_time_ms_ = 0;
+  pre_total_cycle_count_ = 0;
+  pre_total_data_table_no_ = 0;
+
   start_time_pos_has_deal_ = false;
   paint_manager_ui_->SetTimer(btn_exp_start_, kTimerIdSampling,
                               kSamplingInterval);
 
   state_ultrasound_exp_clip_ = 1;
-  cur_cycle_count_ = 0;
 
   DuiLib::TNotifyUI msg;
   msg.pSender = btn_exp_start_;
@@ -1103,7 +1186,9 @@ void WorkWindowSecondPage::exp_pause() {
     // do nothing
   }
 
-  pre_cycle_count_ = cur_cycle_count_;
+  pre_total_cycle_count_ = cur_cycle_count_;
+  pre_total_data_table_no_ = exp_data_list_info_.exp_data_table_no_;
+
   DuiLib::TNotifyUI msg;
   msg.pSender = btn_exp_pause_;
   msg.sType = kClick;
@@ -1123,6 +1208,7 @@ void WorkWindowSecondPage::exp_resume() {
   if (cur_cycle_count_ > exp_max_cycle_count) {
     LOG_F(LG_WARN) << "exp_resume:" << cur_cycle_count_ << " > "
                    << exp_max_cycle_count;
+    // TODO(hhool): show tips
     return;
   }
   is_exp_state_ = kExpStateStart;
@@ -1160,14 +1246,13 @@ void WorkWindowSecondPage::exp_resume() {
 
   exp_data_list_info_.exp_start_time_ms_ = anx::common::GetCurrentTimeMillis();
   exp_data_list_info_.exp_time_interval_num_ = 0;
-
-  // start the ultrasound
-  ultra_device_->StartUltra();
-
   dedss_ =
       std::move(anx::device::LoadDeviceExpDataSampleSettingsDefaultResource());
   exp_data_list_info_.exp_sample_interval_ms_ =
       dedss_->sampling_interval_ * 100;
+  pre_exp_start_time_ms_ = 0;
+  // start the ultrasound
+  ultra_device_->StartUltra();
 
   DuiLib::TNotifyUI msg;
   msg.pSender = btn_exp_resume_;
@@ -1177,13 +1262,12 @@ void WorkWindowSecondPage::exp_resume() {
 }
 
 void WorkWindowSecondPage::exp_stop() {
-  if (!is_exp_state_) {
+  if (is_exp_state_ == kExpStateStop) {
     LOG_F(LG_WARN) << "is_exp_state_: " << ExpStateToString();
     return;
   }
-  is_exp_state_ = 0;
+  is_exp_state_ = kExpStateStop;
   exp_data_pre_duration_exponential_ = 0;
-  pre_cycle_count_ = 0;
   UpdateUIButton();
   // stop the ultrasound
   ultra_device_->StopUltra();
@@ -1200,7 +1284,7 @@ void WorkWindowSecondPage::exp_stop() {
 
 void WorkWindowSecondPage::OnButtonStaticAircraftClear() {
   // clear the data
-  if (is_exp_state_ > 0) {
+  if (is_exp_state_ > kExpStateStop) {
     LOG_F(LG_WARN) << "exp is running, can not clear the data";
     return;
   }
@@ -1421,19 +1505,60 @@ void WorkWindowSecondPage::OnDataReceived(
     anx::device::DeviceComInterface* device,
     const uint8_t* data,
     int32_t size) {
-  // TODO(hhool): process data
-  if (is_exp_state_ > 0) {
+  if (is_exp_state_ > kExpStateStop) {
     /////////////////////////////////////////////////////////////////////////
     /// check the exp data received reach the max cycle count
     /// get current cycle count and total time  cycle_count / x kHZ
+    bool bReachEnd = false;
+    std::string message;
     int64_t exp_max_cycle_count = dus_.exp_max_cycle_count_;
     for (int32_t i = 0; i < dus_.exp_max_cycle_power_; i++) {
       exp_max_cycle_count *= 10;
     }
     if (cur_cycle_count_ > exp_max_cycle_count) {
+      /// avoid renter;
+      if (is_exp_state_ == kExpStatePause) {
+        LOG_F(LG_WARN) << "ignore state exp_pause:" << cur_cycle_count_ << " > "
+                       << exp_max_cycle_count;
+        return;
+      }
       exp_pause();
-      LOG_F(LG_WARN) << "exp_pause:" << cur_cycle_count_ << " > "
+      exp_pause_stop_reason_ = kExpPauseStopReasonReachMaxCycle;
+      LOG_F(LG_WARN) << "msgbox:exp_pause:" << cur_cycle_count_ << " > "
                      << exp_max_cycle_count;
+      message = "已达到最大循环次数";
+      bReachEnd = true;
+    }
+    int64_t current_time_ms = anx::common::GetCurrentTimeMillis();
+    if (dedss_->sampling_end_pos_ > dedss_->sampling_start_pos_) {
+      int64_t sampling_start_end_diff =
+          dedss_->sampling_end_pos_ - dedss_->sampling_start_pos_;
+      int64_t sampling_start_end_diff_ms = sampling_start_end_diff * 100;
+      int64_t time_ms_diff_from_start =
+          current_time_ms - exp_data_list_info_.exp_start_time_ms_;
+      if (time_ms_diff_from_start > sampling_start_end_diff_ms) {
+        LOG_F(LG_WARN) << "msgbox:exp_pause";
+        /// avoid renter;
+        if (is_exp_state_ == kExpStatePause) {
+          LOG_F(LG_WARN) << "ignore state exp_pause:" << time_ms_diff_from_start
+                         << " > " << time_ms_diff_from_start;
+          return;
+        }
+        exp_pause();
+        exp_pause_stop_reason_ = kExpPauseStopReasonReachRangeTimeEndPos;
+        message = "已到达循环结束时间点";
+        bReachEnd = true;
+      }
+    }
+    if (bReachEnd) {
+      int32_t result = 0;
+      DialogCommon* about =
+          new DialogCommon("提示", message, &result,
+                           anx::ui::DialogCommon::kDialogCommonStyleOk);
+      about->Create(*pWorkWindow_, _T("dialog_common"), UI_WNDSTYLE_FRAME,
+                    WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
+      about->CenterWindow();
+      about->ShowModal();
       return;
     }
     /////////////////////////////////////////////////////////////////////////
@@ -1457,16 +1582,23 @@ void WorkWindowSecondPage::OnDataReceived(
     this->ProcessDataGraph();
     /// @note process intermittent exp clipping enabled
     if (ultra_device_->IsUltraStarted()) {
-      this->ProcessDataList();
+      assert(dedss_ != nullptr);
+      if (dedss_->sample_mode_ ==
+          anx::device::DeviceExpDataSample::kSampleModeExponent) {
+        this->ProcessDataListModeExponential();
+      } else {
+        this->ProcessDataListModeLinear();
+      }
     }
   }
 }
 
 void WorkWindowSecondPage::ProcessDataGraph() {
   int64_t current_time_ms = anx::common::GetCurrentTimeMillis();
-  int64_t time_diff = current_time_ms - exp_data_graph_info_.exp_start_time_ms_;
+  int64_t time_ms_diff =
+      current_time_ms - exp_data_graph_info_.exp_start_time_ms_;
   int64_t time_interval_num =
-      time_diff / exp_data_graph_info_.exp_sample_interval_ms_;
+      time_ms_diff / exp_data_graph_info_.exp_sample_interval_ms_;
   if (time_interval_num > exp_data_graph_info_.exp_time_interval_num_) {
     exp_data_graph_info_.exp_time_interval_num_ = time_interval_num;
     exp_data_graph_info_.exp_data_table_no_++;
@@ -1496,56 +1628,117 @@ void WorkWindowSecondPage::ProcessDataGraph() {
   }
 }
 
-void WorkWindowSecondPage::ProcessDataList() {
+void WorkWindowSecondPage::ProcessDataListModeLinear() {
   /// @note get the current time and calculate the time interval num
   int64_t current_time_ms = anx::common::GetCurrentTimeMillis();
-  int64_t time_diff = current_time_ms - exp_data_list_info_.exp_start_time_ms_;
-  assert(dedss_ != nullptr);
-  /// @note check the time diff and the sampling start pos, if the time diff
-  /// less than the sampling start pos then return, else time diff minus the
-  /// sampling start pos
-  if (time_diff < (dedss_->sampling_start_pos_ * 100)) {
-    return;
-  }
-  /// @note calculate the time interval num and check the time interval num
-  time_diff -= dedss_->sampling_start_pos_ * 100;
-  int64_t time_interval_num;
-  if (dedss_->sample_mode_ ==
-      anx::device::DeviceExpDataSample::kSampleModeExponent) {
-    time_interval_num = time_diff / 100;
-  } else {
-    time_interval_num = time_diff / (dedss_->sampling_interval_ * 100);
-  }
   /// @note check the time interval num and the sampling end pos, if the time
   /// interval num greater than the sampling end pos then return
   /// else check the time diff and the sampling end pos, if the time diff
   /// greater than the sampling end pos then return
   /// @warning sampling_start_end_diff_ms contain ultra 2000C device pause
   /// status time and resume status time.
-  /// TODO(hhool): uncheck exp interval setting 试验间歇设定
-  if (dedss_->sampling_end_pos_ > dedss_->sampling_start_pos_) {
-    int32_t sampling_start_end_diff =
-        dedss_->sampling_end_pos_ - dedss_->sampling_start_pos_;
-    int64_t sampling_start_end_diff_ms = sampling_start_end_diff * 100;
-    if (time_diff > sampling_start_end_diff_ms) {
-      LOG_F(LG_INFO) << "exp data list stop";
-      return;
-    }
+
+  if (pre_exp_start_time_ms_ <= 0) {
+    pre_exp_start_time_ms_ = exp_data_list_info_.exp_start_time_ms_;
+  }
+  int64_t time_ms_diff = current_time_ms - pre_exp_start_time_ms_;
+  assert(dedss_ != nullptr);
+  /// @note check the time diff and the sampling start pos, if the time diff
+  /// less than the sampling start pos then return, else time diff minus the
+  /// sampling start pos
+  if (time_ms_diff < 0) {
+    LOG_F(LG_WARN) << "time_ms_diff:" << time_ms_diff;
+    return;
+  }
+  /// @note calculate the time interval num and check the time interval num
+  int64_t time_interval_num = time_ms_diff / (dedss_->sampling_interval_ * 100);
+  if (time_interval_num < exp_data_list_info_.exp_time_interval_num_) {
+    return;
   }
 
   /// @note calculate the cycle count and update the args area,
   /// cycle_exp_clip_count that cantian the current cycle count and the exp clip
+  /// count and the pre all cycle count from exp start action.
+  int64_t cycle_exp_clip_count =
+      (time_ms_diff) *
+      static_cast<int32_t>(exp_data_list_info_.amp_freq_ / 1000.f);
+  assert(cycle_exp_clip_count > 0);
+  cur_cycle_count_ = cycle_exp_clip_count + pre_total_cycle_count_;
+  this->pWorkWindow_->UpdateArgsArea(cur_cycle_count_);
+
+  /// @note check the time interval num and update the data to the database
+  if (time_interval_num > exp_data_list_info_.exp_time_interval_num_) {
+    exp_data_list_info_.exp_time_interval_num_ = time_interval_num;
+    exp_data_list_info_.exp_data_table_no_++;
+    /////////////////////////////////////////////////////////////////////
+    int64_t cycle_count;
+    int32_t table_no;
+    // update the data to the database table amp, stress, um
+    {
+      table_no =
+          exp_data_list_info_.exp_data_table_no_ - pre_total_data_table_no_;
+      int32_t amp_freq = static_cast<int32_t>(exp_data_list_info_.amp_freq_);
+      cycle_count = static_cast<int64_t>(table_no) * amp_freq *
+                        (dedss_->sampling_interval_) / 10 +
+                    pre_total_cycle_count_;
+      LOG_F(LG_INFO) << "exp data list: cycle_count:" << cycle_count
+                     << " cur_cycle_count_:" << cur_cycle_count_
+                     << " exp_time_interval_num_:" << time_interval_num
+                     << " exp_data_table_no_:"
+                     << exp_data_list_info_.exp_data_table_no_
+                     << " amp_freq:" << amp_freq
+                     << " cur_freq_:" << cur_freq_;
+    }
+    // sync the data to pre_exp_start_time_ms_, pre_total_cycle_count_,
+    // pre_total_data_table_no_, reset the exp_time_interval_num_ to 0
+    if (table_no % 10 == 0 && table_no > 0) {
+      pre_exp_start_time_ms_ = anx::common::GetCurrentTimeMillis();
+      pre_total_cycle_count_ = cur_cycle_count_;
+      pre_total_data_table_no_ = exp_data_list_info_.exp_data_table_no_;
+      exp_data_list_info_.exp_time_interval_num_ = 0;
+    }
+    // 1. save to database
+    // format cycle_count, KHz, MPa, um to the sql string and insert to the
+    // database
+    StoreDataListItem(cycle_count, anx::common::GetCurrrentSystimeAsVarTime());
+  }
+}
+
+void WorkWindowSecondPage::ProcessDataListModeExponential() {
+  /// @note get the current time and calculate the time interval num
+  int64_t current_time_ms = anx::common::GetCurrentTimeMillis();
+  if (pre_exp_start_time_ms_ <= 0) {
+    pre_exp_start_time_ms_ = exp_data_list_info_.exp_start_time_ms_;
+  }
+  int64_t time_ms_diff = current_time_ms - pre_exp_start_time_ms_;
+  assert(dedss_ != nullptr);
+  /// @note check the time diff and the sampling start pos, if the time diff
+  /// less than the sampling start pos then return, else time diff minus the
+  /// sampling start pos
+  if (time_ms_diff < 0) {
+    LOG_F(LG_WARN) << "time_ms_diff:" << time_ms_diff;
+    return;
+  }
+  int64_t time_interval_num;
+  time_interval_num = time_ms_diff / 100;
+
+  /// @note calculate the cycle count and update the args area,
+  /// cycle_exp_clip_count that cantian the current cycle count and the exp clip
+  /// count and the pre cycle count
+  /// @note calculate the cycle count and update the args area,
+  /// cycle_exp_clip_count that cantian the current cycle count and the exp clip
   /// count and the pre cycle count
   int64_t cycle_exp_clip_count =
-      time_diff * static_cast<int32_t>(exp_data_list_info_.amp_freq_ / 1000.f);
-  cur_cycle_count_ = cycle_exp_clip_count + pre_cycle_count_;
+      (time_ms_diff) *
+      static_cast<int32_t>(exp_data_list_info_.amp_freq_ / 1000.f);
+  assert(cycle_exp_clip_count > 0);
+  cur_cycle_count_ = cycle_exp_clip_count + pre_total_cycle_count_;
   this->pWorkWindow_->UpdateArgsArea(cur_cycle_count_);
 
   /// @note check the time interval num for sample mode Exponent 10^n
   /// check n is 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000
   /// then update the data to the database, else return.
-  if (dedss_->sample_mode_ ==
-      anx::device::DeviceExpDataSample::kSampleModeExponent) {
+  {
     if (exp_data_pre_duration_exponential_ == 0) {
       if (time_interval_num > 0) {
         exp_data_pre_duration_exponential_ = 1;
@@ -1559,48 +1752,50 @@ void WorkWindowSecondPage::ProcessDataList() {
     } else {
       exp_data_pre_duration_exponential_ *= 10;
     }
-  } else {
-    /// TODO(hhool): do nothing for the sample mode linear
-    /// linear dedss_->sample_mode_ ==
-    /// anx::device::DeviceExpDataSample::kSampleModeLinear
   }
   /// @note check the time interval num and update the data to the database
   if (time_interval_num > exp_data_list_info_.exp_time_interval_num_) {
     exp_data_list_info_.exp_time_interval_num_ = time_interval_num;
     exp_data_list_info_.exp_data_table_no_++;
-    int64_t cycle_count = cur_cycle_count_;
+    int64_t cycle_count;
     // update the data to the database table amp, stress, um
-    if (dedss_->sample_mode_ ==
-        anx::device::DeviceExpDataSample::kSampleModeExponent) {
+    {
       int multiplier = 1;
       for (int i = 1; i < exp_data_list_info_.exp_data_table_no_; i++) {
         multiplier *= 10;
       }
       cycle_count = static_cast<int64_t>(multiplier *
                                          exp_data_list_info_.amp_freq_ / 10.f);
+      LOG_F(LG_INFO) << "exp data list: cycle_count:" << cycle_count
+                     << " cur_cycle_count_:" << cur_cycle_count_
+                     << " exp_time_interval_num_:" << time_interval_num
+                     << " exp_data_table_no_:"
+                     << exp_data_list_info_.exp_data_table_no_
+                     << " cur_freq_:" << cur_freq_;
     }
-    double date = anx::common::GetCurrrentSystimeAsVarTime();
     // 1. save to database
     // format cycle_count, KHz, MPa, um to the sql string and insert to the
     // database
-    std::string sql_str = ("INSERT INTO ");
-    sql_str.append(anx::db::helper::kTableExpDataList);
-    sql_str.append((" (cycle, KHz, MPa, um, date) VALUES ("));
-    sql_str.append(std::to_string(cycle_count));
-    sql_str.append(", ");
-    sql_str.append(to_string_with_precision(exp_data_list_info_.amp_freq_, 0));
-    sql_str.append(", ");
-    sql_str.append(std::to_string(exp_data_list_info_.stress_value_));
-    sql_str.append(", ");
-    sql_str.append(std::to_string(exp_data_list_info_.amp_um_));
-    sql_str.append(", ");
-    sql_str.append(std::to_string(date));
-    sql_str.append(");");
-    anx::db::helper::InsertDataTable(anx::db::helper::kDefaultDatabasePathname,
-                                     anx::db::helper::kTableExpDataList,
-                                     sql_str);
+    StoreDataListItem(cycle_count, anx::common::GetCurrrentSystimeAsVarTime());
   }
 }
 
+void WorkWindowSecondPage::StoreDataListItem(int64_t cycle_count, double date) {
+  std::string sql_str = ("INSERT INTO ");
+  sql_str.append(anx::db::helper::kTableExpDataList);
+  sql_str.append((" (cycle, KHz, MPa, um, date) VALUES ("));
+  sql_str.append(std::to_string(cycle_count));
+  sql_str.append(", ");
+  sql_str.append(to_string_with_precision(exp_data_list_info_.amp_freq_, 0));
+  sql_str.append(", ");
+  sql_str.append(std::to_string(exp_data_list_info_.stress_value_));
+  sql_str.append(", ");
+  sql_str.append(std::to_string(exp_data_list_info_.amp_um_));
+  sql_str.append(", ");
+  sql_str.append(std::to_string(date));
+  sql_str.append(");");
+  anx::db::helper::InsertDataTable(anx::db::helper::kDefaultDatabasePathname,
+                                   anx::db::helper::kTableExpDataList, sql_str);
+}
 }  // namespace ui
 }  // namespace anx

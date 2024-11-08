@@ -29,9 +29,16 @@ namespace anx {
 namespace ui {
 class DialogCommon : public DuiLib::WindowImplBase {
  public:
+  enum DialogCommonStyle {
+    kDialogCommonStyleOk = 0,
+    kDialogCommonStyleOkCancel = 1,
+  };
+
+ public:
   DialogCommon(const std::string& title,
                const std::string& content,
-               int32_t& result);
+               int32_t* result,
+               DialogCommonStyle style = kDialogCommonStyleOkCancel);
   ~DialogCommon();
 
   DUI_DECLARE_MESSAGE_MAP()
@@ -63,11 +70,10 @@ class DialogCommon : public DuiLib::WindowImplBase {
  private:
   std::string title_;
   std::string content_;
-  int32_t& result_;
+  int32_t* result_;
+  DialogCommonStyle style_;
 
   CButtonUI* btn_close_;
-  CButtonUI* btn_ok_;
-  CButtonUI* btn_cancel_;
 };
 }  // namespace ui
 }  // namespace anx

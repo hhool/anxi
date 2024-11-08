@@ -64,6 +64,12 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   void Bind() override;
   void Unbind() override;
 
+ public:
+  void OnExpStart();
+  void OnExpStop();
+  void OnExpPause();
+  void OnExpResume();
+
  protected:
   void CheckDeviceComConnectedStatus();
   void RefreshExpClipTimeControl();
@@ -113,7 +119,9 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
     // TODO(hhool): do nothing
   }
   void ProcessDataGraph();
-  void ProcessDataList();
+  void ProcessDataListModeLinear();
+  void ProcessDataListModeExponential();
+  void StoreDataListItem(int64_t cycle_count, double date_time);
 
  private:
   WorkWindow* pWorkWindow_;
@@ -147,6 +155,22 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
     }
   }
   int32_t is_exp_state_ = kExpStateUnvalid;
+  /// @brief enum exp_state pause and stop state reason code
+  /// 0 - none, 1 - out frequency range, 2 - reach max cycle, 3 - reach range
+  /// time end pos, 4 - system standby, 100 - unkown
+  /// @note exp_pause_stop_reason_ for record the pause reason code
+  /// if the exp is paused, then the pause reason code will record the pause
+  /// reason code value and update the button state with the pause reason code
+  /// of message box
+  enum {
+    kExpPauseStopReasonNone = 0,
+    kExpPauseStopReasonOutFrequecyRange = 1,
+    kExpPauseStopReasonReachMaxCycle = 2,
+    kExpPauseStopReasonReachRangeTimeEndPos = 3,
+    kExpPauseStopReasonSystemStandby = 4,
+    kExpPauseStopReasonUnkown = 100
+  };
+  int32_t exp_pause_stop_reason_ = kExpPauseStopReasonNone;
   anx::device::UltraDevice* ultra_device_;
   int32_t initial_frequency_;
   int32_t initial_power_;
@@ -156,12 +180,15 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   /// if the value is -1, then the exp is not started
   /// if the value is >= 0, then the exp is started
   /// cur_cycle_count_ will increase with the cycle count value and increase
-  /// with pre_cycle_count_ value and current exp cycle count value
+  /// with pre_total_cycle_count_ value and current exp cycle count value
   int64_t cur_cycle_count_ = -1;
   /// @brief pre cycle count value for record total cycle count value
   /// when the exp is paused. then the cycle count value will not increase
   /// and the pre cycle count value will record the last cycle count value
-  int64_t pre_cycle_count_ = 0;
+  int64_t pre_exp_start_time_ms_ = 0;
+  int64_t pre_total_cycle_count_ = 0;
+  int32_t pre_total_data_table_no_ = 0;
+
   anx::device::DeviceUltrasoundSettings dus_;
   double exp_amplitude_;
   double exp_statc_load_mpa_;

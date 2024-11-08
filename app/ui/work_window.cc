@@ -11,7 +11,10 @@
 
 #include "app/ui/work_window.h"
 
+#include <iomanip>
 #include <iostream>
+#undef max
+#undef min
 #include <map>
 #include <memory>
 #include <utility>
@@ -54,6 +57,13 @@ namespace anx {
 namespace ui {
 
 namespace {
+template <typename T>
+std::string to_string_with_precision(const T a_value, const int n = 2) {
+  int nn = n;
+  std::ostringstream out;
+  out << std::fixed << std::setprecision(nn) << a_value;
+  return out.str();
+}
 const int32_t kTimerCurrentTimeMsgId = 1;
 const int32_t kTimerCurrentTimePeriod = 50;
 }  // namespace
@@ -574,8 +584,8 @@ LRESULT WorkWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
         pos = static_cast<double>(rand() % 100) * 1.0f;
         load = static_cast<double>(rand() % 100) * 1.0f;
       }
-      double target_load_n = -1.0f;
-      double target_load_pos = -1.0f;
+      int32_t target_load_n = -1;
+      int32_t target_load_pos = -1;
       std::unique_ptr<anx::device::DeviceLoadStaticSettings> lss;
       std::unique_ptr<anx::esolution::SolutionDesign> design =
           solution_design_base_->SolutionDesignFromPage();
@@ -596,42 +606,51 @@ LRESULT WorkWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
           target_load_pos = lss->displacement_;
         }
       }
-      DuiLib::CDuiString value;
+      std::string str_value = "静载力(N)";
       if (target_load_n > 0) {
-        value.Format(_T("静载力(N) %.1f"), target_load_n);
-      } else {
-        value.Format(_T("静载力(N)"));
+        /// append target load to str_value
+        str_value.append(" ");
+        str_value.append(to_string_with_precision(target_load_n, 1));
       }
-      btn_args_area_name_static_load_n_->SetText(value);
+      btn_args_area_name_static_load_n_->SetText(
+          anx::common::UTF8ToUnicode(str_value.c_str()).c_str());
       if (lss != nullptr) {
         /// move up
         if (lss->direct_ == 1) {
-          value.Format(_T("↑ %.1f"), load);
+          str_value = "↑ ";
+          /// load with .1f to string
+          str_value.append(to_string_with_precision(load, 1));
         } else if (lss->direct_ == 2) {
-          value.Format(_T("↓ %.1f"), load);
+          str_value = "↓ ";
+          str_value.append(to_string_with_precision(load, 1));
         } else {
-          value.Format(_T("%.1f"), load);
+          str_value = to_string_with_precision(load, 1);
         }
-        btn_args_area_value_static_load_n_->SetText(value);
+        btn_args_area_value_static_load_n_->SetText(
+            anx::common::UTF8ToUnicode(str_value.c_str()).c_str());
       }
 
-      value.Empty();
+      str_value = "静载位移(mm)";
       if (target_load_pos > 0) {
-        value.Format(_T("静载位移(mm) %.1f"), target_load_pos);
-      } else {
-        value.Format(_T("静载位移(mm)"));
+        /// append target load to str_value
+        str_value.append(" ");
+        str_value.append(to_string_with_precision(target_load_pos, 1));
       }
-      btn_args_area_name_static_shift_mm_->SetText(value);
+      btn_args_area_name_static_shift_mm_->SetText(
+          anx::common::UTF8ToUnicode(str_value.c_str()).c_str());
       if (lss != nullptr) {
         /// move up
         if (lss->direct_ == 1) {
-          value.Format(_T("↑ %.1f"), pos);
+          str_value = "↑ ";
+          str_value.append(to_string_with_precision(pos, 1));
         } else if (lss->direct_ == 2) {
-          value.Format(_T("↓ %.1f"), pos);
+          str_value = "↓ ";
+          str_value.append(to_string_with_precision(pos, 1));
         } else {
-          value.Format(_T("%.1f"), pos);
+          str_value = to_string_with_precision(pos, 1);
         }
-        btn_args_area_value_static_shift_mm_->SetText(value);
+        btn_args_area_value_static_shift_mm_->SetText(
+            anx::common::UTF8ToUnicode(str_value.c_str()).c_str());
       }
       // notify third page to update the data
       // notify second page to update the chart
@@ -1052,7 +1071,7 @@ void WorkWindow::UpdateArgsArea(int64_t cycle_count,
   DuiLib::CDuiString value;
   // update cycle count
   if (cycle_count >= 0) {
-    value.Format(_T("%d"), cycle_count);
+    value.Format(_T("%lld"), cycle_count);
     btn_args_area_value_freq_num_->SetText(value);
   }
   // update freq

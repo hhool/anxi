@@ -274,9 +274,15 @@ bool WorkWindowSecondPageData::OnOptDataSampleChange(void* param) {
   if (pMsg->pSender == option_sample_mode_exp_) {
     device_exp_data_settings_->sample_mode_ =
         anx::device::DeviceExpDataSample::kSampleModeExponent;
+    edit_sample_interval_->SetEnabled(false);
+    edit_sample_end_pos_->SetEnabled(false);
   } else if (pMsg->pSender == option_sample_mode_linear_) {
     device_exp_data_settings_->sample_mode_ =
         anx::device::DeviceExpDataSample::kSampleModeLinear;
+    edit_sample_interval_->SetEnabled(true);
+    edit_sample_end_pos_->SetEnabled(true);
+  } else {
+    return false;
   }
   SaveSettingsFromControl();
   return true;
@@ -335,7 +341,6 @@ void WorkWindowSecondPageData::Bind() {
   list_data_->SetVirtualItemCount(0);
 
   UpdateControlFromSettings();
-  RefreshSampleTimeControl(true);
 
   paint_manager_ui_->SetTimer(text_sample_interval_, kTimerIdRefreshControl,
                               1000);
@@ -359,16 +364,17 @@ void WorkWindowSecondPageData::Unbind() {
   }
 }
 
-void WorkWindowSecondPageData::RefreshSampleTimeControl(bool force) {
+void WorkWindowSecondPageData::RefreshSampleTimeControl() {
   std::string value = ("=");
   int32_t sample_time_interval = _ttol(edit_sample_interval_->GetText());
-  if (force ||
-      device_exp_data_settings_->sampling_interval_ != sample_time_interval) {
+  if (device_exp_data_settings_->sampling_interval_ != sample_time_interval) {
     if (sample_time_interval == 0) {
       return;
     }
     device_exp_data_settings_->sampling_interval_ = sample_time_interval;
-    value += to_string_with_precision((sample_time_interval * 100) / 1000.0f, 1);
+    double f_value = static_cast<double>(sample_time_interval);
+    f_value /= 10.0f;
+    value += to_string_with_precision(f_value, 1);
     value += "S";
     text_sample_interval_->SetText(anx::common::String2WString(value).c_str());
     exp_data_info_->exp_sample_interval_ms_ = sample_time_interval * 100;
@@ -380,30 +386,37 @@ WorkWindowSecondPageData::UpdateExpClipTimeFromControl() {
   anx::device::DeviceExpDataSampleSettings des;
   DuiLib::CDuiString str = edit_sample_start_pos_->GetText();
   if (str.IsEmpty()) {
+    LOG_F(LG_WARN) << "edit_sample_start_pos_ is empty";
     return nullptr;
   }
   str = edit_sample_end_pos_->GetText();
   if (str.IsEmpty()) {
+    LOG_F(LG_WARN) << "edit_sample_end_pos_ is empty";
     return nullptr;
   }
   str = edit_sample_interval_->GetText();
   if (str.IsEmpty()) {
+    LOG_F(LG_WARN) << "edit_sample_interval_ is empty";
     return nullptr;
   }
   int64_t sample_start_pos = 0;
   int64_t sample_end_pos = 0;
-  int64_t sample_time_interval = 0;
+  int32_t sample_time_interval = 0;
   sample_start_pos = _ttoll(edit_sample_start_pos_->GetText());
   sample_end_pos = _ttoll(edit_sample_end_pos_->GetText());
-  sample_time_interval = _ttoll(edit_sample_interval_->GetText());
+  sample_time_interval = _ttoi(edit_sample_interval_->GetText());
   if (sample_start_pos > sample_end_pos && sample_end_pos > 0) {
+    LOG_F(LG_WARN) << "sample_start_pos > sample_end_pos";
     return nullptr;
   }
   if (sample_time_interval <= 0) {
+    LOG_F(LG_WARN) << "sample_time_interval <= 0";
     return nullptr;
   }
   if (sample_time_interval > (sample_end_pos - sample_start_pos) &&
       sample_end_pos > 0) {
+    LOG_F(LG_WARN)
+        << "sample_time_interval > (sample_end_pos - sample_start_pos)";
     return nullptr;
   }
   if (option_sample_mode_exp_->IsSelected()) {
@@ -411,9 +424,9 @@ WorkWindowSecondPageData::UpdateExpClipTimeFromControl() {
   } else {
     des.sample_mode_ = anx::device::DeviceExpDataSample::kSampleModeLinear;
   }
-  des.sampling_start_pos_ = static_cast<int32_t>(sample_start_pos);
-  des.sampling_end_pos_ = static_cast<int32_t>(sample_end_pos);
-  des.sampling_interval_ = static_cast<int32_t>(sample_time_interval);
+  des.sampling_start_pos_ = sample_start_pos;
+  des.sampling_end_pos_ = sample_end_pos;
+  des.sampling_interval_ = sample_time_interval;
   return std::unique_ptr<anx::device::DeviceExpDataSampleSettings>(
       new anx::device::DeviceExpDataSampleSettings(des));
 }
@@ -425,8 +438,12 @@ void WorkWindowSecondPageData::UpdateControlFromSettings() {
     if (settings->sample_mode_ ==
         anx::device::DeviceExpDataSample::kSampleModeExponent) {
       option_sample_mode_exp_->Selected(true);
+      edit_sample_interval_->SetEnabled(false);
+      edit_sample_end_pos_->SetEnabled(false);
     } else {
       option_sample_mode_linear_->Selected(true);
+      edit_sample_interval_->SetEnabled(true);
+      edit_sample_end_pos_->SetEnabled(true);
     }
     edit_sample_start_pos_->SetText(
         anx::common::String2WString(
@@ -456,8 +473,13 @@ void WorkWindowSecondPageData::UpdateUIWithExpStatus(int status) {
   if (status == 0) {
     // stop
     edit_sample_start_pos_->SetEnabled(true);
-    edit_sample_end_pos_->SetEnabled(true);
-    edit_sample_interval_->SetEnabled(true);
+    if (option_sample_mode_linear_->IsSelected()) {
+      edit_sample_interval_->SetEnabled(true);
+      edit_sample_end_pos_->SetEnabled(true);
+    } else {
+      edit_sample_interval_->SetEnabled(false);
+      edit_sample_end_pos_->SetEnabled(false);
+    }
 
     option_sample_mode_exp_->SetEnabled(true);
     option_sample_mode_linear_->SetEnabled(true);
@@ -471,12 +493,17 @@ void WorkWindowSecondPageData::UpdateUIWithExpStatus(int status) {
     option_sample_mode_linear_->SetEnabled(false);
   } else if (status == 2) {
     // pause
-    edit_sample_start_pos_->SetEnabled(true);
-    edit_sample_end_pos_->SetEnabled(true);
-    edit_sample_interval_->SetEnabled(true);
+    edit_sample_start_pos_->SetEnabled(false);
+    if (option_sample_mode_linear_->IsSelected()) {
+      edit_sample_interval_->SetEnabled(true);
+      edit_sample_end_pos_->SetEnabled(true);
+    } else {
+      edit_sample_interval_->SetEnabled(false);
+      edit_sample_end_pos_->SetEnabled(false);
+    }
 
-    option_sample_mode_exp_->SetEnabled(true);
-    option_sample_mode_linear_->SetEnabled(true);
+    option_sample_mode_exp_->SetEnabled(false);
+    option_sample_mode_linear_->SetEnabled(false);
   }
 }
 
@@ -484,16 +511,11 @@ void WorkWindowSecondPageData::OnDataReceived(
     anx::device::DeviceComInterface* device,
     const uint8_t* data,
     int32_t size) {
-  if (exp_data_info_->exp_time_interval_num_ <= exp_time_interval_num_) {
-    return;
-  }
   /// @note process intermittent exp clipping enabled
   if (!ultra_device_->IsUltraStarted()) {
     LOG_F(LG_INFO) << "is not run";
     return;
   }
-  LOG_F(LG_INFO) << "exp_data_table_no_:" << exp_data_info_->exp_data_table_no_;
-  exp_time_interval_num_ = exp_data_info_->exp_time_interval_num_;
   list_data_->SetVirtualItemCount(exp_data_info_->exp_data_table_no_);
 }
 
