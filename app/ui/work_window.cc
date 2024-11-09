@@ -279,6 +279,8 @@ void WorkWindow::InitWindow() {
 
 void WorkWindow::OnFinalMessage(HWND hWnd) {
   __super::OnFinalMessage(hWnd);
+  CloseDeviceCom(anx::device::kDeviceCom_StaticLoad);
+  CloseDeviceCom(anx::device::kDeviceCom_Ultrasound);
   delete this;
 }
 
@@ -381,8 +383,6 @@ void WorkWindow::Notify(DuiLib::TNotifyUI& msg) {
 void WorkWindow::OnClick(DuiLib::TNotifyUI& msg) {
   if (msg.pSender == btn_close_) {
     if (pOwner_ != nullptr) {
-      CloseDeviceCom(anx::device::kDeviceCom_StaticLoad);
-      CloseDeviceCom(anx::device::kDeviceCom_Ultrasound);
       this->Close();
       pOwner_->ShowWindow(true, true);
     } else {
@@ -1016,6 +1016,10 @@ int32_t WorkWindow::OpenDeviceCom(int32_t device_type) {
 void WorkWindow::CloseDeviceCom(int32_t device_type) {
   if (device_type == anx::device::kDeviceCom_Ultrasound) {
     if (ultra_device_ != nullptr) {
+      // stop the ultrasound
+      if (ultra_device_->IsUltraStarted()) {
+        ultra_device_->StopUltra();
+      }
       ultra_device_->GetPortDevice()->RemoveListener(this);
       ultra_device_->Close();
     }

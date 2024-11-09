@@ -682,6 +682,10 @@ void WorkWindowSecondPage::Unbind() {
 
   /// @note stop ultra_device
   if (ultra_device_ != nullptr) {
+    // stop the ultrasound
+    if (ultra_device_->IsUltraStarted()) {
+      ultra_device_->StopUltra();
+    }
     ultra_device_->GetPortDevice()->RemoveListener(this);
     ultra_device_ = nullptr;
   }
