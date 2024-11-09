@@ -1579,10 +1579,10 @@ void WorkWindowSecondPage::OnDataReceived(
     exp_data_list_info_.amp_um_ = um;
     exp_data_list_info_.stress_value_ = exp_max_stress_MPa_;
 
-    LOG_F(LG_INFO) << "exp data graph: exp_data_table_no_:"
-                   << exp_data_graph_info_.exp_data_table_no_
-                   << " exp data list: exp_data_table_no_:"
-                   << exp_data_list_info_.exp_data_table_no_;
+    LOG_F(LG_SENSITIVE) << "exp data graph: exp_data_table_no_:"
+                        << exp_data_graph_info_.exp_data_table_no_
+                        << " exp data list: exp_data_table_no_:"
+                        << exp_data_list_info_.exp_data_table_no_;
     this->ProcessDataGraph();
     /// @note process intermittent exp clipping enabled
     if (ultra_device_->IsUltraStarted()) {
@@ -1685,13 +1685,13 @@ void WorkWindowSecondPage::ProcessDataListModeLinear() {
       cycle_count = static_cast<int64_t>(table_no) * amp_freq *
                         (dedss_->sampling_interval_) / 10 +
                     pre_total_cycle_count_;
-      LOG_F(LG_INFO) << "exp data list: cycle_count:" << cycle_count
-                     << " cur_cycle_count_:" << cur_cycle_count_
-                     << " exp_time_interval_num_:" << time_interval_num
-                     << " exp_data_table_no_:"
-                     << exp_data_list_info_.exp_data_table_no_
-                     << " amp_freq:" << amp_freq
-                     << " cur_freq_:" << cur_freq_;
+      LOG_F(LG_SENSITIVE) << "exp data list: cycle_count:" << cycle_count
+                          << " cur_cycle_count_:" << cur_cycle_count_
+                          << " exp_time_interval_num_:" << time_interval_num
+                          << " exp_data_table_no_:"
+                          << exp_data_list_info_.exp_data_table_no_
+                          << " amp_freq:" << amp_freq
+                          << " cur_freq_:" << cur_freq_;
     }
     // sync the data to pre_exp_start_time_ms_, pre_total_cycle_count_,
     // pre_total_data_table_no_, reset the exp_time_interval_num_ to 0
