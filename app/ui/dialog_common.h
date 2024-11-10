@@ -34,6 +34,23 @@ class DialogCommon : public DuiLib::WindowImplBase {
     kDialogCommonStyleOkCancel = 1,
   };
 
+  enum {
+    DC_Cancel = 0,
+    DC_Ok,
+  };
+
+  /// @brief show dialog common dialog with title and content and style
+  /// @param hwnd parent window handle
+  /// @param title dialog title
+  /// @param content dialog content
+  /// @param style dialog style kDialogCommonStyleOk or
+  /// kDialogCommonStyleOkCancel
+  /// @return int32_t DC_Cancel or DC_Ok
+  static int32_t ShowDialog(HWND hwnd,
+                            const std::string& title,
+                            const std::string& content,
+                            DialogCommonStyle style);
+
  public:
   DialogCommon(const std::string& title,
                const std::string& content,

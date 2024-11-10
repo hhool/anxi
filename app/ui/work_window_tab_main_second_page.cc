@@ -153,27 +153,22 @@ void WorkWindowSecondPage::OnClick(TNotifyUI& msg) {
     } else if (msg.pSender == this->btn_exp_start_) {
       OnExpStart();
     } else if (msg.pSender == this->btn_exp_stop_) {
-      int32_t result = 0;
-      DialogCommon* about = new DialogCommon("提示", "是否停止试验", &result);
-      about->Create(*pWorkWindow_, _T("dialog_common"), UI_WNDSTYLE_FRAME,
-                    WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
-      about->CenterWindow();
-      about->ShowModal();
-      if (result == 0) {
+      int32_t result = anx::ui::DialogCommon::ShowDialog(
+          *pWorkWindow_, "提示", "是否停止试验",
+          anx::ui::DialogCommon::kDialogCommonStyleOkCancel);
+      if (result == anx::ui::DialogCommon::DC_Cancel) {
         return;
       }
       OnExpStop();
     } else if (msg.pSender == this->btn_exp_pause_) {
 #if defined(_DEBUG)
       // TODO(hhool): will be remove
-      int32_t result = 0;
-      DialogCommon* about =
-          new DialogCommon("提示", "是否暂停试验", &result,
-                           anx::ui::DialogCommon::kDialogCommonStyleOk);
-      about->Create(*pWorkWindow_, _T("dialog_common"), UI_WNDSTYLE_FRAME,
-                    WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
-      about->CenterWindow();
-      about->ShowModal();
+      int32_t result = anx::ui::DialogCommon::ShowDialog(
+          *pWorkWindow_, "提示", "是否暂停试验",
+          anx::ui::DialogCommon::kDialogCommonStyleOkCancel);
+      if (result == anx::ui::DialogCommon::DC_Cancel) {
+        return;
+      }
 #endif
       OnExpPause();
     } else if (msg.pSender == this->btn_exp_resume_) {
@@ -220,15 +215,10 @@ void WorkWindowSecondPage::OnTimer(TNotifyUI& msg) {
                           << " cur_power:" << cur_power_;
           exp_stop();
           exp_pause_stop_reason_ = kExpPauseStopReasonUnkown;
-          // TODO(hhool): msg box with unkown reason
-          int32_t result = 0;
-          DialogCommon* about =
-              new DialogCommon("提示", "设备未知错误,请检查硬件连接", &result,
-                               anx::ui::DialogCommon::kDialogCommonStyleOk);
-          about->Create(*pWorkWindow_, _T("dialog_common"), UI_WNDSTYLE_FRAME,
-                        WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
-          about->CenterWindow();
-          about->ShowModal();
+          /// @note msg box with unkown reason
+          anx::ui::DialogCommon::ShowDialog(
+              *pWorkWindow_, "提示", "设备未知错误,请检查硬件连接",
+              anx::ui::DialogCommon::kDialogCommonStyleOk);
           return;
         }
         if (fabs(cur_freq_ - initial_frequency_) >
@@ -237,15 +227,10 @@ void WorkWindowSecondPage::OnTimer(TNotifyUI& msg) {
                           << " initial frequency:" << initial_frequency_;
           exp_pause();
           exp_pause_stop_reason_ = kExpPauseStopReasonOutFrequecyRange;
-          // TODO(hhool): msg box with frequency fluctuation reason
-          int32_t result = 0;
-          DialogCommon* about =
-              new DialogCommon("提示", "超出频率波动范围", &result,
-                               anx::ui::DialogCommon::kDialogCommonStyleOk);
-          about->Create(*pWorkWindow_, _T("dialog_common"), UI_WNDSTYLE_FRAME,
-                        WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
-          about->CenterWindow();
-          about->ShowModal();
+          /// @note msg box with frequency fluctuation reason
+          anx::ui::DialogCommon::ShowDialog(
+              *pWorkWindow_, "提示", "超出频率波动范围",
+              anx::ui::DialogCommon::kDialogCommonStyleOk);
           return;
         }
         /////////////////////////////////////////////////////////////////////////
@@ -1555,14 +1540,9 @@ void WorkWindowSecondPage::OnDataReceived(
       }
     }
     if (bReachEnd) {
-      int32_t result = 0;
-      DialogCommon* about =
-          new DialogCommon("提示", message, &result,
-                           anx::ui::DialogCommon::kDialogCommonStyleOk);
-      about->Create(*pWorkWindow_, _T("dialog_common"), UI_WNDSTYLE_FRAME,
-                    WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
-      about->CenterWindow();
-      about->ShowModal();
+      anx::ui::DialogCommon::ShowDialog(
+          *pWorkWindow_, "提示", message,
+          anx::ui::DialogCommon::kDialogCommonStyleOk);
       return;
     }
     /////////////////////////////////////////////////////////////////////////

@@ -35,6 +35,7 @@
 #include "app/esolution/solution_design_default.h"
 #include "app/esolution/solution_design_helper.h"
 #include "app/ui/dialog_com_port_settings.h"
+#include "app/ui/dialog_common.h"
 #include "app/ui/dialog_exp_data_record.h"
 #include "app/ui/ui_constants.h"
 #include "app/ui/work_window_menu_design.h"
@@ -325,14 +326,13 @@ void WorkWindow::Notify(DuiLib::TNotifyUI& msg) {
     int32_t ret = LoadFileWithDialog();
     if (ret < 0) {
       if (ret == -3) {
-        MessageBox(
-            *this,
-            anx::common::UTF8ToUnicode("与当前试件设计类型不匹配").c_str(),
-            anx::common::UTF8ToUnicode("加载失败").c_str(), MB_OK);
+        anx::ui::DialogCommon::ShowDialog(
+            *this, "提示", "加载失败,与当前试件设计类型不匹配",
+            anx::ui::DialogCommon::kDialogCommonStyleOk);
       } else {
-        MessageBox(*this,
-                   anx::common::UTF8ToUnicode("试件设计文件错误").c_str(),
-                   anx::common::UTF8ToUnicode("加载失败").c_str(), MB_OK);
+        anx::ui::DialogCommon::ShowDialog(
+            *this, "提示", "加载失败,试件设计文件错误",
+            anx::ui::DialogCommon::kDialogCommonStyleOk);
       }
       return;
     } else {
@@ -341,14 +341,15 @@ void WorkWindow::Notify(DuiLib::TNotifyUI& msg) {
   } else if (msg.sType == kMenu_Design_Save_Solution) {
     int32_t ret = SaveFileWithDialog();
     if (ret < 0) {
-      MessageBox(*this,
-                 anx::common::UTF8ToUnicode("试件设计文件保存错误").c_str(),
-                 anx::common::UTF8ToUnicode("保存失败").c_str(), MB_OK);
+      anx::ui::DialogCommon::ShowDialog(
+          *this, "提示", "保存失败,试件设计文件保存错误",
+          anx::ui::DialogCommon::kDialogCommonStyleOk);
       return;
     } else if (ret == 0) {
-      MessageBox(*this,
-                 anx::common::UTF8ToUnicode("试件设计文件保存成功").c_str(),
-                 anx::common::UTF8ToUnicode("保存成功").c_str(), MB_OK);
+      anx::ui::DialogCommon::ShowDialog(
+          *this, "保存成功", "试件设计文件保存成功",
+          anx::ui::DialogCommon::kDialogCommonStyleOk);
+      return;
     } else {
       // do nothing
     }
@@ -914,16 +915,18 @@ void WorkWindow::OnMenuDeviceConnectClicked(DuiLib::TNotifyUI& msg) {
     is_device_ultra_connected_ = true;
   } else if (ret < 0) {
     is_device_ultra_connected_ = false;
-    MessageBox(*this, anx::common::UTF8ToUnicode("超声连接失败").c_str(),
-               anx::common::UTF8ToUnicode("连接失败").c_str(), MB_OK);
+    anx::ui::DialogCommon::ShowDialog(
+        *this, "提示", "连接失败，超声连接失败",
+        anx::ui::DialogCommon::kDialogCommonStyleOk);
   }
   ret = OpenDeviceCom(anx::device::kDeviceCom_StaticLoad);
   if (ret == 0) {
     is_device_stload_connected_ = true;
   } else if (ret < 0) {
     is_device_stload_connected_ = false;
-    MessageBox(*this, anx::common::UTF8ToUnicode("静载机连接失败").c_str(),
-               anx::common::UTF8ToUnicode("连接失败").c_str(), MB_OK);
+    anx::ui::DialogCommon::ShowDialog(
+        *this, "提示", "连接失败，静载机连接失败",
+        anx::ui::DialogCommon::kDialogCommonStyleOk);
   }
 }
 

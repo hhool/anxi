@@ -21,6 +21,7 @@
 #include "app/esolution/solution_design_helper.h"
 #include "app/ui/dialog_about.h"
 #include "app/ui/dialog_com_port_settings.h"
+#include "app/ui/dialog_common.h"
 #include "app/ui/ui_constants.h"
 #include "app/ui/work_window.h"
 #include "app/ui/work_window_menu_design.h"
@@ -563,10 +564,10 @@ void WorkWindowFirstPageTh3pointBending::Notify(TNotifyUI& msg) {
       double f_elastic_modulus_GPa = get_value_from_edit<double>(
           "tm_page_first_left_elastic", t_prefix_, paint_manager_ui_);
       if (f_elastic_modulus_GPa <= 0.0) {
-        // show error message
-        MessageBox(paint_manager_ui_->GetPaintWindow(),
-                   _T("Elastic modulus must be greater than 0.0"), _T("Error"),
-                   MB_OK);
+        // TODO(hhool): show error message, show with tips
+        anx::ui::DialogCommon::ShowDialog(
+            *pOwner_, "Error", "Elastic modulus must be greater than 0.0",
+            anx::ui::DialogCommon::kDialogCommonStyleOk);
       }
     } else if (ctrl_name.find("tm_page_first_left_density") !=
                std::string::npos) {
@@ -575,10 +576,10 @@ void WorkWindowFirstPageTh3pointBending::Notify(TNotifyUI& msg) {
         double f_density_kg_m3 = get_value_from_edit<double>(
             "tm_page_first_left_density", t_prefix_, paint_manager_ui_);
         if (f_density_kg_m3 <= 0.0f) {
-          // show error message
-          MessageBox(paint_manager_ui_->GetPaintWindow(),
-                     _T("Density must be greater than 0.0"), _T("Error"),
-                     MB_OK);
+          // TODO(hhool): show error message, show with tips
+          anx::ui::DialogCommon::ShowDialog(
+              *pOwner_, "Error", "Density must be greater than 0.0",
+              anx::ui::DialogCommon::kDialogCommonStyleOk);
         }
       }
     } else if (ctrl_name.find("tm_page_first_left_max_stress") !=
@@ -588,10 +589,10 @@ void WorkWindowFirstPageTh3pointBending::Notify(TNotifyUI& msg) {
         double f_max_stress_MPa = get_value_from_edit<double>(
             "tm_page_first_left_max_stress", t_prefix_, paint_manager_ui_);
         if (f_max_stress_MPa <= 0.0f) {
-          // show error message
-          MessageBox(paint_manager_ui_->GetPaintWindow(),
-                     _T("Max stress must be greater than 0.0"), _T("Error"),
-                     MB_OK);
+          // TODO(hhool): show error message, show with tips
+          anx::ui::DialogCommon::ShowDialog(
+              *pOwner_, "Error", "Max stress must be greater than 0.0",
+              anx::ui::DialogCommon::kDialogCommonStyleOk);
         }
       }
     } else if (ctrl_name.find("tm_page_first_left_ratio_stress") !=
@@ -601,10 +602,10 @@ void WorkWindowFirstPageTh3pointBending::Notify(TNotifyUI& msg) {
         double f_stress_ratio = get_value_from_edit<double>(
             "tm_page_first_left_ratio_stress", t_prefix_, paint_manager_ui_);
         if (f_stress_ratio <= 0.0f) {
-          // show error message
-          MessageBox(paint_manager_ui_->GetPaintWindow(),
-                     _T("Stress ratio must be greater than 0.0"), _T("Error"),
-                     MB_OK);
+          // TODO(hhool): show error message, show with tips
+          anx::ui::DialogCommon::ShowDialog(
+              *pOwner_, "Error", "Stress ratio must be greater than 0.0",
+              anx::ui::DialogCommon::kDialogCommonStyleOk);
         }
       }
     }

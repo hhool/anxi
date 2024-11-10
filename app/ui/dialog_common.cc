@@ -22,6 +22,19 @@ DUI_END_MESSAGE_MAP()
 
 namespace anx {
 namespace ui {
+
+int32_t DialogCommon::ShowDialog(HWND hwnd, const std::string& title,
+                                 const std::string& content,
+                                 DialogCommon::DialogCommonStyle style) {
+  int32_t result = 0;
+  DialogCommon* dialog = new DialogCommon(title, content, &result, style);
+  dialog->Create(hwnd, _T("dialog_common"), UI_WNDSTYLE_FRAME,
+                WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
+  dialog->CenterWindow();
+  dialog->ShowModal();
+  return result;
+}
+
 DialogCommon::DialogCommon(const std::string& title,
                            const std::string& content,
                            int32_t* result,
@@ -64,19 +77,19 @@ void DialogCommon::Notify(DuiLib::TNotifyUI& msg) {
     if (msg.pSender == btn_close_) {
       this->Close();
       if (result_ != nullptr) {
-        *result_ = 0;
+        *result_ = DC_Cancel;
       }
       return;
     } else if (msg.pSender->GetName() == _T("okbtn")) {
       this->Close();
       if (result_ != nullptr) {
-        *result_ = 1;
+        *result_ = DC_Ok;
       }
       return;
     } else if (msg.pSender->GetName() == _T("cancelbtn")) {
       this->Close();
       if (result_ != nullptr) {
-        *result_ = 0;
+        *result_ = DC_Cancel;
       }
       return;
     }
