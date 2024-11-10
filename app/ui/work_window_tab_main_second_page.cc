@@ -161,15 +161,12 @@ void WorkWindowSecondPage::OnClick(TNotifyUI& msg) {
       }
       OnExpStop();
     } else if (msg.pSender == this->btn_exp_pause_) {
-#if defined(_DEBUG)
-      // TODO(hhool): will be remove
       int32_t result = anx::ui::DialogCommon::ShowDialog(
           *pWorkWindow_, "提示", "是否暂停试验",
           anx::ui::DialogCommon::kDialogCommonStyleOkCancel);
       if (result == anx::ui::DialogCommon::DC_Cancel) {
         return;
       }
-#endif
       OnExpPause();
     } else if (msg.pSender == this->btn_exp_resume_) {
       OnExpResume();
@@ -1278,25 +1275,37 @@ void WorkWindowSecondPage::OnButtonStaticAircraftKeepLoad() {
       UI_WNDSTYLE_FRAME, WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
   dialog_static_load_guaranteed_settings->CenterWindow();
   UINT ret = dialog_static_load_guaranteed_settings->ShowModal();
-  /// update lss_;
-  if (ret = MB_OK) {
-    lss_ =
-        std::move(anx::device::LoadDeviceLoadStaticSettingsDefaultResource());
-    st_load_event_from_ = kSTLoadEventFromKeepLoadButton;
-    if (lss_->direct_ == 0) {
-      if (!StaticAircraftDoMoveUp()) {
-        LOG_F(LG_ERROR) << "StaticAircraftDoMoveUp error";
-        st_load_event_from_ = kSTLoadEventNone;
-        return;
-      }
-    } else {
-      if (!StaticAircraftDoMoveDown()) {
-        LOG_F(LG_ERROR) << "StaticAircraftDoMoveDown error";
-        st_load_event_from_ = kSTLoadEventNone;
-        return;
-      }
+
+  if (!ret) {
+    // TODO(hhool): msgbox or tips
+    return;
+  }
+  lss_ = std::move(anx::device::LoadDeviceLoadStaticSettingsDefaultResource());
+  assert(lss_ != nullptr);
+  if (lss_ == nullptr) {
+    // TODO(hhool): msgbox or tips
+    return;
+  }
+  st_load_event_from_ = kSTLoadEventFromKeepLoadButton;
+  if (lss_->direct_ == 0) {
+    if (!StaticAircraftDoMoveUp()) {
+      LOG_F(LG_ERROR) << "StaticAircraftDoMoveUp error";
+      st_load_event_from_ = kSTLoadEventNone;
+      return;
+    }
+  } else {
+    if (!StaticAircraftDoMoveDown()) {
+      LOG_F(LG_ERROR) << "StaticAircraftDoMoveDown error";
+      st_load_event_from_ = kSTLoadEventNone;
+      return;
     }
   }
+  st_load_is_running_ = true;
+  /// update the releated button state
+  btn_sa_keep_load_->SetEnabled(false);
+  btn_sa_up_->SetEnabled(false);
+  btn_sa_down_->SetEnabled(false);
+  btn_sa_stop_->SetEnabled(true);
 }
 
 void WorkWindowSecondPage::OnButtonStaticAircraftReset() {
