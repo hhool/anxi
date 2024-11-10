@@ -163,10 +163,12 @@ class WorkWindowSecondPageGraph : public DuiLib::CNotifyPump,
 
   /// @brief graph amplitude title and canvas
   DuiLib::CButtonUI* btn_graph_amplitude_title_;
+  DuiLib::CButtonUI* btn_graph_amplitude_title_detail_;
   DuiLib::CButtonUI* btn_graph_amplitude_canvas_;
 
   /// @brief graph stress title and canvas
   DuiLib::CButtonUI* btn_graph_stress_title_;
+  DuiLib::CButtonUI* btn_graph_stress_title_detail_;
   DuiLib::CButtonUI* btn_graph_stress_canvas_;
 
   /// @brief graph amplitude control for the page

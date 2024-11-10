@@ -621,12 +621,16 @@ void WorkWindowSecondPageGraph::Bind() {
 
   btn_graph_amplitude_title_ = static_cast<DuiLib::CButtonUI*>(
       paint_manager_ui_->FindControl(_T("graph_amplitude_title")));
+  btn_graph_amplitude_title_detail_ = static_cast<DuiLib::CButtonUI*>(
+      paint_manager_ui_->FindControl(_T("graph_amplitude_title_detail")));
   btn_graph_amplitude_canvas_ = static_cast<DuiLib::CButtonUI*>(
       paint_manager_ui_->FindControl(_T("graph_amplitude_canvas")));
   btn_graph_amplitude_canvas_->SetEnabled(false);
 
   btn_graph_stress_title_ = static_cast<DuiLib::CButtonUI*>(
       paint_manager_ui_->FindControl(_T("graph_stress_title")));
+  btn_graph_stress_title_detail_ = static_cast<DuiLib::CButtonUI*>(
+      paint_manager_ui_->FindControl(_T("graph_stress_title_detail")));
   btn_graph_stress_canvas_ = static_cast<DuiLib::CButtonUI*>(
       paint_manager_ui_->FindControl(_T("graph_stress_canvas")));
   btn_graph_stress_canvas_->SetEnabled(false);
@@ -808,29 +812,50 @@ void WorkWindowSecondPageGraph::RefreshExpGraphTitleControl(double vartime) {
   struct tm timeinfo;
   VartimeToTimeinfo(vartime, &timeinfo);
 
-  // format the time string like 00:00 and append to the title string
-  // like "静载 00:00" and set to the title control. %02d:%02d is
-  // used to format the time string to 00:00 format from the timeinfo
-  // struct. The timeinfo struct is filled with the current time info.
+  // format the time string to time_str
+  // if year is equal now year, then format to "MM-DD HH:MM"
+  // else format to "YYYY-MM-DD HH:MM"
+  // if year is equal now year, and month is not equal now month, then format
+  // to "MM-DD HH:MM"
+  // if year is equal now year, and month is equal now month, and day is not
+  // equal now day, then format to "DD HH:MM"
+  // if year is equal now year, and month is equal now month, and day is equal
+  // now day, then format to "HH:MM"
+  // get the current date's year, month, day, hour, minute form timeinfo
+  double now_vartime = anx::common::GetCurrrentSystimeAsVarTime();
+  struct tm now_timeinfo;
+  VartimeToTimeinfo(now_vartime, &now_timeinfo);
   char time_str[256];
-  snprintf(time_str, sizeof(time_str), "%02d:%02d", timeinfo.tm_hour,
-           timeinfo.tm_min);
-
+  if (timeinfo.tm_year == now_timeinfo.tm_year) {
+    if (timeinfo.tm_mon == now_timeinfo.tm_mon) {
+      if (timeinfo.tm_mday == now_timeinfo.tm_mday) {
+        snprintf(time_str, sizeof(time_str), "%02d时%02d分", timeinfo.tm_hour,
+                 timeinfo.tm_min);
+      } else {
+        snprintf(time_str, sizeof(time_str), "%02d日 %02d时%02d分",
+                 timeinfo.tm_mday, timeinfo.tm_hour, timeinfo.tm_min);
+      }
+    } else {
+      snprintf(time_str, sizeof(time_str), "%02d月%02d日 %02d时%02d分",
+               timeinfo.tm_mon + 1, timeinfo.tm_mday, timeinfo.tm_hour,
+               timeinfo.tm_min);
+    }
+  } else {
+    snprintf(time_str, sizeof(time_str), "%02d月%02d日 %02d时%02d分",
+            timeinfo.tm_mon + 1, timeinfo.tm_mday,
+             timeinfo.tm_hour, timeinfo.tm_min);
+  }
   // get the current time's hour and minute form timeinfo
-  std::string tile_time_str = "底端振幅";
-  tile_time_str += time_str;
+  std::string tile_time_str = time_str;
   DuiLib::CDuiString str_title_with_time_amp =
       anx::common::UTF8ToUnicode(tile_time_str.c_str()).c_str();
-  btn_graph_amplitude_title_->SetText(str_title_with_time_amp);
+  btn_graph_amplitude_title_detail_->SetText(str_title_with_time_amp);
 
   // update the graph canvas tile with the current time's hour and minute
-  tile_time_str = "静载";
-  tile_time_str += time_str;
+  tile_time_str = time_str;
   DuiLib::CDuiString str_title_with_time_stress =
       anx::common::UTF8ToUnicode(tile_time_str.c_str()).c_str();
-  btn_graph_stress_title_->SetText(str_title_with_time_stress);
-  // update the graph stress canvas title with the current time's hour and
-  // minute
+  btn_graph_stress_title_detail_->SetText(str_title_with_time_stress);
 }
 
 void WorkWindowSecondPageGraph::RefreshPreNextAlwaysShowNewControl(

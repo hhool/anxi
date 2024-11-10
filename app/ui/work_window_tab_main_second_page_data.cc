@@ -513,7 +513,7 @@ void WorkWindowSecondPageData::OnDataReceived(
     int32_t size) {
   /// @note process intermittent exp clipping enabled
   if (!ultra_device_->IsUltraStarted()) {
-    LOG_F(LG_INFO) << "is not run";
+    LOG_F(LG_SENSITIVE) << "is not run";
     return;
   }
   list_data_->SetVirtualItemCount(exp_data_info_->exp_data_table_no_);
