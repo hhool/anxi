@@ -206,7 +206,7 @@ void WorkWindowSecondPage::OnClick(TNotifyUI& msg) {
 void WorkWindowSecondPage::OnTimer(TNotifyUI& msg) {
   uint32_t id_timer = msg.wParam;
   if (id_timer == kTimerIdSampling) {
-    if (is_exp_state_ == kExpStateStart) {
+    if (is_exp_state_ != kExpStateUnvalid) {
       if (ultra_device_) {
         cur_freq_ = ultra_device_->GetCurrentFreq();
         cur_power_ = ultra_device_->GetCurrentPower();
@@ -1211,31 +1211,6 @@ void WorkWindowSecondPage::exp_resume() {
 
   SaveExpClipSettingsFromControl();
 
-  /// @brief reset the database exp_data table.
-  /// @note the table name is exp_data, delete exp_data table and create a new
-  /// one.
-  anx::db::helper::DropDataTable(anx::db::helper::kDefaultDatabasePathname,
-                                 anx::db::helper::kTableExpDataGraph);
-
-  // create the exp_data_graph table
-  std::string db_filepathname;
-  anx::db::helper::DefaultDatabasePathname(&db_filepathname);
-  auto db = anx::db::DatabaseFactory::Instance()->CreateOrGetDatabase(
-      db_filepathname);
-  db->Execute(anx::db::helper::sql::kCreateTableExpDataGraphSqlFormat);
-
-  /// @brief get the exp data sample settings and set the exp start time
-  /// and exp sample interval
-  exp_data_graph_info_.exp_data_table_no_ = 0;
-  exp_data_graph_info_.exp_time_interval_num_ = 0;
-  exp_data_graph_info_.exp_start_time_ms_ = anx::common::GetCurrentTimeMillis();
-  exp_data_graph_info_.exp_sample_interval_ms_ = 2000;
-  // clear graph data
-  WorkWindowSecondPageGraph* graph_page =
-      reinterpret_cast<WorkWindowSecondPageGraph*>(
-          work_window_second_page_graph_notify_pump_.get());
-  graph_page->ClearGraphData();
-
   exp_data_list_info_.exp_start_time_ms_ = anx::common::GetCurrentTimeMillis();
   exp_data_list_info_.exp_time_interval_num_ = 0;
   dedss_ =
@@ -1598,7 +1573,7 @@ void WorkWindowSecondPage::ProcessDataGraph() {
     // database
     std::string sql_str = ("INSERT INTO ");
     sql_str.append(anx::db::helper::kTableExpDataGraph);
-    sql_str.append((" (cycle, KHz, MPa, um, date) VALUES ("));
+    sql_str.append((" (cycle, KHz, MPa, um, state, date) VALUES ("));
     sql_str.append(std::to_string(cycle_count));
     sql_str.append(", ");
     sql_str.append(std::to_string(exp_data_graph_info_.amp_freq_));
@@ -1606,6 +1581,8 @@ void WorkWindowSecondPage::ProcessDataGraph() {
     sql_str.append(std::to_string(exp_data_graph_info_.stress_value_));
     sql_str.append(", ");
     sql_str.append(std::to_string(exp_data_graph_info_.amp_um_));
+    sql_str.append(", ");
+    sql_str.append(std::to_string((is_exp_state_ == kExpStateStart) ? 1 : 0));
     sql_str.append(", ");
     sql_str.append(std::to_string(date));
     sql_str.append(");");

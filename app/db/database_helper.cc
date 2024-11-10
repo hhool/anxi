@@ -40,11 +40,13 @@ namespace sql {
 const char* kCreateTableExpDataGraphSqlFormat =
     "CREATE TABLE exp_data_graph (id INTEGER PRIMARY KEY AUTOINCREMENT, cycle "
     "INTEGER, "
-    "kHz REAL, MPa REAL, um REAL, date REAL)";
+    "kHz REAL, MPa REAL, um REAL, state INTEGER, date REAL)";
 
 const char* kInsertTableExpDataGraphSqlFormat =
-    "INSERT INTO exp_data_graph (cycle, kHz, MPa, um, date) VALUES (%d, %f, "
+    "INSERT INTO exp_data_graph (cycle, kHz, MPa, um, state, date) VALUES (%d, "
+    "%f, "
     "%f, %f, "
+    "%d, "
     "%f)";
 
 const char* kQueryTableExpDataGraphSqlByIdFormat =
