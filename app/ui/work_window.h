@@ -20,6 +20,7 @@
 #include "app/device/ultrasonic/ultra_device.h"
 #include "app/ui/ui_virtual_wnd_base.h"
 #include "app/ui/work_window_tab_main_first_page_solution_design_base.h"
+#include "app/ui/work_window_tab_main_second_page_base.h"
 
 #include "third_party\duilib\source\DuiLib\UIlib.h"
 
@@ -146,14 +147,14 @@ class WorkWindow : public DuiLib::WindowImplBase,
   void OnDataReceived(anx::device::DeviceComInterface* device,
                       const uint8_t* data,
                       int32_t size) override {
-    if (is_exp_state_) {
+    if (is_exp_state_ > kExpStateStop) {
       // TODO(hhool):
     }
   }
   void OnDataOutgoing(anx::device::DeviceComInterface* device,
                       const uint8_t* data,
                       int32_t size) override {
-    if (is_exp_state_) {
+    if (is_exp_state_ > kExpStateStop) {
       // TODO(hhool):
     }
   }
@@ -162,15 +163,15 @@ class WorkWindow : public DuiLib::WindowImplBase,
   void OnExpStart();
   void OnExpStop() {
     // TODO(hhool):
-    is_exp_state_ = 0;
+    is_exp_state_ = kExpStateStop;
   }
   void OnExpPause() {
     // TODO(hhool):
-    is_exp_state_ = 2;
+    is_exp_state_ = kExpStatePause;
   }
   void OnExpResume() {
     // TODO(hhool):
-    is_exp_state_ = 1;
+    is_exp_state_ = kExpStateStart;
   }
 
  protected:
@@ -195,7 +196,7 @@ class WorkWindow : public DuiLib::WindowImplBase,
   /// @brief experiment related data
   /// @brief exp status
   /// 0 - stop, 1 - start, 2 - pause, <0 - unvalid
-  int32_t is_exp_state_ = -1;
+  int32_t is_exp_state_ = kExpStateUnvalid;
 
   CButtonUI* btn_close_;
   CButtonUI* btn_max_;

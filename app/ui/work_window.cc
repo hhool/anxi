@@ -682,7 +682,7 @@ LRESULT WorkWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
         if (lid_state == 1) {
           ///  The lid is open
         } else {
-          if (is_exp_state_ >= 0) {
+          if (is_exp_state_ >= kExpStateStop) {
             DuiLib::TNotifyUI msg;
             msg.sType = kValueChanged;
             msg.pSender = btn_args_area_value_amplitude_;
@@ -1046,7 +1046,7 @@ void WorkWindow::CloseDeviceCom(int32_t device_type) {
 }
 
 void WorkWindow::OnExpStart() {
-  is_exp_state_ = 1;
+  is_exp_state_ = kExpStateStart;
 
   std::unique_ptr<anx::esolution::SolutionDesign> design =
       solution_design_base_->SolutionDesignFromPage();

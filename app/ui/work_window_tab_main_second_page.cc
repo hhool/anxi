@@ -248,7 +248,7 @@ void WorkWindowSecondPage::OnTimer(TNotifyUI& msg) {
                            << this->dedss_->sampling_start_pos_;
             if (ultra_device_->StartUltra() < 0) {
               /// TODO(hhool): msg box with unkown reason.
-              is_exp_state_ = 0;
+              is_exp_state_ = kExpStateStop;
               return;
             }
             exp_data_graph_info_.exp_start_time_ms_ = current_time_ms;
@@ -278,7 +278,7 @@ void WorkWindowSecondPage::OnTimer(TNotifyUI& msg) {
               // resume ultrasound
               LOG_F(LG_INFO) << "resume ultrasound";
               if (ultra_device_->StartUltra() < 0) {
-                is_exp_state_ = 0;
+                is_exp_state_ = kExpStateStop;
                 return;
               }
               state_ultrasound_exp_clip_ = 1;
@@ -702,7 +702,8 @@ void WorkWindowSecondPage::OnExpStart() {
 void WorkWindowSecondPage::OnExpStop() {
   assert(is_exp_state_ != kExpStateStop);
   if (is_exp_state_ == kExpStateStop) {
-    LOG_F(LG_WARN) << "exp_stop: is_exp_state_:" << ExpStateToString();
+    LOG_F(LG_WARN) << "exp_stop: is_exp_state_:"
+                   << ExpStateToString(is_exp_state_);
     return;
   }
   /// @note stop the ultrasound device
@@ -713,7 +714,8 @@ void WorkWindowSecondPage::OnExpStop() {
 void WorkWindowSecondPage::OnExpPause() {
   assert(is_exp_state_ != kExpStatePause);
   if (is_exp_state_ == kExpStatePause) {
-    LOG_F(LG_WARN) << "exp_pause: is_exp_state_:" << ExpStateToString();
+    LOG_F(LG_WARN) << "exp_pause: is_exp_state_:"
+                   << ExpStateToString(is_exp_state_);
     return;
   }
   /// @note pause the ultrasound device
@@ -723,7 +725,8 @@ void WorkWindowSecondPage::OnExpPause() {
 void WorkWindowSecondPage::OnExpResume() {
   assert(is_exp_state_ == kExpStatePause);
   if (is_exp_state_ != kExpStatePause) {
-    LOG_F(LG_WARN) << "exp_resume: is_exp_state_:" << ExpStateToString();
+    LOG_F(LG_WARN) << "exp_resume: is_exp_state_:"
+                   << ExpStateToString(is_exp_state_);
     return;
   }
   /// @note resume the ultrasound device
@@ -1074,7 +1077,7 @@ void WorkWindowSecondPage::UpdateUIButton() {
 
 int32_t WorkWindowSecondPage::exp_start() {
   if (is_exp_state_ != kExpStateStop) {
-    LOG_F(LG_WARN) << "is_exp_state_: " << ExpStateToString();
+    LOG_F(LG_WARN) << "is_exp_state_: " << ExpStateToString(is_exp_state_);
     return 0;
   }
 
@@ -1162,7 +1165,7 @@ int32_t WorkWindowSecondPage::exp_start() {
 
 void WorkWindowSecondPage::exp_pause() {
   if (is_exp_state_ == kExpStatePause) {
-    LOG_F(LG_WARN) << "is_exp_state_: " << ExpStateToString();
+    LOG_F(LG_WARN) << "is_exp_state_: " << ExpStateToString(is_exp_state_);
     return;
   }
   is_exp_state_ = kExpStatePause;
@@ -1252,7 +1255,7 @@ void WorkWindowSecondPage::exp_resume() {
 
 void WorkWindowSecondPage::exp_stop() {
   if (is_exp_state_ == kExpStateStop) {
-    LOG_F(LG_WARN) << "is_exp_state_: " << ExpStateToString();
+    LOG_F(LG_WARN) << "is_exp_state_: " << ExpStateToString(is_exp_state_);
     return;
   }
   is_exp_state_ = kExpStateStop;

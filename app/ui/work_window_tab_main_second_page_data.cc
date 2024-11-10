@@ -520,7 +520,7 @@ void WorkWindowSecondPageData::OnDataReceived(
 }
 
 void WorkWindowSecondPageData::OnExpStart() {
-  is_exp_state_ = 1;
+  is_exp_state_ = kExpStateStart;
   exp_time_interval_num_ = 0;
   exp_start_date_time_ = time(nullptr);
 
@@ -530,7 +530,7 @@ void WorkWindowSecondPageData::OnExpStart() {
 }
 
 void WorkWindowSecondPageData::OnExpStop() {
-  is_exp_state_ = 0;
+  is_exp_state_ = kExpStateStop;
   UpdateUIWithExpStatus(0);
   ExportToCSV(exp_start_date_time_);
   // reset exp params;
@@ -540,12 +540,12 @@ void WorkWindowSecondPageData::OnExpStop() {
 
 void WorkWindowSecondPageData::OnExpPause() {
   UpdateUIWithExpStatus(2);
-  is_exp_state_ = 2;
+  is_exp_state_ = kExpStatePause;
 }
 
 void WorkWindowSecondPageData::OnExpResume() {
   UpdateUIWithExpStatus(1);
-  is_exp_state_ = 1;
+  is_exp_state_ = kExpStateStart;
   exp_time_interval_num_ = 0;
 }
 
@@ -553,9 +553,9 @@ void WorkWindowSecondPageData::ClearExpData() {
   exp_time_interval_num_ = 0;
   list_data_->RemoveAll();
   list_data_->SetVirtualItemCount(0);
-  if (is_exp_state_ == 0) {
+  if (is_exp_state_ == kExpStateStop) {
     UpdateUIWithExpStatus(0);
-  } else if (is_exp_state_ == 1) {
+  } else if (is_exp_state_ == kExpStateStart) {
     exp_start_date_time_ = time(nullptr);
     UpdateUIWithExpStatus(1);
   }

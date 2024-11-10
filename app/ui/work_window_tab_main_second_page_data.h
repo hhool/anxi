@@ -134,7 +134,7 @@ class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
   /// @brief experiment related data
   /// @brief exp status
   /// 0 - stop, 1 - start, 2 - pause, <0 - unvalid
-  int32_t is_exp_state_ = -1;
+  int32_t is_exp_state_ = kExpStateUnvalid;
 };
 }  // namespace ui
 }  // namespace anx

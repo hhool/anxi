@@ -105,6 +105,63 @@ class ExpDataInfo {
   }
 };
 
+/// @brief exp status
+/// 0 - stop, 1 - start, 2 - pause, <0 - unvalid
+enum {
+  kExpStateStop = 0,
+  kExpStateStart = 1,
+  kExpStatePause = 2,
+  kExpStateUnvalid = -1
+};
+
+inline const std::string ExpStateToString(int32_t exp_state) {
+  switch (exp_state) {
+    case kExpStateStop:
+      return "stop";
+    case kExpStateStart:
+      return "start";
+    case kExpStatePause:
+      return "pause";
+    default:
+      return "unvalid";
+  }
+}
+
+/// @brief enum exp_state pause and stop state reason code
+/// 0 - none, 1 - out frequency range, 2 - reach max cycle, 3 - reach range
+/// time end pos, 4 - system standby, 100 - unkown
+/// @note exp_pause_stop_reason_ for record the pause reason code
+/// if the exp is paused, then the pause reason code will record the pause
+/// reason code value and update the button state with the pause reason code
+/// of message box
+enum {
+  kExpPauseStopReasonNone = 0,
+  kExpPauseStopReasonOutFrequecyRange = 1,
+  kExpPauseStopReasonReachMaxCycle = 2,
+  kExpPauseStopReasonReachRangeTimeEndPos = 3,
+  kExpPauseStopReasonSystemStandby = 4,
+  kExpPauseStopReasonUnkown = 100
+};
+
+inline const std::string ExpPauseStopReasonToString(
+    int32_t exp_pause_stop_reason) {
+  switch (exp_pause_stop_reason) {
+    case kExpPauseStopReasonNone:
+      return "none";
+    case kExpPauseStopReasonOutFrequecyRange:
+      return "out frequency range";
+    case kExpPauseStopReasonReachMaxCycle:
+      return "reach max cycle";
+    case kExpPauseStopReasonReachRangeTimeEndPos:
+      return "reach range time end pos";
+    case kExpPauseStopReasonSystemStandby:
+      return "system standby";
+    case kExpPauseStopReasonUnkown:
+      return "unkown";
+    default:
+      return "unkown";
+  }
+}
 }  // namespace ui
 }  // namespace anx
 

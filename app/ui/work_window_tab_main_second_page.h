@@ -126,50 +126,13 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
  private:
   WorkWindow* pWorkWindow_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
-  // std::map<std::string, std::unique_ptr<DuiLib::CNotifyPump>>
-  // tab_second_pages_;
   std::unique_ptr<DuiLib::CNotifyPump>
       work_window_second_page_graph_notify_pump_;
   UIVirtualWndBase* work_window_second_page_graph_virtual_wnd_;
   std::unique_ptr<DuiLib::CNotifyPump>
       work_window_second_page_data_notify_pump_;
   UIVirtualWndBase* work_window_second_page_data_virtual_wnd_;
-  /// @brief exp status
-  /// 0 - stop, 1 - start, 2 - pause, <0 - unvalid
-  enum {
-    kExpStateStop = 0,
-    kExpStateStart = 1,
-    kExpStatePause = 2,
-    kExpStateUnvalid = -1
-  };
-  const std::string ExpStateToString() const {
-    switch (is_exp_state_) {
-      case kExpStateStop:
-        return "stop";
-      case kExpStateStart:
-        return "start";
-      case kExpStatePause:
-        return "pause";
-      default:
-        return "unvalid";
-    }
-  }
   int32_t is_exp_state_ = kExpStateUnvalid;
-  /// @brief enum exp_state pause and stop state reason code
-  /// 0 - none, 1 - out frequency range, 2 - reach max cycle, 3 - reach range
-  /// time end pos, 4 - system standby, 100 - unkown
-  /// @note exp_pause_stop_reason_ for record the pause reason code
-  /// if the exp is paused, then the pause reason code will record the pause
-  /// reason code value and update the button state with the pause reason code
-  /// of message box
-  enum {
-    kExpPauseStopReasonNone = 0,
-    kExpPauseStopReasonOutFrequecyRange = 1,
-    kExpPauseStopReasonReachMaxCycle = 2,
-    kExpPauseStopReasonReachRangeTimeEndPos = 3,
-    kExpPauseStopReasonSystemStandby = 4,
-    kExpPauseStopReasonUnkown = 100
-  };
   int32_t exp_pause_stop_reason_ = kExpPauseStopReasonNone;
   anx::device::UltraDevice* ultra_device_;
   int32_t initial_frequency_;
