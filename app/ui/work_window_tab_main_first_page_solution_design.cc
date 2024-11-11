@@ -317,7 +317,9 @@ WorkWindowFirstPageAxiallySymmetrical::WorkWindowFirstPageAxiallySymmetrical(
 }
 
 WorkWindowFirstPageAxiallySymmetrical::
-    ~WorkWindowFirstPageAxiallySymmetrical() {}
+    ~WorkWindowFirstPageAxiallySymmetrical() {
+  paint_manager_ui_->RemoveNotifier(this);
+}
 
 void WorkWindowFirstPageAxiallySymmetrical::Notify(TNotifyUI& msg) {}
 
@@ -546,7 +548,9 @@ WorkWindowFirstPageTh3pointBending::WorkWindowFirstPageTh3pointBending(
   paint_manager_ui_->AddNotifier(this);
 }
 
-WorkWindowFirstPageTh3pointBending::~WorkWindowFirstPageTh3pointBending() {}
+WorkWindowFirstPageTh3pointBending::~WorkWindowFirstPageTh3pointBending() {
+  paint_manager_ui_->RemoveNotifier(this);
+}
 
 void WorkWindowFirstPageTh3pointBending::Notify(TNotifyUI& msg) {
   if (msg.pSender == nullptr) {
@@ -789,7 +793,9 @@ WorkWindowFirstPageVibrationBending::WorkWindowFirstPageVibrationBending(
   paint_manager_ui_->AddNotifier(this);
 }
 
-WorkWindowFirstPageVibrationBending::~WorkWindowFirstPageVibrationBending() {}
+WorkWindowFirstPageVibrationBending::~WorkWindowFirstPageVibrationBending() {
+  paint_manager_ui_->RemoveNotifier(this);
+}
 
 void WorkWindowFirstPageVibrationBending::Notify(TNotifyUI& msg) {}
 

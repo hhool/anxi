@@ -223,6 +223,7 @@ WorkWindowThirdPage::~WorkWindowThirdPage() {
   list_recv_notify_getter_.reset();
   list_recv_getter_.reset();
   list_send_getter_.reset();
+  paint_manager_ui_->RemoveNotifier(this);
 }
 
 void WorkWindowThirdPage::Notify(TNotifyUI& msg) {

@@ -32,7 +32,9 @@ WorkWindowStatusBar::WorkWindowStatusBar(
   paint_manager_ui_->AddNotifier(this);
 }
 
-WorkWindowStatusBar::~WorkWindowStatusBar() {}
+WorkWindowStatusBar::~WorkWindowStatusBar() {
+  paint_manager_ui_->RemoveNotifier(this);
+}
 
 void WorkWindowStatusBar::Notify(TNotifyUI& msg) {}
 

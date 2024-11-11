@@ -149,6 +149,7 @@ WorkWindowSecondPageGraph::WorkWindowSecondPageGraph(
 
 WorkWindowSecondPageGraph::~WorkWindowSecondPageGraph() {
   paint_manager_ui_->KillTimer(btn_pre_page_, kTimeGraphButtonId);
+  paint_manager_ui_->RemoveNotifier(this);
 }
 
 void WorkWindowSecondPageGraph::Notify(DuiLib::TNotifyUI& msg) {

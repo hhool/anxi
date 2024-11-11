@@ -179,6 +179,7 @@ WorkWindowSecondPageData::WorkWindowSecondPageData(
 
 WorkWindowSecondPageData::~WorkWindowSecondPageData() {
   device_exp_data_settings_.reset();
+  paint_manager_ui_->RemoveNotifier(this);
 }
 
 void WorkWindowSecondPageData::Notify(TNotifyUI& msg) {
