@@ -305,6 +305,11 @@ void WorkWindowSecondPage::OnValueChanged(TNotifyUI& msg) {
         if (st_load_is_running_ == false) {
           return;
         }
+        /// @note static load aircraft action from button up and down
+        /// ignore the load value.
+        if (st_load_event_from_ == kSTLoadEventFromButtonUpDown) {
+          return;
+        }
         if ((st_result->status_ & DSP_CMDEND) == DSP_CMDEND) {
           LOG_F(LG_INFO) << "static load aircraft achieve the target load:"
                          << st_result->load_;
@@ -463,7 +468,7 @@ bool WorkWindowSecondPage::OnExpClipChanged(void* msg) {
     } else {
       // check the max cycle count with the max cycle power is valid
       int32_t exp_max_cycle_power = _ttoi(edit_max_cycle_power_->GetText());
-      int64_t max_cycle_count = exp_max_cycle_count;
+      max_cycle_count = exp_max_cycle_count;
       for (int32_t i = 0; i < exp_max_cycle_power; i++) {
         max_cycle_count *= 10;
       }
@@ -475,7 +480,6 @@ bool WorkWindowSecondPage::OnExpClipChanged(void* msg) {
     if (restore) {
       set_value_to_edit(edit_max_cycle_count_, exp_max_cycle_count);
     } else {
-      // TODO(hhool): do nothing
       if (cur_cycle_count_ >= max_cycle_count) {
         if (is_exp_state_ == kExpStatePause) {
           btn_exp_resume_->SetEnabled(false);
@@ -513,7 +517,6 @@ bool WorkWindowSecondPage::OnExpClipChanged(void* msg) {
     if (restore) {
       set_value_to_edit(edit_max_cycle_power_, exp_max_cycle_power);
     } else {
-      // TODO(hhool): do nothing
       if (cur_cycle_count_ >= max_cycle_count) {
         if (is_exp_state_ == kExpStatePause) {
           btn_exp_resume_->SetEnabled(false);
@@ -988,7 +991,12 @@ void WorkWindowSecondPage::UpdateUIButton() {
   if (!is_st_device_com_interface_connected) {
     sa_clear_enable = false;
   } else {
-    sa_clear_enable = true;
+    /// if the static load keep is running then disable the clear button
+    if (st_load_event_from_ == kSTLoadEventFromKeepLoadButton) {
+      sa_clear_enable = false;
+    } else {
+      sa_clear_enable = true;
+    }
   }
   bool sa_keep_load_enable = false;
   if (!is_st_device_com_interface_connected) {
@@ -1194,6 +1202,7 @@ void WorkWindowSecondPage::exp_resume() {
   for (int32_t i = 0; i < dus_.exp_max_cycle_power_; i++) {
     exp_max_cycle_count *= 10;
   }
+  exp_max_cycle_count *= dus_.exp_max_cycle_count_;
   if (cur_cycle_count_ > exp_max_cycle_count) {
     LOG_F(LG_WARN) << "exp_resume:" << cur_cycle_count_ << " > "
                    << exp_max_cycle_count;
@@ -1268,16 +1277,15 @@ void WorkWindowSecondPage::OnButtonStaticAircraftClear() {
 }
 
 void WorkWindowSecondPage::OnButtonStaticAircraftKeepLoad() {
+  int32_t result;
   DialogStaticLoadGuaranteedSettings* dialog_static_load_guaranteed_settings =
-      new DialogStaticLoadGuaranteedSettings();
+      new DialogStaticLoadGuaranteedSettings(&result);
   dialog_static_load_guaranteed_settings->Create(
       *pWorkWindow_, _T("dialog_static_load_guaranteed_settings"),
       UI_WNDSTYLE_FRAME, WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
   dialog_static_load_guaranteed_settings->CenterWindow();
-  UINT ret = dialog_static_load_guaranteed_settings->ShowModal();
-
-  if (!ret) {
-    // TODO(hhool): msgbox or tips
+  dialog_static_load_guaranteed_settings->ShowModal();
+  if (!result) {
     return;
   }
   lss_ = std::move(anx::device::LoadDeviceLoadStaticSettingsDefaultResource());
@@ -1287,7 +1295,7 @@ void WorkWindowSecondPage::OnButtonStaticAircraftKeepLoad() {
     return;
   }
   st_load_event_from_ = kSTLoadEventFromKeepLoadButton;
-  if (lss_->direct_ == 0) {
+  if (lss_->direct_ == 1) {
     if (!StaticAircraftDoMoveUp()) {
       LOG_F(LG_ERROR) << "StaticAircraftDoMoveUp error";
       st_load_event_from_ = kSTLoadEventNone;
@@ -1306,6 +1314,7 @@ void WorkWindowSecondPage::OnButtonStaticAircraftKeepLoad() {
   btn_sa_up_->SetEnabled(false);
   btn_sa_down_->SetEnabled(false);
   btn_sa_stop_->SetEnabled(true);
+  btn_sa_clear_->SetEnabled(false);
 }
 
 void WorkWindowSecondPage::OnButtonStaticAircraftReset() {
@@ -1471,10 +1480,6 @@ void WorkWindowSecondPage::OnButtonStaticAircraftStop() {
   st_load_achieve_target_time_ = -1;
   st_load_keep_load_ = -1;
   st_load_event_from_ = kSTLoadEventNone;
-  /// direct to the settings of the static load
-  /// and save it to the resource file
-  lss_->direct_ = 0;
-  anx::device::SaveDeviceLoadStaticSettingsDefaultResource(*lss_);
 }
 
 void WorkWindowSecondPage::OnDataReceived(

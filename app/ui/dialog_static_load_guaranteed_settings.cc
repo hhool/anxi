@@ -25,12 +25,13 @@ DUI_END_MESSAGE_MAP()
 
 namespace anx {
 namespace ui {
-DialogStaticLoadGuaranteedSettings::DialogStaticLoadGuaranteedSettings() {}
+DialogStaticLoadGuaranteedSettings::DialogStaticLoadGuaranteedSettings(
+    int32_t* result)
+    : DialogCommon("", "", result) {}
 
 DialogStaticLoadGuaranteedSettings::~DialogStaticLoadGuaranteedSettings() {}
 
 void DialogStaticLoadGuaranteedSettings::InitWindow() {
-  __super::InitWindow();
   btn_close_ = static_cast<CButtonUI*>(
       m_PaintManager.FindControl(kCloseButtonControlName));
   btn_ok_ = static_cast<CButtonUI*>(m_PaintManager.FindControl(_T("okbtn")));
@@ -62,6 +63,7 @@ void DialogStaticLoadGuaranteedSettings::InitWindow() {
 }
 
 void DialogStaticLoadGuaranteedSettings::Notify(DuiLib::TNotifyUI& msg) {
+  __super::Notify(msg);
   if (msg.sType == kWindowInit) {
     OnPrepare(msg);
   } else if (msg.sType == kClick) {
@@ -148,6 +150,16 @@ void DialogStaticLoadGuaranteedSettings::UpdateControlFromSettings() {
     opt_retention_->Selected(false);
     edit_retention_->SetEnabled(false);
   }
+  if (lss->direct_ == 0) {
+    opt_up_->Selected(false);
+    opt_down_->Selected(false);
+  } else if (lss->direct_ == 1) {
+    opt_up_->Selected(true);
+    opt_down_->Selected(false);
+  } else if (lss->direct_ == 2) {
+    opt_up_->Selected(false);
+    opt_down_->Selected(true);
+  }
   edit_speed_->SetText(
       anx::common::String2WString(std::to_string(lss->speed_).c_str()).c_str());
   edit_retention_->SetText(
@@ -163,11 +175,11 @@ void DialogStaticLoadGuaranteedSettings::UpdateControlFromSettings() {
 }
 
 void DialogStaticLoadGuaranteedSettings::SaveSettingsFromControl() {
-  // std::string direct = opt_direct_up_->IsSelected() ? "up" : "down";
+  std::string direct = opt_up_->IsSelected() ? "up" : "down";
   int32_t speed = _ttoi(edit_speed_->GetText().GetData());
   int32_t retention = _ttoi(edit_retention_->GetText().GetData());
   anx::device::DeviceLoadStaticSettings lss;
-  // lss.direct_ = anx::device::DeviceLoadStatic::ValueDirectFromString(direct);
+  lss.direct_ = anx::device::DeviceLoadStatic::ValueDirectFromString(direct);
   lss.ctrl_type_ = opt_displacement_->IsSelected() ? CTRL_POSI : CTRL_LOAD;
   lss.speed_ = speed;
   lss.retention_ = retention;

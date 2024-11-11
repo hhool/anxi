@@ -52,6 +52,7 @@ class DialogCommon : public DuiLib::WindowImplBase {
                             DialogCommonStyle style);
 
  public:
+  DialogCommon() {}
   DialogCommon(const std::string& title,
                const std::string& content,
                int32_t* result,

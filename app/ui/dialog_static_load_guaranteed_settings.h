@@ -12,6 +12,8 @@
 #ifndef APP_UI_DIALOG_STATIC_LOAD_GUARANTEED_SETTINGS_H_
 #define APP_UI_DIALOG_STATIC_LOAD_GUARANTEED_SETTINGS_H_
 
+#include "app/ui/dialog_common.h"
+
 #include <memory>
 #include <string>
 
@@ -27,9 +29,15 @@ using DuiLib::INotifyUI;
 
 namespace anx {
 namespace ui {
-class DialogStaticLoadGuaranteedSettings : public DuiLib::WindowImplBase {
+class DialogCommon;
+}
+}  // namespace anx
+
+namespace anx {
+namespace ui {
+class DialogStaticLoadGuaranteedSettings : public anx::ui::DialogCommon {
  public:
-  DialogStaticLoadGuaranteedSettings();
+  explicit DialogStaticLoadGuaranteedSettings(int32_t* result);
   ~DialogStaticLoadGuaranteedSettings();
 
   void InitWindow() override;
