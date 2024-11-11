@@ -266,6 +266,7 @@ void WorkWindowThirdPage::OnTimer(TNotifyUI& msg) {
   if (msg.wParam == kTimerID) {
     UpdateControlFromSettings();
   } else {
+    // TODO(hhool): do nothing
   }
 }
 
@@ -317,12 +318,7 @@ void WorkWindowThirdPage::Bind() {
       paint_manager_ui_->FindControl(_T("tab_page_three_left_move_up")));
   opt_direct_down_ = static_cast<COptionUI*>(
       paint_manager_ui_->FindControl(_T("tab_page_three_left_move_down")));
-  /*
-    opt_action_pull_ = static_cast<COptionUI*>(
-        paint_manager_ui_->FindControl(_T("tab_page_three_left_pull")));
-    opt_action_push_ = static_cast<COptionUI*>(
-        paint_manager_ui_->FindControl(_T("tab_page_three_left_push")));
-            */
+
   edit_speed_ = static_cast<CEditUI*>(
       paint_manager_ui_->FindControl(_T("tab_page_three_left_speed")));
 

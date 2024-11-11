@@ -44,7 +44,7 @@ class WorkWindowThirdPage : public DuiLib::CNotifyPump,
  public:
   WorkWindowThirdPage(WorkWindow* pOwner,
                       DuiLib::CPaintManagerUI* paint_manager_ui);
-  ~WorkWindowThirdPage();
+  ~WorkWindowThirdPage() override;
 
  public:
   void Notify(TNotifyUI& msg) override;
@@ -82,8 +82,6 @@ class WorkWindowThirdPage : public DuiLib::CNotifyPump,
 
   COptionUI* opt_direct_up_;
   COptionUI* opt_direct_down_;
-  /*COptionUI* opt_action_pull_;
-  COptionUI* opt_action_push_;*/
 
   CEditUI* edit_speed_;
   CEditUI* edit_retention_;
