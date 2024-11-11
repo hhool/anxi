@@ -27,6 +27,7 @@ class DeviceExpGraph {
 
  public:
   /// @brief  exp graph type 0: current, 1: pre hour.
+  // TODO(hhool): unused will be remove
   int32_t exp_graph_show_time_type_;
 
   /// @brief  exp graph range minitues.

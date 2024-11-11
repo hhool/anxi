@@ -568,20 +568,6 @@ void WorkWindowSecondPageGraph::Bind() {
   ultra_device_ =
       reinterpret_cast<anx::device::UltraDevice*>(device_com_ul->Device());
   /////////////////////////////////////////////////////////////////////////////
-  /// @brief graph time mode pre hour
-  opt_graph_time_mode_pre_hour_ = static_cast<DuiLib::COptionUI*>(
-      paint_manager_ui_->FindControl(_T("graph_settings_pre_hour")));
-  opt_graph_time_mode_pre_hour_->Selected(false);
-  opt_graph_time_mode_now_ = static_cast<DuiLib::COptionUI*>(
-      paint_manager_ui_->FindControl(_T("graph_settings_current_hour")));
-  opt_graph_time_mode_now_->Selected(true);
-  /// @brief bind the option button event
-  opt_graph_time_mode_pre_hour_->OnNotify += ::MakeDelegate(
-      this, &WorkWindowSecondPageGraph::OnOptGraphTimeModeChange);
-  opt_graph_time_mode_now_->OnNotify += ::MakeDelegate(
-      this, &WorkWindowSecondPageGraph::OnOptGraphTimeModeChange);
-
-  /////////////////////////////////////////////////////////////////////////////
   /// @brief graph time alway show new
   chk_graph_always_show_new_ = static_cast<DuiLib::CCheckBoxUI*>(
       paint_manager_ui_->FindControl(_T("graph_settings_always_new")));
@@ -933,8 +919,6 @@ void WorkWindowSecondPageGraph::RefreshPreNextControl() {
   }
 }
 
-void WorkWindowSecondPageGraph::UpdateExpClipTimeFromControl() {}
-
 void WorkWindowSecondPageGraph::OnDataReceived(
     anx::device::DeviceComInterface* device,
     const uint8_t* data,
@@ -955,13 +939,6 @@ void WorkWindowSecondPageGraph::UpdateControlFromSettings() {
   std::unique_ptr<anx::device::DeviceExpGraphSettings> dcs =
       anx::device::LoadDeviceExpGraphSettingsDefaultResource();
   if (dcs != nullptr) {
-    if (dcs->exp_graph_show_time_type_ == 0) {
-      opt_graph_time_mode_pre_hour_->Selected(true);
-      opt_graph_time_mode_now_->Selected(false);
-    } else {
-      opt_graph_time_mode_pre_hour_->Selected(false);
-      opt_graph_time_mode_now_->Selected(true);
-    }
     if (dcs->exp_graph_range_minitues_ == 0) {
       opt_graph_time_range_1_minitues_->Selected(true);
       opt_graph_time_range_5_minitues_->Selected(false);
@@ -1003,11 +980,6 @@ void WorkWindowSecondPageGraph::UpdateControlFromSettings() {
 
 void WorkWindowSecondPageGraph::SaveSettingsFromControl() {
   anx::device::DeviceExpGraphSettings dcs;
-  if (opt_graph_time_mode_pre_hour_->IsSelected()) {
-    dcs.exp_graph_show_time_type_ = 0;
-  } else {
-    dcs.exp_graph_show_time_type_ = 1;
-  }
   if (opt_graph_time_range_1_minitues_->IsSelected()) {
     dcs.exp_graph_range_minitues_ = 0;
   } else if (opt_graph_time_range_5_minitues_->IsSelected()) {
@@ -1065,8 +1037,6 @@ void WorkWindowSecondPageGraph::OnExpStart() {
 void WorkWindowSecondPageGraph::OnExpStop() {
   exp_time_interval_num_ = -1;
 }
-
-void WorkWindowSecondPageGraph::OnExpPause() {}
 
 void WorkWindowSecondPageGraph::OnExpResume() {
   chk_graph_always_show_new_->SetCheck(true);

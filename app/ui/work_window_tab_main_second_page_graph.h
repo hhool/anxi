@@ -59,7 +59,7 @@ class WorkWindowSecondPageGraph : public DuiLib::CNotifyPump,
   WorkWindowSecondPageGraph(WorkWindow* pWorkWindow,
                             DuiLib::CPaintManagerUI* paint_manager_ui,
                             ExpDataInfo* exp_base);
-  ~WorkWindowSecondPageGraph();
+  ~WorkWindowSecondPageGraph() override;
 
  public:
   void Notify(TNotifyUI& msg) override;
@@ -70,10 +70,6 @@ class WorkWindowSecondPageGraph : public DuiLib::CNotifyPump,
   void OnValueChanged(TNotifyUI& msg);  // NOLINT
 
  protected:
-  bool OnOptGraphTimeModeChange(void* param) {
-    // TODO(hhool): will be remove
-    return false;
-  }
   bool OnChkGraphAlwaysShowNewChange(void* param);
   bool OnOptGraphTimeRangeChange(void* param);
   bool OnPagePre(void* param);
@@ -100,9 +96,6 @@ class WorkWindowSecondPageGraph : public DuiLib::CNotifyPump,
   void SaveSettingsFromControl();
 
  protected:
-  void UpdateExpClipTimeFromControl();
-
- protected:
   // impliment anx::device::DeviceComListener;
   void OnDataReceived(anx::device::DeviceComInterface* device,
                       const uint8_t* data,
@@ -116,7 +109,9 @@ class WorkWindowSecondPageGraph : public DuiLib::CNotifyPump,
  protected:
   void OnExpStart();
   void OnExpStop();
-  void OnExpPause();
+  void OnExpPause() {
+    // TODO(hhool): do nothing
+  }
   void OnExpResume();
 
   class GraphCtrlEvent;
@@ -144,11 +139,6 @@ class WorkWindowSecondPageGraph : public DuiLib::CNotifyPump,
   int32_t y_axsi_stload_value_max_ = 10;
   /// @brief y axsi min value for stress.
   int32_t y_axsi_stload_value_min_ = 0;
-
-  /// @brief graph time mode pre hour
-  DuiLib::COptionUI* opt_graph_time_mode_pre_hour_;
-  /// @brief graph time mode now
-  DuiLib::COptionUI* opt_graph_time_mode_now_;
 
   /// @brief graph time alway show new
   DuiLib::CCheckBoxUI* chk_graph_always_show_new_;
