@@ -65,6 +65,18 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   void Unbind() override;
 
  public:
+  /// @brief static load aircraft up
+  void OnButtonStaticAircraftUp();
+  /// @brief static load aircraft down
+  void OnButtonStaticAircraftDown();
+  /// @brief static load aircraft stop
+  void OnButtonStaticAircraftStop();
+  /// @brief static load aircraft clear
+  void OnButtonStaticAircraftClear();
+  /// @brief static load aircraft setting
+  void OnButtonStaticAircraftKeepLoad();
+  /// @brief static load aircraft reset
+  void OnButtonExpReset();
   void OnExpStart();
   void OnExpStop();
   void OnExpPause();
@@ -86,24 +98,14 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   void exp_pause();
   void exp_stop();
   void exp_resume();
-
-  /// @brief static load aircraft clear
-  void OnButtonStaticAircraftClear();
-  /// @brief static load aircraft setting
-  void OnButtonStaticAircraftKeepLoad();
-  /// @brief static load aircraft reset
-  void OnButtonStaticAircraftReset();
-  /// @brief static load aircraft up
-  void OnButtonStaticAircraftUp();
   /// @brief static load aircraft do move up
   bool StaticAircraftDoMoveUp();
-  /// @brief static load aircraft down
-  void OnButtonStaticAircraftDown();
   /// @brief static load aircraft do move down
   bool StaticAircraftDoMoveDown();
   /// @brief static load aircraft stop
-  void OnButtonStaticAircraftStop();
-
+  bool StaticAircraftStop();
+  /// @brief get the max exp cycle count from the control
+  int64_t MaxExpCycleCountFromControl();
   /// @brief  Update buttons state with device connected status
   /// work state, exp state, static aircraft states
   void UpdateUIButton();
@@ -134,17 +136,19 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   UIVirtualWndBase* work_window_second_page_data_virtual_wnd_;
   int32_t is_exp_state_ = kExpStateUnvalid;
   int32_t exp_pause_stop_reason_ = kExpPauseStopReasonNone;
+  int32_t user_exp_state_ = kExpStateUnvalid;
   anx::device::UltraDevice* ultra_device_;
   int32_t initial_frequency_;
   int32_t initial_power_;
   int32_t cur_freq_;
   int32_t cur_power_;
-  /// @brief current cycle count value
+  /// @brief current total cycle count
   /// if the value is -1, then the exp is not started
   /// if the value is >= 0, then the exp is started
-  /// cur_cycle_count_ will increase with the cycle count value and increase
-  /// with pre_total_cycle_count_ value and current exp cycle count value
-  int64_t cur_cycle_count_ = -1;
+  /// cur_total_cycle_count_ will increase with the cycle count value and
+  /// increase with pre_total_cycle_count_ value and current exp cycle count
+  /// value
+  int64_t cur_total_cycle_count_ = -1;
   /// @brief pre cycle count value for record total cycle count value
   /// when the exp is paused. then the cycle count value will not increase
   /// and the pre cycle count value will record the last cycle count value
@@ -163,6 +167,7 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   ExpDataInfo exp_data_list_info_;
   std::unique_ptr<anx::device::DeviceExpDataSampleSettings> dedss_;
   int64_t exp_data_pre_duration_exponential_ = 0;
+  int64_t pre_clip_paused_ms_ = 0;
   bool start_time_pos_has_deal_ = false;
 
   std::unique_ptr<anx::device::DeviceLoadStaticSettings> lss_;
@@ -200,7 +205,7 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   /// @brief Static aircraft setting button
   DuiLib::CButtonUI* btn_sa_keep_load_;
   /// @brief Static aircraft reset button
-  DuiLib::CButtonUI* btn_sa_reset_;
+  DuiLib::CButtonUI* btn_exp_reset_;
 
   bool st_load_is_running_ = false;
   int64_t st_start_time_ = 0;

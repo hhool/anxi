@@ -148,8 +148,8 @@ void WorkWindowSecondPage::OnClick(TNotifyUI& msg) {
       OnButtonStaticAircraftClear();
     } else if (msg.pSender == this->btn_sa_keep_load_) {
       OnButtonStaticAircraftKeepLoad();
-    } else if (msg.pSender == this->btn_sa_reset_) {
-      OnButtonStaticAircraftReset();
+    } else if (msg.pSender == this->btn_exp_reset_) {
+      OnButtonExpReset();
     } else if (msg.pSender == this->btn_exp_start_) {
       OnExpStart();
     } else if (msg.pSender == this->btn_exp_stop_) {
@@ -232,6 +232,18 @@ void WorkWindowSecondPage::OnTimer(TNotifyUI& msg) {
         }
         /////////////////////////////////////////////////////////////////////////
         /// get current cycle count and total time  cycle_count / x kHZ
+        int64_t exp_max_cycle_count = dus_.exp_max_cycle_count_;
+        for (int32_t i = 0; i < dus_.exp_max_cycle_power_; i++) {
+          exp_max_cycle_count *= 10;
+        }
+        if (cur_total_cycle_count_ >= exp_max_cycle_count) {
+          LOG_F(LG_WARN) << "exp_stop: cur_cycle_count:"
+                         << cur_total_cycle_count_
+                         << " exp_max_cycle_count:" << exp_max_cycle_count;
+          return;
+        }
+        /////////////////////////////////////////////////////////////////////////
+        /// get current cycle count and total time  cycle_count / x kHZ
         int64_t current_time_ms = anx::common::GetCurrentTimeMillis();
         this->pWorkWindow_->UpdateArgsArea(-1, cur_freq_);
         if (dedss_->sampling_start_pos_ > 0) {
@@ -253,7 +265,8 @@ void WorkWindowSecondPage::OnTimer(TNotifyUI& msg) {
           }
         }
         /// @note process intermittent exp clipping enabled
-        if (this->dus_.exp_clipping_enable_ == 1) {
+        if (this->dus_.exp_clipping_enable_ == 1 &&
+            is_exp_state_ == kExpStateStart) {
           if (this->dus_.exp_clip_time_duration_ > 0) {
             int64_t exp_clip_time_duration =
                 this->dus_.exp_clip_time_duration_ * 100;
@@ -264,16 +277,38 @@ void WorkWindowSecondPage::OnTimer(TNotifyUI& msg) {
             int64_t duration_total =
                 exp_clip_time_duration + exp_clip_time_paused;
             int64_t time = duration % duration_total;
+            if (user_exp_state_ == kExpStatePause) {
+              LOG_F(LG_INFO) << "exp_pause: user_exp_state_:" << user_exp_state_
+                             << " time:" << time;
+              return;
+            }
             if (time >= exp_clip_time_duration &&
                 state_ultrasound_exp_clip_ == 1) {
               // pause ultrasound
               LOG_F(LG_INFO) << "pause ultrasound";
               ultra_device_->StopUltra();
+              pre_total_data_table_no_ = exp_data_list_info_.exp_data_table_no_;
+              pre_total_cycle_count_ = cur_total_cycle_count_;
+              LOG_F(LG_INFO)
+                  << "cur_total_cycle_count_:" << cur_total_cycle_count_ << " "
+                  << "pre_total_cycle_count_:" << pre_total_cycle_count_ << " "
+                  << "pre_total_data_table_no_:" << pre_total_data_table_no_;
               state_ultrasound_exp_clip_ = 2;
             } else if (time < exp_clip_time_duration &&
                        state_ultrasound_exp_clip_ == 2) {
               // resume ultrasound
-              LOG_F(LG_INFO) << "resume ultrasound";
+              pre_clip_paused_ms_ = 0;
+              exp_data_list_info_.exp_start_time_ms_ =
+                  anx::common::GetCurrentTimeMillis();
+              exp_data_list_info_.exp_time_interval_num_ = 0;
+              dedss_ = std::move(
+                  anx::device::
+                      LoadDeviceExpDataSampleSettingsDefaultResource());
+              exp_data_list_info_.exp_sample_interval_ms_ =
+                  dedss_->sampling_interval_ * 100;
+              pre_exp_start_time_ms_ = exp_data_list_info_.exp_start_time_ms_;
+              LOG_F(LG_INFO) << "resume ultrasound: pre_exp_start_time_ms_："
+                             << pre_exp_start_time_ms_;
               if (ultra_device_->StartUltra() < 0) {
                 is_exp_state_ = kExpStateStop;
                 return;
@@ -442,6 +477,8 @@ bool WorkWindowSecondPage::OnExpClipChanged(void* msg) {
     }
     if (restore) {
       set_value_to_edit(edit_exp_clip_time_duration_, exp_clip_time_duration);
+    } else {
+      set_value_to_edit(edit_exp_clip_time_duration_, exp_clip_time_duration);
     }
   } else if (pMsg->pSender == edit_exp_clip_time_paused_) {
     int64_t exp_clip_time_paused =
@@ -455,6 +492,8 @@ bool WorkWindowSecondPage::OnExpClipChanged(void* msg) {
       restore = true;
     }
     if (restore) {
+      set_value_to_edit(edit_exp_clip_time_paused_, exp_clip_time_paused);
+    } else {
       set_value_to_edit(edit_exp_clip_time_paused_, exp_clip_time_paused);
     }
   } else if (pMsg->pSender == edit_max_cycle_count_) {
@@ -480,7 +519,8 @@ bool WorkWindowSecondPage::OnExpClipChanged(void* msg) {
     if (restore) {
       set_value_to_edit(edit_max_cycle_count_, exp_max_cycle_count);
     } else {
-      if (cur_cycle_count_ >= max_cycle_count) {
+      set_value_to_edit(edit_max_cycle_count_, exp_max_cycle_count);
+      if (cur_total_cycle_count_ >= max_cycle_count) {
         if (is_exp_state_ == kExpStatePause) {
           btn_exp_resume_->SetEnabled(false);
         } else if (is_exp_state_ == kExpStateStop) {
@@ -517,7 +557,8 @@ bool WorkWindowSecondPage::OnExpClipChanged(void* msg) {
     if (restore) {
       set_value_to_edit(edit_max_cycle_power_, exp_max_cycle_power);
     } else {
-      if (cur_cycle_count_ >= max_cycle_count) {
+      set_value_to_edit(edit_max_cycle_power_, exp_max_cycle_power);
+      if (cur_total_cycle_count_ >= max_cycle_count) {
         if (is_exp_state_ == kExpStatePause) {
           btn_exp_resume_->SetEnabled(false);
         } else if (is_exp_state_ == kExpStateStop) {
@@ -543,7 +584,8 @@ bool WorkWindowSecondPage::OnExpClipChanged(void* msg) {
       set_value_to_edit(edit_frequency_fluctuations_range_,
                         exp_frequency_fluctuations_range);
     } else {
-      // TODO(hhool): do nothing
+      set_value_to_edit(edit_frequency_fluctuations_range_,
+                        exp_frequency_fluctuations_range);
     }
   } else {
     return false;
@@ -565,8 +607,8 @@ void WorkWindowSecondPage::Bind() {
       paint_manager_ui_->FindControl(_T("btn_sa_clear")));
   btn_sa_keep_load_ = static_cast<DuiLib::CButtonUI*>(
       paint_manager_ui_->FindControl(_T("btn_sa_setting")));
-  btn_sa_reset_ = static_cast<DuiLib::CButtonUI*>(
-      paint_manager_ui_->FindControl(_T("btn_sa_reset")));
+  btn_exp_reset_ = static_cast<DuiLib::CButtonUI*>(
+      paint_manager_ui_->FindControl(_T("btn_exp_reset")));
 
   /// @brief exp action releated button
   btn_exp_start_ = static_cast<DuiLib::CButtonUI*>(
@@ -689,9 +731,189 @@ void WorkWindowSecondPage::Unbind() {
                                  anx::db::helper::kTableExpDataList);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Static aircraft releated button
+void WorkWindowSecondPage::OnButtonStaticAircraftUp() {
+  if (st_load_is_running_) {
+    LOG_F(LG_WARN) << "static load is running, can not up";
+    return;
+  }
+  st_load_event_from_ = kSTLoadEventFromButtonUpDown;
+  if (!StaticAircraftDoMoveUp()) {
+    LOG_F(LG_ERROR) << "StaticAircraftDoMoveUp error";
+    st_load_event_from_ = kSTLoadEventNone;
+    return;
+  }
+  st_load_is_running_ = true;
+  /// update the releated button state
+  btn_sa_keep_load_->SetEnabled(false);
+  btn_sa_up_->SetEnabled(false);
+  btn_sa_down_->SetEnabled(false);
+  btn_sa_stop_->SetEnabled(true);
+  //// direct to the settings of the static load
+  /// and save it to the resource file
+  lss_->direct_ = 1;
+  anx::device::SaveDeviceLoadStaticSettingsDefaultResource(*lss_);
+}
+
+void WorkWindowSecondPage::OnButtonStaticAircraftDown() {
+  if (st_load_is_running_) {
+    LOG_F(LG_WARN) << "static load is running, can not down";
+    return;
+  }
+  st_load_event_from_ = kSTLoadEventFromButtonUpDown;
+  if (!StaticAircraftDoMoveDown()) {
+    LOG_F(LG_ERROR) << "StaticAircraftDoMoveDown error";
+    st_load_event_from_ = kSTLoadEventNone;
+    return;
+  }
+  st_load_is_running_ = true;
+
+  /// update the releated button state
+  btn_sa_keep_load_->SetEnabled(false);
+  btn_sa_up_->SetEnabled(false);
+  btn_sa_down_->SetEnabled(false);
+  btn_sa_stop_->SetEnabled(true);
+  /// direct to the settings of the static load
+  /// and save it to the resource file
+  lss_->direct_ = 2;
+  anx::device::SaveDeviceLoadStaticSettingsDefaultResource(*lss_);
+}
+
+void WorkWindowSecondPage::OnButtonStaticAircraftStop() {
+  // anx::device::stload::STLoadHelper::st_load_loader_.st_api_.end_read();
+  LOG_F(LG_INFO) << "stop the static load";
+  StaticAircraftStop();
+  btn_sa_keep_load_->SetEnabled(true);
+  btn_sa_clear_->SetEnabled(true);
+  btn_sa_up_->SetEnabled(true);
+  btn_sa_down_->SetEnabled(true);
+}
+
+void WorkWindowSecondPage::OnButtonStaticAircraftClear() {
+  // clear the data
+  if (is_exp_state_ > kExpStateStop) {
+    LOG_F(LG_WARN) << "exp is running, can not clear the data";
+    return;
+  }
+  LOG_F(LG_INFO) << "clear the data";
+  if (anx::device::stload::STLoadHelper::st_load_loader_.st_api_.tare_ext1) {
+    anx::device::stload::STLoadHelper::st_load_loader_.st_api_.tare_ext1();
+  }
+  if (anx::device::stload::STLoadHelper::st_load_loader_.st_api_.tare_posi) {
+    anx::device::stload::STLoadHelper::st_load_loader_.st_api_.tare_posi();
+  }
+  if (anx::device::stload::STLoadHelper::st_load_loader_.st_api_.tare_load) {
+    anx::device::stload::STLoadHelper::st_load_loader_.st_api_.tare_load();
+  }
+  if (anx::device::stload::STLoadHelper::st_load_loader_.st_api_.tare_time) {
+    anx::device::stload::STLoadHelper::st_load_loader_.st_api_.tare_time();
+  }
+}
+
+void WorkWindowSecondPage::OnButtonStaticAircraftKeepLoad() {
+  int32_t result;
+  DialogStaticLoadGuaranteedSettings* dialog_static_load_guaranteed_settings =
+      new DialogStaticLoadGuaranteedSettings(&result);
+  dialog_static_load_guaranteed_settings->Create(
+      *pWorkWindow_, _T("dialog_static_load_guaranteed_settings"),
+      UI_WNDSTYLE_FRAME, WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
+  dialog_static_load_guaranteed_settings->CenterWindow();
+  dialog_static_load_guaranteed_settings->ShowModal();
+  if (!result) {
+    return;
+  }
+  lss_ = std::move(anx::device::LoadDeviceLoadStaticSettingsDefaultResource());
+  assert(lss_ != nullptr);
+  if (lss_ == nullptr) {
+    // TODO(hhool): msgbox or tips
+    return;
+  }
+  /// @brief static aircraft stop.
+  // StaticAircraftStop();
+  /// @brief static aircraft keep load.
+  st_load_event_from_ = kSTLoadEventFromKeepLoadButton;
+  if (lss_->direct_ == 1) {
+    if (!StaticAircraftDoMoveUp()) {
+      LOG_F(LG_ERROR) << "StaticAircraftDoMoveUp error";
+      st_load_event_from_ = kSTLoadEventNone;
+      return;
+    }
+  } else {
+    if (!StaticAircraftDoMoveDown()) {
+      LOG_F(LG_ERROR) << "StaticAircraftDoMoveDown error";
+      st_load_event_from_ = kSTLoadEventNone;
+      return;
+    }
+  }
+  st_load_is_running_ = true;
+  /// update the releated button state
+  btn_sa_keep_load_->SetEnabled(false);
+  btn_sa_up_->SetEnabled(false);
+  btn_sa_down_->SetEnabled(false);
+  btn_sa_stop_->SetEnabled(true);
+  btn_sa_clear_->SetEnabled(false);
+}
+
+void WorkWindowSecondPage::OnButtonExpReset() {
+  // reset the data
+  this->pWorkWindow_->ClearArgsFreqNum();
+  // drop the exp_data table
+  anx::db::helper::DropDataTable(anx::db::helper::kDefaultDatabasePathname,
+                                 anx::db::helper::kTableExpDataGraph);
+  anx::db::helper::DropDataTable(anx::db::helper::kDefaultDatabasePathname,
+                                 anx::db::helper::kTableExpDataList);
+
+  // create the exp_data_graph table
+  std::string db_filepathname;
+  anx::db::helper::DefaultDatabasePathname(&db_filepathname);
+  auto db = anx::db::DatabaseFactory::Instance()->CreateOrGetDatabase(
+      db_filepathname);
+  db->Execute(anx::db::helper::sql::kCreateTableExpDataGraphSqlFormat);
+  db->Execute(anx::db::helper::sql::kCreateTableExpDataListSqlFormat);
+
+  /// @brief get the exp data sample settings and set the exp start time
+  /// and exp sample interval
+  exp_data_graph_info_.exp_data_table_no_ = 0;
+  exp_data_graph_info_.exp_time_interval_num_ = 0;
+  exp_data_graph_info_.exp_start_time_ms_ = anx::common::GetCurrentTimeMillis();
+  exp_data_graph_info_.exp_sample_interval_ms_ = 2000;
+
+  dedss_ = anx::device::LoadDeviceExpDataSampleSettingsDefaultResource();
+  exp_data_list_info_.exp_data_table_no_ = 0;
+  exp_data_list_info_.exp_time_interval_num_ = 0;
+  exp_data_list_info_.exp_start_time_ms_ = anx::common::GetCurrentTimeMillis();
+  exp_data_list_info_.exp_sample_interval_ms_ =
+      dedss_->sampling_interval_ * 100;
+
+  cur_total_cycle_count_ = 0;
+
+  pre_exp_start_time_ms_ = 0;
+  pre_total_cycle_count_ = 0;
+  pre_total_data_table_no_ = 0;
+
+  if (is_exp_state_ == kExpStatePause) {
+    btn_exp_resume_->SetEnabled(true);
+  } else if (is_exp_state_ == kExpStateStop) {
+    btn_exp_start_->SetEnabled(true);
+  }
+  // clear graph data
+  WorkWindowSecondPageGraph* graph_page =
+      reinterpret_cast<WorkWindowSecondPageGraph*>(
+          work_window_second_page_graph_notify_pump_.get());
+  graph_page->ClearGraphData();
+  // clear the exp data
+  WorkWindowSecondPageData* data_page =
+      reinterpret_cast<WorkWindowSecondPageData*>(
+          work_window_second_page_data_notify_pump_.get());
+  data_page->ClearExpData();
+}
+
 void WorkWindowSecondPage::OnExpStart() {
-  assert(is_exp_state_ == kExpStateStop);
+  user_exp_state_ = kExpStateStart;
   if (is_exp_state_ != kExpStateStop) {
+    LOG_F(LG_WARN) << "exp_start: is_exp_state_:"
+                   << ExpStateToString(is_exp_state_);
     return;
   }
   exp_pause_stop_reason_ = kExpPauseStopReasonNone;
@@ -700,7 +922,6 @@ void WorkWindowSecondPage::OnExpStart() {
 }
 
 void WorkWindowSecondPage::OnExpStop() {
-  assert(is_exp_state_ != kExpStateStop);
   if (is_exp_state_ == kExpStateStop) {
     LOG_F(LG_WARN) << "exp_stop: is_exp_state_:"
                    << ExpStateToString(is_exp_state_);
@@ -712,7 +933,7 @@ void WorkWindowSecondPage::OnExpStop() {
 }
 
 void WorkWindowSecondPage::OnExpPause() {
-  assert(is_exp_state_ != kExpStatePause);
+  user_exp_state_ = kExpStatePause;
   if (is_exp_state_ == kExpStatePause) {
     LOG_F(LG_WARN) << "exp_pause: is_exp_state_:"
                    << ExpStateToString(is_exp_state_);
@@ -723,7 +944,7 @@ void WorkWindowSecondPage::OnExpPause() {
 }
 
 void WorkWindowSecondPage::OnExpResume() {
-  assert(is_exp_state_ == kExpStatePause);
+  user_exp_state_ = kExpStateStart;
   if (is_exp_state_ != kExpStatePause) {
     LOG_F(LG_WARN) << "exp_resume: is_exp_state_:"
                    << ExpStateToString(is_exp_state_);
@@ -786,100 +1007,94 @@ void WorkWindowSecondPage::RefreshExpClipTimeControl() {
       // TODO(hhool): tips the user the value is invalid
     }
   }
-
   int32_t exp_max_cycle_count = _ttoi(edit_max_cycle_count_->GetText());
   if (dus_.exp_max_cycle_count_ != exp_max_cycle_count) {
-    if (exp_max_cycle_count < 1) {
-      return;
-    }
-    // check the max cycle count with the max cycle power is valid
-    int64_t exp_max_cycle_power = _ttoll(edit_max_cycle_power_->GetText());
-    int64_t max_cycle_count = exp_max_cycle_count;
-    for (int32_t i = 0; i < exp_max_cycle_power; i++) {
-      max_cycle_count *= 10;
-    }
-    if (max_cycle_count < 1) {
-      return;
-    }
-    dus_.exp_max_cycle_count_ = exp_max_cycle_count;
-
-    int64_t max_cycle_count_for_text = max_cycle_count;
-    max_cycle_count_for_text /= 20000;
-    std::string value = ("=");
-    int64_t part_integer = max_cycle_count_for_text / 3600;
-    int64_t part_decimal = max_cycle_count_for_text % 3600;
-    double f_part_decimal = static_cast<double>(part_decimal) / 3600;
-    double f_part_integer_value = static_cast<double>(part_integer);
-    double f_part_decimal_value = static_cast<double>(f_part_decimal);
-    double f_value = f_part_integer_value + f_part_decimal_value;
-    value += to_string_with_precision(f_value, 3);
-    value += "H";
-    text_max_cycle_duration_->SetText(
-        anx::common::String2WString(value).c_str());
-
-    // check the max cycle count with the max cycle power is valid
-    int64_t max_cycle_count_for_btn = max_cycle_count;
-    if (cur_cycle_count_ >= max_cycle_count_for_btn) {
-      if (is_exp_state_ == kExpStatePause) {
-        btn_exp_resume_->SetEnabled(false);
-      } else if (is_exp_state_ == kExpStateStop) {
-        btn_exp_start_->SetEnabled(false);
+    if (exp_max_cycle_count >= 1) {
+      // check the max cycle count with the max cycle power is valid
+      int64_t exp_max_cycle_power = _ttoll(edit_max_cycle_power_->GetText());
+      int64_t max_cycle_count = exp_max_cycle_count;
+      for (int32_t i = 0; i < exp_max_cycle_power; i++) {
+        max_cycle_count *= 10;
       }
-    } else {
-      if (is_exp_state_ == kExpStatePause) {
-        btn_exp_resume_->SetEnabled(true);
-      } else if (is_exp_state_ == kExpStateStop) {
-        btn_exp_start_->SetEnabled(true);
+      if (max_cycle_count >= 1) {
+        dus_.exp_max_cycle_count_ = exp_max_cycle_count;
+
+        int64_t max_cycle_count_for_text = max_cycle_count;
+        max_cycle_count_for_text /= 20000;
+        std::string value = ("=");
+        int64_t part_integer = max_cycle_count_for_text / 3600;
+        int64_t part_decimal = max_cycle_count_for_text % 3600;
+        double f_part_decimal = static_cast<double>(part_decimal) / 3600;
+        double f_part_integer_value = static_cast<double>(part_integer);
+        double f_part_decimal_value = static_cast<double>(f_part_decimal);
+        double f_value = f_part_integer_value + f_part_decimal_value;
+        value += to_string_with_precision(f_value, 3);
+        value += "H";
+        text_max_cycle_duration_->SetText(
+            anx::common::String2WString(value).c_str());
+      }
+
+      // check the max cycle count with the max cycle power is valid
+      int64_t max_cycle_count_for_btn = max_cycle_count;
+      if (cur_total_cycle_count_ >= max_cycle_count_for_btn) {
+        if (is_exp_state_ == kExpStatePause) {
+          btn_exp_resume_->SetEnabled(false);
+        } else if (is_exp_state_ == kExpStateStop) {
+          btn_exp_start_->SetEnabled(false);
+        }
+      } else {
+        if (is_exp_state_ == kExpStatePause) {
+          btn_exp_resume_->SetEnabled(true);
+        } else if (is_exp_state_ == kExpStateStop) {
+          btn_exp_start_->SetEnabled(true);
+        }
       }
     }
   }
 
   int32_t exp_max_cycle_power = _ttoi(edit_max_cycle_power_->GetText());
   if (dus_.exp_max_cycle_power_ != exp_max_cycle_power) {
-    if (exp_max_cycle_power < 1) {
-      return;
-    } else if (exp_max_cycle_power > 18) {
-      return;
-    }
-    // check the max cycle count with the max cycle power is valid
-    int32_t exp_max_cycle_count = _ttoi(edit_max_cycle_count_->GetText());
-    int64_t max_cycle_count = exp_max_cycle_count;
-    for (int32_t i = 0; i < exp_max_cycle_power; i++) {
-      max_cycle_count *= 10;
-    }
-    if (max_cycle_count < 1) {
-      return;
-    }
-    dus_.exp_max_cycle_power_ = exp_max_cycle_power;
+    if (exp_max_cycle_power >= 1 && exp_max_cycle_power <= 18) {
+      // check the max cycle count with the max cycle power is valid
+      int32_t exp_max_cycle_count = _ttoi(edit_max_cycle_count_->GetText());
+      int64_t max_cycle_count = exp_max_cycle_count;
+      for (int32_t i = 0; i < exp_max_cycle_power; i++) {
+        max_cycle_count *= 10;
+      }
+      if (max_cycle_count >= 1) {
+        dus_.exp_max_cycle_power_ = exp_max_cycle_power;
 
-    int64_t max_cycle_count_for_text = max_cycle_count;
-    max_cycle_count_for_text /= 20000;
-    std::string value = ("=");
-    int64_t part_integer = max_cycle_count_for_text / 3600;
-    int64_t part_decimal = max_cycle_count_for_text % 3600;
-    double f_part_decimal = static_cast<double>(part_decimal) / 3600;
-    double f_part_integer_value = static_cast<double>(part_integer);
-    double f_part_decimal_value = static_cast<double>(f_part_decimal);
-    double f_value = f_part_integer_value + f_part_decimal_value;
-    value += to_string_with_precision(f_value, 3);
-    value += "H";
-    text_max_cycle_duration_->SetText(
-        anx::common::String2WString(value).c_str());
-
-    // check the max cycle count with the max cycle power is valid
-    int64_t max_cycle_count_for_btn = max_cycle_count;
-    if (cur_cycle_count_ >= max_cycle_count_for_btn) {
-      if (is_exp_state_ == kExpStatePause) {
-        btn_exp_resume_->SetEnabled(false);
-      } else if (is_exp_state_ == kExpStateStop) {
-        btn_exp_start_->SetEnabled(false);
+        int64_t max_cycle_count_for_text = max_cycle_count;
+        max_cycle_count_for_text /= 20000;
+        std::string value = ("=");
+        int64_t part_integer = max_cycle_count_for_text / 3600;
+        int64_t part_decimal = max_cycle_count_for_text % 3600;
+        double f_part_decimal = static_cast<double>(part_decimal) / 3600;
+        double f_part_integer_value = static_cast<double>(part_integer);
+        double f_part_decimal_value = static_cast<double>(f_part_decimal);
+        double f_value = f_part_integer_value + f_part_decimal_value;
+        value += to_string_with_precision(f_value, 3);
+        value += "H";
+        text_max_cycle_duration_->SetText(
+            anx::common::String2WString(value).c_str());
+      }
+      // check the max cycle count with the max cycle power is valid
+      int64_t max_cycle_count_for_btn = max_cycle_count;
+      if (cur_total_cycle_count_ >= max_cycle_count_for_btn) {
+        if (is_exp_state_ == kExpStatePause) {
+          btn_exp_resume_->SetEnabled(false);
+        } else if (is_exp_state_ == kExpStateStop) {
+          btn_exp_start_->SetEnabled(false);
+        }
+      } else {
+        if (is_exp_state_ == kExpStatePause) {
+          btn_exp_resume_->SetEnabled(true);
+        } else if (is_exp_state_ == kExpStateStop) {
+          btn_exp_start_->SetEnabled(true);
+        }
       }
     } else {
-      if (is_exp_state_ == kExpStatePause) {
-        btn_exp_resume_->SetEnabled(true);
-      } else if (is_exp_state_ == kExpStateStop) {
-        btn_exp_start_->SetEnabled(true);
-      }
+      // TODO(hhool): tips the user the value is invalid
     }
   }
 
@@ -887,10 +1102,9 @@ void WorkWindowSecondPage::RefreshExpClipTimeControl() {
       _ttoi(edit_frequency_fluctuations_range_->GetText());
   if (dus_.exp_frequency_fluctuations_range_ !=
       exp_frequency_fluctuations_range) {
-    if (exp_frequency_fluctuations_range < 1) {
-      return;
+    if (exp_frequency_fluctuations_range >= 1) {
+      dus_.exp_frequency_fluctuations_range_ = exp_frequency_fluctuations_range;
     }
-    dus_.exp_frequency_fluctuations_range_ = exp_frequency_fluctuations_range;
   }
 }
 
@@ -952,6 +1166,23 @@ void WorkWindowSecondPage::UpdateExpClipTimeFromControl() {
   value += "S";
   text_exp_clip_time_paused_->SetText(
       anx::common::String2WString(value).c_str());
+}
+
+int64_t WorkWindowSecondPage::MaxExpCycleCountFromControl() {
+  int64_t max_cycle_count = 0;
+  int32_t exp_max_cycle_count = _ttoi(edit_max_cycle_count_->GetText());
+  if (exp_max_cycle_count >= 1) {
+    // check the max cycle count with the max cycle power is valid
+    int64_t exp_max_cycle_power = _ttoll(edit_max_cycle_power_->GetText());
+    max_cycle_count = exp_max_cycle_count;
+    for (int32_t i = 0; i < exp_max_cycle_power; i++) {
+      max_cycle_count *= 10;
+    }
+    if (max_cycle_count >= 1) {
+      dus_.exp_max_cycle_count_ = exp_max_cycle_count;
+    }
+  }
+  return max_cycle_count;
 }
 
 void WorkWindowSecondPage::UpdateUIButton() {
@@ -1019,7 +1250,7 @@ void WorkWindowSecondPage::UpdateUIButton() {
       pWorkWindow_->IsULDeviceComInterfaceConnected();
   // check the device com connected status
   if (!is_ul_device_com_interface_connected) {
-    btn_sa_reset_->SetEnabled(false);
+    btn_exp_reset_->SetEnabled(false);
     btn_exp_start_->SetEnabled(false);
     btn_exp_pause_->SetEnabled(false);
     btn_exp_stop_->SetEnabled(false);
@@ -1034,7 +1265,7 @@ void WorkWindowSecondPage::UpdateUIButton() {
   }
 
   if (is_exp_state_ == kExpStateStop) {
-    btn_sa_reset_->SetEnabled(true);
+    btn_exp_reset_->SetEnabled(true);
     btn_exp_start_->SetEnabled(true);
     layout_exp_resume_->SetVisible(false);
     layout_exp_pause_->SetVisible(true);
@@ -1048,9 +1279,10 @@ void WorkWindowSecondPage::UpdateUIButton() {
     edit_max_cycle_power_->SetEnabled(true);
     edit_frequency_fluctuations_range_->SetEnabled(true);
   } else if (is_exp_state_ == kExpStateStart) {
-    btn_sa_reset_->SetEnabled(false);
+    btn_exp_reset_->SetEnabled(false);
     btn_exp_start_->SetEnabled(false);
     layout_exp_resume_->SetVisible(false);
+    btn_exp_resume_->SetEnabled(false);
     layout_exp_pause_->SetVisible(true);
     btn_exp_pause_->SetEnabled(true);
     btn_exp_stop_->SetEnabled(true);
@@ -1062,9 +1294,14 @@ void WorkWindowSecondPage::UpdateUIButton() {
     edit_max_cycle_power_->SetEnabled(false);
     edit_frequency_fluctuations_range_->SetEnabled(false);
   } else if (is_exp_state_ == kExpStatePause) {
-    btn_sa_reset_->SetEnabled(true);
+    btn_exp_reset_->SetEnabled(true);
     btn_exp_start_->SetEnabled(false);
     layout_exp_resume_->SetVisible(true);
+    if (cur_total_cycle_count_ >= MaxExpCycleCountFromControl()) {
+      btn_exp_resume_->SetEnabled(false);
+    } else {
+      btn_exp_resume_->SetEnabled(true);
+    }
     layout_exp_pause_->SetVisible(false);
     btn_exp_pause_->SetEnabled(false);
     btn_exp_stop_->SetEnabled(true);
@@ -1147,12 +1384,13 @@ int32_t WorkWindowSecondPage::exp_start() {
     }
   }
 
-  cur_cycle_count_ = 0;
+  cur_total_cycle_count_ = 0;
   pre_exp_start_time_ms_ = 0;
   pre_total_cycle_count_ = 0;
   pre_total_data_table_no_ = 0;
 
   start_time_pos_has_deal_ = false;
+  pre_clip_paused_ms_ = 0;
   paint_manager_ui_->SetTimer(btn_exp_start_, kTimerIdSampling,
                               kSamplingInterval);
 
@@ -1183,9 +1421,11 @@ void WorkWindowSecondPage::exp_pause() {
     // do nothing
   }
 
-  pre_total_cycle_count_ = cur_cycle_count_;
+  pre_total_cycle_count_ = cur_total_cycle_count_;
   pre_total_data_table_no_ = exp_data_list_info_.exp_data_table_no_;
-
+  LOG_F(LG_INFO) << "cur_total_cycle_count_:" << cur_total_cycle_count_ << " "
+                 << "pre_total_cycle_count_:" << pre_total_cycle_count_ << " "
+                 << "pre_total_data_table_no_:" << pre_total_data_table_no_;
   DuiLib::TNotifyUI msg;
   msg.pSender = btn_exp_pause_;
   msg.sType = kClick;
@@ -1202,9 +1442,8 @@ void WorkWindowSecondPage::exp_resume() {
   for (int32_t i = 0; i < dus_.exp_max_cycle_power_; i++) {
     exp_max_cycle_count *= 10;
   }
-  exp_max_cycle_count *= dus_.exp_max_cycle_count_;
-  if (cur_cycle_count_ > exp_max_cycle_count) {
-    LOG_F(LG_WARN) << "exp_resume:" << cur_cycle_count_ << " > "
+  if (cur_total_cycle_count_ > exp_max_cycle_count) {
+    LOG_F(LG_WARN) << "exp_resume:" << cur_total_cycle_count_ << " > "
                    << exp_max_cycle_count;
     // TODO(hhool): show tips
     return;
@@ -1223,7 +1462,8 @@ void WorkWindowSecondPage::exp_resume() {
       std::move(anx::device::LoadDeviceExpDataSampleSettingsDefaultResource());
   exp_data_list_info_.exp_sample_interval_ms_ =
       dedss_->sampling_interval_ * 100;
-  pre_exp_start_time_ms_ = 0;
+  pre_exp_start_time_ms_ = exp_data_list_info_.exp_start_time_ms_;
+  pre_clip_paused_ms_ = 0;
   // start the ultrasound
   ultra_device_->StartUltra();
 
@@ -1255,135 +1495,8 @@ void WorkWindowSecondPage::exp_stop() {
   paint_manager_ui_->KillTimer(btn_exp_start_, kTimerIdSampling);
 }
 
-void WorkWindowSecondPage::OnButtonStaticAircraftClear() {
-  // clear the data
-  if (is_exp_state_ > kExpStateStop) {
-    LOG_F(LG_WARN) << "exp is running, can not clear the data";
-    return;
-  }
-  LOG_F(LG_INFO) << "clear the data";
-  if (anx::device::stload::STLoadHelper::st_load_loader_.st_api_.tare_ext1) {
-    anx::device::stload::STLoadHelper::st_load_loader_.st_api_.tare_ext1();
-  }
-  if (anx::device::stload::STLoadHelper::st_load_loader_.st_api_.tare_posi) {
-    anx::device::stload::STLoadHelper::st_load_loader_.st_api_.tare_posi();
-  }
-  if (anx::device::stload::STLoadHelper::st_load_loader_.st_api_.tare_load) {
-    anx::device::stload::STLoadHelper::st_load_loader_.st_api_.tare_load();
-  }
-  if (anx::device::stload::STLoadHelper::st_load_loader_.st_api_.tare_time) {
-    anx::device::stload::STLoadHelper::st_load_loader_.st_api_.tare_time();
-  }
-}
-
-void WorkWindowSecondPage::OnButtonStaticAircraftKeepLoad() {
-  int32_t result;
-  DialogStaticLoadGuaranteedSettings* dialog_static_load_guaranteed_settings =
-      new DialogStaticLoadGuaranteedSettings(&result);
-  dialog_static_load_guaranteed_settings->Create(
-      *pWorkWindow_, _T("dialog_static_load_guaranteed_settings"),
-      UI_WNDSTYLE_FRAME, WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
-  dialog_static_load_guaranteed_settings->CenterWindow();
-  dialog_static_load_guaranteed_settings->ShowModal();
-  if (!result) {
-    return;
-  }
-  lss_ = std::move(anx::device::LoadDeviceLoadStaticSettingsDefaultResource());
-  assert(lss_ != nullptr);
-  if (lss_ == nullptr) {
-    // TODO(hhool): msgbox or tips
-    return;
-  }
-  st_load_event_from_ = kSTLoadEventFromKeepLoadButton;
-  if (lss_->direct_ == 1) {
-    if (!StaticAircraftDoMoveUp()) {
-      LOG_F(LG_ERROR) << "StaticAircraftDoMoveUp error";
-      st_load_event_from_ = kSTLoadEventNone;
-      return;
-    }
-  } else {
-    if (!StaticAircraftDoMoveDown()) {
-      LOG_F(LG_ERROR) << "StaticAircraftDoMoveDown error";
-      st_load_event_from_ = kSTLoadEventNone;
-      return;
-    }
-  }
-  st_load_is_running_ = true;
-  /// update the releated button state
-  btn_sa_keep_load_->SetEnabled(false);
-  btn_sa_up_->SetEnabled(false);
-  btn_sa_down_->SetEnabled(false);
-  btn_sa_stop_->SetEnabled(true);
-  btn_sa_clear_->SetEnabled(false);
-}
-
-void WorkWindowSecondPage::OnButtonStaticAircraftReset() {
-  // reset the data
-  this->pWorkWindow_->ClearArgsFreqNum();
-  // drop the exp_data table
-  anx::db::helper::DropDataTable(anx::db::helper::kDefaultDatabasePathname,
-                                 anx::db::helper::kTableExpDataGraph);
-  anx::db::helper::DropDataTable(anx::db::helper::kDefaultDatabasePathname,
-                                 anx::db::helper::kTableExpDataList);
-
-  // create the exp_data_graph table
-  std::string db_filepathname;
-  anx::db::helper::DefaultDatabasePathname(&db_filepathname);
-  auto db = anx::db::DatabaseFactory::Instance()->CreateOrGetDatabase(
-      db_filepathname);
-  db->Execute(anx::db::helper::sql::kCreateTableExpDataGraphSqlFormat);
-  db->Execute(anx::db::helper::sql::kCreateTableExpDataListSqlFormat);
-
-  /// @brief get the exp data sample settings and set the exp start time
-  /// and exp sample interval
-  exp_data_graph_info_.exp_data_table_no_ = 0;
-  exp_data_graph_info_.exp_time_interval_num_ = 0;
-  exp_data_graph_info_.exp_start_time_ms_ = anx::common::GetCurrentTimeMillis();
-  exp_data_graph_info_.exp_sample_interval_ms_ = 2000;
-
-  dedss_ = anx::device::LoadDeviceExpDataSampleSettingsDefaultResource();
-  exp_data_list_info_.exp_data_table_no_ = 0;
-  exp_data_list_info_.exp_time_interval_num_ = 0;
-  exp_data_list_info_.exp_start_time_ms_ = anx::common::GetCurrentTimeMillis();
-  exp_data_list_info_.exp_sample_interval_ms_ =
-      dedss_->sampling_interval_ * 100;
-  // clear graph data
-  WorkWindowSecondPageGraph* graph_page =
-      reinterpret_cast<WorkWindowSecondPageGraph*>(
-          work_window_second_page_graph_notify_pump_.get());
-  graph_page->ClearGraphData();
-  // clear the exp data
-  WorkWindowSecondPageData* data_page =
-      reinterpret_cast<WorkWindowSecondPageData*>(
-          work_window_second_page_data_notify_pump_.get());
-  data_page->ClearExpData();
-}
-
 ////////////////////////////////////////////////////////////////////////////////
-/// @brief Static aircraft releated button
-void WorkWindowSecondPage::OnButtonStaticAircraftUp() {
-  if (st_load_is_running_) {
-    LOG_F(LG_WARN) << "static load is running, can not up";
-    return;
-  }
-  st_load_event_from_ = kSTLoadEventFromButtonUpDown;
-  if (!StaticAircraftDoMoveUp()) {
-    LOG_F(LG_ERROR) << "StaticAircraftDoMoveUp error";
-    st_load_event_from_ = kSTLoadEventNone;
-    return;
-  }
-  st_load_is_running_ = true;
-  /// update the releated button state
-  btn_sa_keep_load_->SetEnabled(false);
-  btn_sa_up_->SetEnabled(false);
-  btn_sa_down_->SetEnabled(false);
-  btn_sa_stop_->SetEnabled(true);
-  //// direct to the settings of the static load
-  /// and save it to the resource file
-  lss_->direct_ = 1;
-  anx::device::SaveDeviceLoadStaticSettingsDefaultResource(*lss_);
-}
-
+/// @brief Static aircraft releated
 bool WorkWindowSecondPage::StaticAircraftDoMoveUp() {
   assert(lss_ != nullptr);
   assert(st_load_event_from_ != kSTLoadEventNone);
@@ -1395,11 +1508,18 @@ bool WorkWindowSecondPage::StaticAircraftDoMoveUp() {
   int32_t ctrl_type = CTRL_LOAD;
   int32_t endtype = END_LOAD;
   float end_value = lss_->retention_ * 1.0f;
-  if (lss_->ctrl_type_ == CTRL_POSI ||
-      st_load_event_from_ == kSTLoadEventFromButtonUpDown) {
+  if (st_load_event_from_ == kSTLoadEventFromButtonUpDown) {
+    // TODO(hhool): read from setting 10000 mm
     ctrl_type = CTRL_POSI;
     endtype = END_POSI;
-    end_value = lss_->displacement_ * 1.0f;
+    end_value = 10000.0f;
+    speed = 50.0f / 60.0f;
+  } else if (st_load_event_from_ == kSTLoadEventFromKeepLoadButton) {
+    if (lss_->ctrl_type_ == CTRL_POSI) {
+      ctrl_type = CTRL_POSI;
+      endtype = END_POSI;
+      end_value = lss_->displacement_ * 1.0f;
+    }
   }
   // TODO(hhool):
   bool bSuccess =
@@ -1414,30 +1534,6 @@ bool WorkWindowSecondPage::StaticAircraftDoMoveUp() {
   return true;
 }
 
-void WorkWindowSecondPage::OnButtonStaticAircraftDown() {
-  if (st_load_is_running_) {
-    LOG_F(LG_WARN) << "static load is running, can not down";
-    return;
-  }
-  st_load_event_from_ = kSTLoadEventFromButtonUpDown;
-  if (!StaticAircraftDoMoveDown()) {
-    LOG_F(LG_ERROR) << "StaticAircraftDoMoveDown error";
-    st_load_event_from_ = kSTLoadEventNone;
-    return;
-  }
-  st_load_is_running_ = true;
-
-  /// update the releated button state
-  btn_sa_keep_load_->SetEnabled(false);
-  btn_sa_up_->SetEnabled(false);
-  btn_sa_down_->SetEnabled(false);
-  btn_sa_stop_->SetEnabled(true);
-  /// direct to the settings of the static load
-  /// and save it to the resource file
-  lss_->direct_ = 2;
-  anx::device::SaveDeviceLoadStaticSettingsDefaultResource(*lss_);
-}
-
 bool WorkWindowSecondPage::StaticAircraftDoMoveDown() {
   assert(lss_ != nullptr);
   assert(st_load_event_from_ != kSTLoadEventNone);
@@ -1448,11 +1544,18 @@ bool WorkWindowSecondPage::StaticAircraftDoMoveDown() {
   int32_t ctrl_type = CTRL_LOAD;
   int32_t endtype = END_LOAD;
   float end_value = lss_->retention_ * 1.0f;
-  if (lss_->ctrl_type_ == CTRL_POSI ||
-      st_load_event_from_ == kSTLoadEventFromButtonUpDown) {
+  if (st_load_event_from_ == kSTLoadEventFromButtonUpDown) {
+    // TODO(hhool): read from setting 10000 mm
     ctrl_type = CTRL_POSI;
     endtype = END_POSI;
-    end_value = lss_->displacement_ * 1.0f;
+    end_value = 10000.0f;
+    speed = 50.0f / 60.0f;
+  } else if (st_load_event_from_ == kSTLoadEventFromKeepLoadButton) {
+    if (lss_->ctrl_type_ == CTRL_POSI) {
+      ctrl_type = CTRL_POSI;
+      endtype = END_POSI;
+      end_value = lss_->displacement_ * 1.0f;
+    }
   }
   /// RUN the static load, the direction is down and the speed is 2.0f / 60.0f
   // TODO(hhool):
@@ -1468,18 +1571,14 @@ bool WorkWindowSecondPage::StaticAircraftDoMoveDown() {
   return true;
 }
 
-void WorkWindowSecondPage::OnButtonStaticAircraftStop() {
-  // anx::device::stload::STLoadHelper::st_load_loader_.st_api_.end_read();
+bool WorkWindowSecondPage::StaticAircraftStop() {
   LOG_F(LG_INFO) << "stop the static load";
   anx::device::stload::STLoadHelper::st_load_loader_.st_api_.stop_run();
-  btn_sa_keep_load_->SetEnabled(true);
-  btn_sa_clear_->SetEnabled(true);
-  btn_sa_up_->SetEnabled(true);
-  btn_sa_down_->SetEnabled(true);
   st_load_is_running_ = false;
   st_load_achieve_target_time_ = -1;
   st_load_keep_load_ = -1;
   st_load_event_from_ = kSTLoadEventNone;
+  return true;
 }
 
 void WorkWindowSecondPage::OnDataReceived(
@@ -1496,19 +1595,19 @@ void WorkWindowSecondPage::OnDataReceived(
     for (int32_t i = 0; i < dus_.exp_max_cycle_power_; i++) {
       exp_max_cycle_count *= 10;
     }
-    if (cur_cycle_count_ > exp_max_cycle_count) {
+    if (cur_total_cycle_count_ >= exp_max_cycle_count) {
       /// avoid renter;
-      if (is_exp_state_ == kExpStatePause) {
-        LOG_F(LG_WARN) << "ignore state exp_pause:" << cur_cycle_count_ << " > "
+      if (is_exp_state_ != kExpStatePause) {
+        exp_pause();
+        exp_pause_stop_reason_ = kExpPauseStopReasonReachMaxCycle;
+        LOG_F(LG_WARN) << "msgbox:exp_pause:" << cur_total_cycle_count_ << " > "
                        << exp_max_cycle_count;
-        return;
+        message = "已达到最大循环次数";
+        bReachEnd = true;
+      } else {
+        LOG_F(LG_WARN) << "ignore state exp_pause:" << cur_total_cycle_count_
+                       << " > " << exp_max_cycle_count;
       }
-      exp_pause();
-      exp_pause_stop_reason_ = kExpPauseStopReasonReachMaxCycle;
-      LOG_F(LG_WARN) << "msgbox:exp_pause:" << cur_cycle_count_ << " > "
-                     << exp_max_cycle_count;
-      message = "已达到最大循环次数";
-      bReachEnd = true;
     }
     int64_t current_time_ms = anx::common::GetCurrentTimeMillis();
     if (dedss_->sampling_end_pos_ > dedss_->sampling_start_pos_) {
@@ -1520,18 +1619,19 @@ void WorkWindowSecondPage::OnDataReceived(
       if (time_ms_diff_from_start > sampling_start_end_diff_ms) {
         LOG_F(LG_WARN) << "msgbox:exp_pause";
         /// avoid renter;
-        if (is_exp_state_ == kExpStatePause) {
+        if (is_exp_state_ != kExpStatePause) {
+          exp_pause();
+          exp_pause_stop_reason_ = kExpPauseStopReasonReachRangeTimeEndPos;
+          message = "已到达循环结束时间点";
+          bReachEnd = true;
+        } else {
           LOG_F(LG_WARN) << "ignore state exp_pause:" << time_ms_diff_from_start
                          << " > " << time_ms_diff_from_start;
-          return;
         }
-        exp_pause();
-        exp_pause_stop_reason_ = kExpPauseStopReasonReachRangeTimeEndPos;
-        message = "已到达循环结束时间点";
-        bReachEnd = true;
       }
     }
     if (bReachEnd) {
+      btn_exp_resume_->SetEnabled(false);
       anx::ui::DialogCommon::ShowDialog(
           *pWorkWindow_, "提示", message,
           anx::ui::DialogCommon::kDialogCommonStyleOk);
@@ -1567,7 +1667,7 @@ void WorkWindowSecondPage::OnDataReceived(
       }
     }
   }
-}
+}  // namespace ui
 
 void WorkWindowSecondPage::ProcessDataGraph() {
   int64_t current_time_ms = anx::common::GetCurrentTimeMillis();
@@ -1619,7 +1719,8 @@ void WorkWindowSecondPage::ProcessDataListModeLinear() {
   if (pre_exp_start_time_ms_ <= 0) {
     pre_exp_start_time_ms_ = exp_data_list_info_.exp_start_time_ms_;
   }
-  int64_t time_ms_diff = current_time_ms - pre_exp_start_time_ms_;
+  int64_t time_ms_diff =
+      current_time_ms - pre_exp_start_time_ms_ - pre_clip_paused_ms_;
   assert(dedss_ != nullptr);
   /// @note check the time diff and the sampling start pos, if the time diff
   /// less than the sampling start pos then return, else time diff minus the
@@ -1641,8 +1742,10 @@ void WorkWindowSecondPage::ProcessDataListModeLinear() {
       (time_ms_diff) *
       static_cast<int32_t>(exp_data_list_info_.amp_freq_ / 1000.f);
   assert(cycle_exp_clip_count > 0);
-  cur_cycle_count_ = cycle_exp_clip_count + pre_total_cycle_count_;
-  this->pWorkWindow_->UpdateArgsArea(cur_cycle_count_);
+  LOG_F(LG_INFO) << "cycle_exp_clip_count:" << cycle_exp_clip_count
+                 << " pre_total_cycle_count_:" << pre_total_cycle_count_;
+  cur_total_cycle_count_ = cycle_exp_clip_count + pre_total_cycle_count_;
+  this->pWorkWindow_->UpdateArgsArea(cur_total_cycle_count_);
 
   /// @note check the time interval num and update the data to the database
   if (time_interval_num > exp_data_list_info_.exp_time_interval_num_) {
@@ -1660,7 +1763,8 @@ void WorkWindowSecondPage::ProcessDataListModeLinear() {
                         (dedss_->sampling_interval_) / 10 +
                     pre_total_cycle_count_;
       LOG_F(LG_SENSITIVE) << "exp data list: cycle_count:" << cycle_count
-                          << " cur_cycle_count_:" << cur_cycle_count_
+                          << " cur_total_cycle_count_:"
+                          << cur_total_cycle_count_
                           << " exp_time_interval_num_:" << time_interval_num
                           << " exp_data_table_no_:"
                           << exp_data_list_info_.exp_data_table_no_
@@ -1671,9 +1775,14 @@ void WorkWindowSecondPage::ProcessDataListModeLinear() {
     // pre_total_data_table_no_, reset the exp_time_interval_num_ to 0
     if (table_no % 10 == 0 && table_no > 0) {
       pre_exp_start_time_ms_ = anx::common::GetCurrentTimeMillis();
-      pre_total_cycle_count_ = cur_cycle_count_;
+      pre_total_cycle_count_ = cur_total_cycle_count_;
       pre_total_data_table_no_ = exp_data_list_info_.exp_data_table_no_;
       exp_data_list_info_.exp_time_interval_num_ = 0;
+      LOG_F(LG_INFO) << "exp data list: pre_exp_start_time_ms_"
+                     << pre_exp_start_time_ms_
+                     << " pre_total_cycle_count_:" << pre_total_cycle_count_
+                     << " pre_total_data_table_no_:"
+                     << pre_total_data_table_no_;
     }
     // 1. save to database
     // format cycle_count, KHz, MPa, um to the sql string and insert to the
@@ -1688,7 +1797,8 @@ void WorkWindowSecondPage::ProcessDataListModeExponential() {
   if (pre_exp_start_time_ms_ <= 0) {
     pre_exp_start_time_ms_ = exp_data_list_info_.exp_start_time_ms_;
   }
-  int64_t time_ms_diff = current_time_ms - pre_exp_start_time_ms_;
+  int64_t time_ms_diff =
+      current_time_ms - pre_exp_start_time_ms_ - pre_clip_paused_ms_;
   assert(dedss_ != nullptr);
   /// @note check the time diff and the sampling start pos, if the time diff
   /// less than the sampling start pos then return, else time diff minus the
@@ -1706,56 +1816,53 @@ void WorkWindowSecondPage::ProcessDataListModeExponential() {
   /// @note calculate the cycle count and update the args area,
   /// cycle_exp_clip_count that cantian the current cycle count and the exp clip
   /// count and the pre cycle count
-  int64_t cycle_exp_clip_count =
-      (time_ms_diff) *
-      static_cast<int32_t>(exp_data_list_info_.amp_freq_ / 1000.f);
+  int64_t cycle_exp_clip_count = static_cast<int64_t>(
+      (time_ms_diff * exp_data_list_info_.amp_freq_) / 1000);
   assert(cycle_exp_clip_count > 0);
-  cur_cycle_count_ = cycle_exp_clip_count + pre_total_cycle_count_;
-  this->pWorkWindow_->UpdateArgsArea(cur_cycle_count_);
+  cur_total_cycle_count_ = cycle_exp_clip_count + pre_total_cycle_count_;
+  this->pWorkWindow_->UpdateArgsArea(cur_total_cycle_count_);
 
   /// @note check the time interval num for sample mode Exponent 10^n
   /// check n is 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000
   /// then update the data to the database, else return.
   {
     if (exp_data_pre_duration_exponential_ == 0) {
-      if (time_interval_num > 0) {
-        exp_data_pre_duration_exponential_ = 1;
+      if (cur_total_cycle_count_ > 0) {
+        exp_data_pre_duration_exponential_ =
+            static_cast<int64_t>(exp_data_list_info_.amp_freq_);
       } else {
         return;
       }
-    } else if ((time_interval_num % exp_data_pre_duration_exponential_) != 0) {
-      return;
-    } else if (time_interval_num / exp_data_pre_duration_exponential_ < 10) {
+    } else if ((cur_total_cycle_count_ < exp_data_pre_duration_exponential_) !=
+               0) {
       return;
     } else {
       exp_data_pre_duration_exponential_ *= 10;
     }
   }
   /// @note check the time interval num and update the data to the database
-  if (time_interval_num > exp_data_list_info_.exp_time_interval_num_) {
-    exp_data_list_info_.exp_time_interval_num_ = time_interval_num;
-    exp_data_list_info_.exp_data_table_no_++;
-    int64_t cycle_count;
-    // update the data to the database table amp, stress, um
-    {
-      int multiplier = 1;
-      for (int i = 1; i < exp_data_list_info_.exp_data_table_no_; i++) {
-        multiplier *= 10;
-      }
-      cycle_count = static_cast<int64_t>(multiplier *
-                                         exp_data_list_info_.amp_freq_ / 10.f);
-      LOG_F(LG_INFO) << "exp data list: cycle_count:" << cycle_count
-                     << " cur_cycle_count_:" << cur_cycle_count_
-                     << " exp_time_interval_num_:" << time_interval_num
-                     << " exp_data_table_no_:"
-                     << exp_data_list_info_.exp_data_table_no_
-                     << " cur_freq_:" << cur_freq_;
+  exp_data_list_info_.exp_time_interval_num_ = time_interval_num;
+  exp_data_list_info_.exp_data_table_no_++;
+  int64_t cycle_count;
+  // update the data to the database table amp, stress, um
+  {
+    int multiplier = 1;
+    for (int i = 1; i < exp_data_list_info_.exp_data_table_no_; i++) {
+      multiplier *= 10;
     }
-    // 1. save to database
-    // format cycle_count, KHz, MPa, um to the sql string and insert to the
-    // database
-    StoreDataListItem(cycle_count, anx::common::GetCurrrentSystimeAsVarTime());
+    cycle_count =
+        static_cast<int64_t>(multiplier * exp_data_list_info_.amp_freq_ / 10.f);
+    LOG_F(LG_INFO) << "exp data list: cycle_count:" << cycle_count
+                   << " cur_total_cycle_count_:" << cur_total_cycle_count_
+                   << " exp_time_interval_num_:" << time_interval_num
+                   << " exp_data_table_no_:"
+                   << exp_data_list_info_.exp_data_table_no_
+                   << " cur_freq_:" << cur_freq_;
   }
+  // 1. save to database
+  // format cycle_count, KHz, MPa, um to the sql string and insert to the
+  // database
+  StoreDataListItem(cycle_count, anx::common::GetCurrrentSystimeAsVarTime());
 }
 
 void WorkWindowSecondPage::StoreDataListItem(int64_t cycle_count, double date) {

@@ -37,9 +37,9 @@ class DeviceLoadStatic {
   int32_t speed_;
   /// @brief retention
   int32_t retention_;
-  /// @brief  displacement
+  /// @brief  displacement unit: mm
   int32_t displacement_;
-  /// @brief keep_load_duration in seconds
+  /// @brief keep_load_duration in seconds unit: second
   int32_t keep_load_duration_;
 
  public:
