@@ -359,9 +359,25 @@ void WorkWindowSecondPage::OnValueChanged(TNotifyUI& msg) {
             /// value 1 is next action is to keep load action
             st_load_keep_load_ = 1;
           } else {
-            /// ctrl_type is CTRL_POSI, then stop the action
-            OnButtonStaticAircraftStop();
+            if (st_posi_reach_first_time_ == 0) {
+              st_posi_reach_first_time_ = anx::common::GetCurrentTimeMillis();
+            } else {
+              int64_t current_time = anx::common::GetCurrentTimeMillis();
+              int64_t cur_duration = current_time - st_posi_reach_first_time_;
+              if (cur_duration > 1000) {
+                LOG_F(LG_INFO)
+                    << "static load aircraft reach the target position"
+                    << " for 1000 ms, stop";
+                st_posi_reach_first_time_ = 0;
+                /// ctrl_type is CTRL_POSI, then stop the action
+                OnButtonStaticAircraftStop();
+              } else {
+                // do nothing
+              }
+            }
           }
+        } else {
+          st_posi_reach_first_time_ = 0;
         }
         if (st_load_keep_load_ == 1) {
           int64_t current_time = anx::common::GetCurrentTimeMillis();
