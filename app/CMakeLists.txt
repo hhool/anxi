@@ -238,6 +238,7 @@ if(WIN32)
         ui/main_window.h
         ui/ui_constants.cc
         ui/ui_constants.h
+        ui/ui_num_string_convert.hpp
         ui/ui_virtual_wnd_base.h
         ui/work_window_menu_design.cc
         ui/work_window_menu_design.h

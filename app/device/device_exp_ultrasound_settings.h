@@ -24,7 +24,7 @@ class DeviceUltrasound {
   DeviceUltrasound(int32_t exp_clipping_enable,
                    int64_t exp_clip_time_duration,
                    int64_t exp_clip_time_paused,
-                   int64_t exp_max_cycle_count,
+                   double exp_max_cycle_count,
                    int32_t exp_max_cycle_power,
                    int32_t exp_frequency_fluctuations_range);
   virtual ~DeviceUltrasound();
@@ -38,8 +38,11 @@ class DeviceUltrasound {
   /// @brief  exp clipping time paused.
   int64_t exp_clip_time_paused_;
 
-  /// @brief  exp max cycle count.
-  int64_t exp_max_cycle_count_;
+  /// @brief  exp max cycle count. Keep 3 decimal places
+  /// eg:
+  /// 3.1415 -> 3.1416
+  /// 3.1414 -> 3.141
+  double exp_max_cycle_count_;
   /// @brief  exp max cycle power.
   int32_t exp_max_cycle_power_;
   /// @brief  exp max cycle power.

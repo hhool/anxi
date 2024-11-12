@@ -26,6 +26,13 @@ using DuiLib::CWindowWnd;
 using DuiLib::INotifyUI;
 
 namespace anx {
+namespace ui {}
+namespace device {
+class DeviceExpAmplitudeSettings;
+}
+}  // namespace anx
+
+namespace anx {
 namespace ui {
 class DialogAmplitudeCalibrationSettings : public DuiLib::WindowImplBase {
  public:
@@ -60,10 +67,12 @@ class DialogAmplitudeCalibrationSettings : public DuiLib::WindowImplBase {
 
   void OnPrepare(const DuiLib::TNotifyUI& msg);
 
+  void LoadSettingsFromResource();
   void UpdateControlFromSettings();
-  void SaveSettingsFromControl();
+  void SaveSettingsToResource();
 
  private:
+  std::unique_ptr<anx::device::DeviceExpAmplitudeSettings> deas_;
   CButtonUI* btn_close_;
   CButtonUI* btn_ok_;
   CButtonUI* btn_cancel_;

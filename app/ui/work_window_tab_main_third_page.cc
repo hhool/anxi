@@ -29,6 +29,7 @@
 #include "app/ui/dialog_about.h"
 #include "app/ui/dialog_com_port_settings.h"
 #include "app/ui/ui_constants.h"
+#include "app/ui/ui_num_string_convert.hpp"
 #include "app/ui/work_window.h"
 #include "app/ui/work_window_menu_design.h"
 #include "app/ui/work_window_menu_store.h"
@@ -44,13 +45,6 @@ namespace anx {
 namespace ui {
 
 namespace {
-template <typename T>
-std::string to_string_with_precision(const T a_value, const int n = 2) {
-  int nn = n;
-  std::ostringstream out;
-  out << std::fixed << std::setprecision(nn) << a_value;
-  return out.str();
-}
 const int32_t kTimerID = 0x1;
 const int32_t kTimerElapse = 1000;
 }  // namespace

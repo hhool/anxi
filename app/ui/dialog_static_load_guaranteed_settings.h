@@ -31,6 +31,9 @@ namespace anx {
 namespace ui {
 class DialogCommon;
 }
+namespace device {
+class DeviceLoadStaticSettings;
+}
 }  // namespace anx
 
 namespace anx {
@@ -68,12 +71,15 @@ class DialogStaticLoadGuaranteedSettings : public anx::ui::DialogCommon {
 
  protected:
   void OnPrepare(const DuiLib::TNotifyUI& msg);
+  bool OnEditControlChanged(void* param);
   bool OnCtrlTypeChanged(void* param);
   bool OnCtrlMoveChanged(void* param);
+  void LoadSettingsFromResource();
   void UpdateControlFromSettings();
-  void SaveSettingsFromControl();
+  void SaveSettingsToResource();
 
  private:
+  std::unique_ptr<anx::device::DeviceLoadStaticSettings> lss_;
   CButtonUI* btn_close_;
   CButtonUI* btn_ok_;
   CButtonUI* btn_cancel_;

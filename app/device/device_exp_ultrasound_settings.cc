@@ -24,12 +24,18 @@ namespace device {
 
 ////////////////////////////////////////////////////////////////////
 // clz DeviceUltrasound
-DeviceUltrasound::DeviceUltrasound() {}
+DeviceUltrasound::DeviceUltrasound()
+    : exp_clipping_enable_(false),
+      exp_clip_time_duration_(50),
+      exp_clip_time_paused_(50),
+      exp_max_cycle_count_(1),
+      exp_max_cycle_power_(9),
+      exp_frequency_fluctuations_range_(300) {}
 
 DeviceUltrasound::DeviceUltrasound(int32_t exp_clipping_enable,
                                    int64_t exp_clip_time_duration,
                                    int64_t exp_clip_time_paused,
-                                   int64_t exp_max_cycle_count,
+                                   double exp_max_cycle_count,
                                    int32_t exp_max_cycle_power,
                                    int32_t exp_frequency_fluctuations_range)
     : exp_clipping_enable_(exp_clipping_enable),
@@ -119,7 +125,7 @@ std::unique_ptr<DeviceUltrasoundSettings> DeviceUltrasoundSettings::FromXml(
   int32_t exp_clipping_enable = 0;
   int64_t exp_clip_time_duration = 0;
   int64_t exp_clip_time_paused = 0;
-  int64_t exp_max_cycle_count = 0;
+  double exp_max_cycle_count = 0;
   int32_t exp_max_cycle_power = 0;
   int32_t exp_frequency_fluctuations_range = 0;
 
@@ -144,7 +150,7 @@ std::unique_ptr<DeviceUltrasoundSettings> DeviceUltrasoundSettings::FromXml(
 
   element = root->FirstChildElement("exp_max_cycle_count");
   if (element != nullptr) {
-    exp_max_cycle_count = std::stoll(element->GetText());
+    exp_max_cycle_count = std::stod(element->GetText());
   }
 
   element = root->FirstChildElement("exp_max_cycle_power");

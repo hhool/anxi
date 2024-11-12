@@ -33,7 +33,7 @@ class DeviceExpDataSample {
     kSampleModeLinear = 1,
   };
   /// @brief  sample mode 0: exponent, 1: linear.
-  int32_t sample_mode_ = kSampleModeExponent;
+  int32_t sample_mode_ = kSampleModeLinear;
   /// @brief  sampling frequency start position. unit: 100ms
   int64_t sampling_start_pos_ = 0;
   /// @brief  sampling frequency end position. unit: 100ms

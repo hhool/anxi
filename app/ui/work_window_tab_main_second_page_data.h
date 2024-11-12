@@ -63,6 +63,7 @@ class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
  protected:
   bool OnTimer(void* param);
   bool OnOptDataSampleChange(void* param);
+  bool OnEditDataSampleChange(void* param);
 
  public:
   // implement the base class UIVirtualWndBase virtual function
@@ -70,14 +71,13 @@ class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
   void Unbind() override;
 
  protected:
-  void RefreshSampleTimeControl();
-  std::unique_ptr<anx::device::DeviceExpDataSampleSettings>
-  UpdateExpClipTimeFromControl();
+  void LoadSettingsFromResource();
   void UpdateControlFromSettings();
-  void SaveSettingsFromControl();
+  void SaveSettingsToResource();
   /// @brief  Update button with exp status
   /// @param status  0 - stop, 1 - start, 2 - pause
   void UpdateUIWithExpStatus(int status);
+  void RefreshSampleTimeControl();
 
  protected:
   // impliment anx::device::DeviceComListener;
@@ -108,8 +108,7 @@ class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
   WorkWindow* pWorkWindow_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
   anx::device::UltraDevice* ultra_device_;
-  std::unique_ptr<anx::device::DeviceExpDataSampleSettings>
-      device_exp_data_settings_;
+  std::unique_ptr<anx::device::DeviceExpDataSampleSettings> dedss_;
   ExpDataInfo* exp_data_info_;
 
   int64_t exp_start_date_time_ = 0;

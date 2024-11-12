@@ -13,10 +13,12 @@
 
 #include <string>
 
+#include "app/common/logger.h"
 #include "app/common/string_utils.h"
 #include "app/device/device_exp_load_static_settings.h"
 #include "app/device/stload/stload_common.h"
 #include "app/ui/ui_constants.h"
+#include "app/ui/ui_num_string_convert.hpp"
 
 DUI_BEGIN_MESSAGE_MAP(anx::ui::DialogStaticLoadGuaranteedSettings,
                       DuiLib::WindowImplBase)
@@ -59,6 +61,22 @@ void DialogStaticLoadGuaranteedSettings::InitWindow() {
       this, &DialogStaticLoadGuaranteedSettings::OnCtrlTypeChanged);
   opt_retention_->OnNotify += MakeDelegate(
       this, &DialogStaticLoadGuaranteedSettings::OnCtrlTypeChanged);
+  opt_up_->OnNotify += MakeDelegate(
+      this, &DialogStaticLoadGuaranteedSettings::OnCtrlMoveChanged);
+  opt_down_->OnNotify += MakeDelegate(
+      this, &DialogStaticLoadGuaranteedSettings::OnCtrlMoveChanged);
+  edit_speed_->OnNotify += MakeDelegate(
+      this, &DialogStaticLoadGuaranteedSettings::OnEditControlChanged);
+  edit_retention_->OnNotify += MakeDelegate(
+      this, &DialogStaticLoadGuaranteedSettings::OnEditControlChanged);
+  edit_displacement_->OnNotify += MakeDelegate(
+      this, &DialogStaticLoadGuaranteedSettings::OnEditControlChanged);
+  edit_keep_load_duration_->OnNotify += MakeDelegate(
+      this, &DialogStaticLoadGuaranteedSettings::OnEditControlChanged);
+
+  /// load settings from resource or create a new one.
+  LoadSettingsFromResource();
+
   UpdateControlFromSettings();
 }
 
@@ -89,7 +107,7 @@ LRESULT DialogStaticLoadGuaranteedSettings::ResponseDefaultKeyEvent(
 
 void DialogStaticLoadGuaranteedSettings::OnClick(DuiLib::TNotifyUI& msg) {
   if (msg.pSender == btn_ok_) {
-    SaveSettingsFromControl();
+    SaveSettingsToResource();
     this->Close();
   } else if (msg.pSender == btn_close_) {
     this->Close();
@@ -105,6 +123,60 @@ void DialogStaticLoadGuaranteedSettings::OnPrepare(
       ::GetWindowLong(m_hWnd, GWL_STYLE) & ~WS_MAXIMIZEBOX & ~WS_THICKFRAME);
 }
 
+bool DialogStaticLoadGuaranteedSettings::OnEditControlChanged(void* param) {
+  TNotifyUI* pMsg = reinterpret_cast<TNotifyUI*>(param);
+  if (pMsg == nullptr) {
+    return false;
+  }
+  LOG_F(LG_INFO) << pMsg->pSender->GetName() << " " << pMsg->sType << " "
+                 << pMsg->wParam << " " << pMsg->lParam;
+  if (pMsg->sType != DUI_MSGTYPE_KILLFOCUS &&
+      pMsg->sType != DUI_MSGTYPE_RETURN) {
+    return false;
+  }
+  bool save = false;
+  if (pMsg->pSender == edit_speed_) {
+    int64_t speed = 0;
+    if (get_value_from_control(edit_speed_, &speed)) {
+      if (speed != lss_->speed_) {
+        lss_->speed_ = static_cast<int32_t>(speed);
+        save = true;
+      }
+    }
+    set_value_to_control(edit_speed_, lss_->speed_);
+  } else if (pMsg->pSender == edit_retention_) {
+    int64_t retention = 0;
+    if (get_value_from_control(edit_retention_, &retention)) {
+      if (retention != lss_->retention_) {
+        lss_->retention_ = static_cast<int32_t>(retention);
+        save = true;
+      }
+    }
+    set_value_to_control(edit_retention_, lss_->retention_);
+  } else if (pMsg->pSender == edit_displacement_) {
+    int64_t displacement = 0;
+    if (get_value_from_control(edit_displacement_, &displacement)) {
+      if (displacement != lss_->displacement_) {
+        lss_->displacement_ = static_cast<int32_t>(displacement);
+        save = true;
+      }
+    }
+    set_value_to_control(edit_displacement_, lss_->displacement_);
+  } else if (pMsg->pSender == edit_keep_load_duration_) {
+    int64_t keep_load_duration = 0;
+    if (get_value_from_control(edit_keep_load_duration_, &keep_load_duration)) {
+      if (keep_load_duration != lss_->keep_load_duration_) {
+        lss_->keep_load_duration_ = static_cast<int32_t>(keep_load_duration);
+        save = true;
+      }
+    }
+    set_value_to_control(edit_keep_load_duration_, lss_->keep_load_duration_);
+  }
+
+  SaveSettingsToResource();
+  return true;
+}
+
 bool DialogStaticLoadGuaranteedSettings::OnCtrlTypeChanged(void* param) {
   TNotifyUI* pMsg = reinterpret_cast<TNotifyUI*>(param);
   if (pMsg == nullptr) {
@@ -113,11 +185,19 @@ bool DialogStaticLoadGuaranteedSettings::OnCtrlTypeChanged(void* param) {
   if (pMsg->pSender == opt_displacement_) {
     edit_displacement_->SetEnabled(true);
     edit_retention_->SetEnabled(false);
+    edit_speed_->SetEnabled(true);
     edit_keep_load_duration_->SetEnabled(false);
+    if (lss_.get() != nullptr) {
+      lss_->ctrl_type_ = CTRL_POSI;
+    }
   } else if (pMsg->pSender == opt_retention_) {
     edit_displacement_->SetEnabled(false);
     edit_retention_->SetEnabled(true);
+    edit_speed_->SetEnabled(false);
     edit_keep_load_duration_->SetEnabled(true);
+    if (lss_.get() != nullptr) {
+      lss_->ctrl_type_ = CTRL_LOAD;
+    }
   }
   return true;
 }
@@ -129,64 +209,76 @@ bool DialogStaticLoadGuaranteedSettings::OnCtrlMoveChanged(void* param) {
   }
   if (pMsg->pSender == opt_up_) {
     opt_down_->Selected(false);
+    opt_up_->Selected(true);
+    if (lss_.get() != nullptr) {
+      lss_->direct_ = 1;
+    }
   } else if (pMsg->pSender == opt_down_) {
+    opt_down_->Selected(true);
     opt_up_->Selected(false);
+    if (lss_.get() != nullptr) {
+      lss_->direct_ = 2;
+    }
   }
   return true;
 }
 
+void DialogStaticLoadGuaranteedSettings::LoadSettingsFromResource() {
+  lss_ = std::unique_ptr<anx::device::DeviceLoadStaticSettings>(
+      anx::device::LoadDeviceLoadStaticSettingsDefaultResource());
+  if (lss_.get() == nullptr) {
+    lss_ = std::unique_ptr<anx::device::DeviceLoadStaticSettings>(
+        new anx::device::DeviceLoadStaticSettings());
+  }
+}
+
 void DialogStaticLoadGuaranteedSettings::UpdateControlFromSettings() {
-  std::unique_ptr<anx::device::DeviceLoadStaticSettings> lss =
-      anx::device::LoadDeviceLoadStaticSettingsDefaultResource();
-  if (lss == nullptr) {
+  if (lss_.get() == nullptr) {
+    LOG_F(LG_ERROR) << "lss_ is nullptr";
     return;
   }
-  if (lss->ctrl_type_ == CTRL_LOAD) {
+  if (lss_->ctrl_type_ == CTRL_LOAD) {
     opt_displacement_->Selected(false);
     opt_retention_->Selected(true);
+    edit_speed_->SetEnabled(false);
     edit_displacement_->SetEnabled(false);
   } else {
     opt_displacement_->Selected(true);
     opt_retention_->Selected(false);
+    edit_speed_->SetEnabled(true);
     edit_retention_->SetEnabled(false);
   }
-  if (lss->direct_ == 0) {
+  if (lss_->direct_ == 0) {
     opt_up_->Selected(false);
     opt_down_->Selected(false);
-  } else if (lss->direct_ == 1) {
+  } else if (lss_->direct_ == 1) {
     opt_up_->Selected(true);
     opt_down_->Selected(false);
-  } else if (lss->direct_ == 2) {
+  } else if (lss_->direct_ == 2) {
     opt_up_->Selected(false);
     opt_down_->Selected(true);
   }
   edit_speed_->SetText(
-      anx::common::String2WString(std::to_string(lss->speed_).c_str()).c_str());
+      anx::common::String2WString(std::to_string(lss_->speed_).c_str())
+          .c_str());
   edit_retention_->SetText(
-      anx::common::String2WString(std::to_string(lss->retention_).c_str())
+      anx::common::String2WString(std::to_string(lss_->retention_).c_str())
           .c_str());
   edit_displacement_->SetText(
-      anx::common::String2WString(std::to_string(lss->displacement_).c_str())
+      anx::common::String2WString(std::to_string(lss_->displacement_).c_str())
           .c_str());
   edit_keep_load_duration_->SetText(
       anx::common::String2WString(
-          std::to_string(lss->keep_load_duration_).c_str())
+          std::to_string(lss_->keep_load_duration_).c_str())
           .c_str());
 }
 
-void DialogStaticLoadGuaranteedSettings::SaveSettingsFromControl() {
-  std::string direct = opt_up_->IsSelected() ? "up" : "down";
-  int32_t speed = _ttoi(edit_speed_->GetText().GetData());
-  int32_t retention = _ttoi(edit_retention_->GetText().GetData());
-  anx::device::DeviceLoadStaticSettings lss;
-  lss.direct_ = anx::device::DeviceLoadStatic::ValueDirectFromString(direct);
-  lss.ctrl_type_ = opt_displacement_->IsSelected() ? CTRL_POSI : CTRL_LOAD;
-  lss.speed_ = speed;
-  lss.retention_ = retention;
-  lss.displacement_ = _ttoi(edit_displacement_->GetText().GetData());
-  lss.keep_load_duration_ =
-      _ttoi(edit_keep_load_duration_->GetText().GetData());
-  anx::device::SaveDeviceLoadStaticSettingsDefaultResource(lss);
+void DialogStaticLoadGuaranteedSettings::SaveSettingsToResource() {
+  if (lss_.get() == nullptr) {
+    LOG_F(LG_ERROR) << "lss_ is nullptr";
+    return;
+  }
+  anx::device::SaveDeviceLoadStaticSettingsDefaultResource(*lss_);
 }
 
 }  // namespace ui
