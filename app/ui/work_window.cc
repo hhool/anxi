@@ -774,47 +774,38 @@ void WorkWindow::UpdateArgsAreaWithSolution() {
   if (design == nullptr) {
     return;
   }
-  {
-    DuiLib::CDuiString value;
-    value.Format(_T("%.2f"), design->base_param_->f_max_stress_MPa_);
-    btn_args_area_value_max_stress_->SetText(value);
+  set_value_to_button(btn_args_area_value_max_stress_,
+                      design->base_param_->f_max_stress_MPa_, 2);
+
+  set_value_to_button(btn_args_area_value_stress_ratio_,
+                      design->base_param_->f_stress_ratio_, 2);
+
+  set_value_to_button(
+      btn_args_area_value_amplitude_,
+      reinterpret_cast<anx::esolution::ExpDesignResult0*>(design->result_.get())
+          ->f_eamplitude_,
+      2);
+
+  if (design->result_->solution_type_ ==
+      anx::esolution::kSolutionName_Stresses_Adjustable) {
+    set_value_to_button(
+        btn_args_area_value_static_load_,
+        reinterpret_cast<anx::esolution::ExpDesignResultStressesAdjustable*>(
+            design->result_.get())
+            ->f_static_load_MPa_,
+        2);
+  } else if (design->result_->solution_type_ ==
+             anx::esolution::kSolutionName_Th3point_Bending) {
+    set_value_to_button(
+        btn_args_area_value_static_load_,
+        reinterpret_cast<anx::esolution::ExpDesignResultTh3pointBending*>(
+            design->result_.get())
+            ->f_static_load_MPa_,
+        2);
+  } else {
+    // TODO(hhool): do nothing;
   }
-  {
-    DuiLib::CDuiString value;
-    value.Format(_T("%.2f"), design->base_param_->f_stress_ratio_);
-    btn_args_area_value_stress_ratio_->SetText(value);
-  }
-  {
-    DuiLib::CDuiString value;
-    value.Format(_T("%.2f"),
-                 reinterpret_cast<anx::esolution::ExpDesignResult0*>(
-                     design->result_.get())
-                     ->f_eamplitude_);
-    btn_args_area_value_amplitude_->SetText(value);
-  }
-  {
-    if (design->result_->solution_type_ ==
-        anx::esolution::kSolutionName_Stresses_Adjustable) {
-      DuiLib::CDuiString value;
-      value.Format(
-          _T("%.2f"),
-          reinterpret_cast<anx::esolution::ExpDesignResultStressesAdjustable*>(
-              design->result_.get())
-              ->f_static_load_MPa_);
-      btn_args_area_value_static_load_->SetText(value);
-    } else if (design->result_->solution_type_ ==
-               anx::esolution::kSolutionName_Th3point_Bending) {
-      DuiLib::CDuiString value;
-      value.Format(
-          _T("%.2f"),
-          reinterpret_cast<anx::esolution::ExpDesignResultTh3pointBending*>(
-              design->result_.get())
-              ->f_static_load_MPa_);
-      btn_args_area_value_static_load_->SetText(value);
-    } else {
-      // TODO(hhool): do nothing;
-    }
-  }
+
   DuiLib::TNotifyUI msg;
   msg.pSender = this->h_layout_args_area_;
   msg.sType = kValueChanged;
@@ -970,9 +961,7 @@ int32_t WorkWindow::OpenDeviceCom(int32_t device_type) {
       if (initial_freq < 0) {
         return -5;
       }
-      DuiLib::CDuiString value;
-      value.Format(_T("%.3f"), initial_freq / 1000.0f);
-      btn_args_area_value_freq_->SetText(value);
+      set_value_to_button(btn_args_area_value_freq_, initial_freq / 1000.0f, 3);
     } else {
       return -3;
     }
@@ -1061,8 +1050,7 @@ void WorkWindow::OnExpStart() {
 
 void WorkWindow::ClearArgsFreqNum() {
   // clear freq num
-  btn_args_area_value_freq_num_->SetText(
-      anx::common::UTF8ToUnicode("0").c_str());
+  set_value_to_button(btn_args_area_value_freq_num_, 0);
 }
 
 void WorkWindow::UpdateArgsArea(int64_t cycle_count,
@@ -1072,23 +1060,19 @@ void WorkWindow::UpdateArgsArea(int64_t cycle_count,
   DuiLib::CDuiString value;
   // update cycle count
   if (cycle_count >= 0) {
-    value.Format(_T("%lld"), cycle_count);
-    btn_args_area_value_freq_num_->SetText(value);
+    set_value_to_button(btn_args_area_value_freq_num_, cycle_count);
   }
   // update freq
   if (freq >= 0) {
-    value.Format(_T("%.3f"), freq / 1000.0f);
-    btn_args_area_value_freq_->SetText(value);
+    set_value_to_button(btn_args_area_value_freq_, freq / 1000.0f, 3);
   }
   // update amplitude
   if (amplitude >= 0) {
-    value.Format(_T("%.2f"), amplitude);
-    btn_args_area_value_amplitude_->SetText(value);
+    set_value_to_button(btn_args_area_value_amplitude_, amplitude, 2);
   }
   // update static load
   if (static_load >= 0) {
-    value.Format(_T("%.2f"), static_load);
-    btn_args_area_value_static_load_->SetText(value);
+    set_value_to_button(btn_args_area_value_static_load_, static_load, 2);
   }
 }
 }  // namespace ui

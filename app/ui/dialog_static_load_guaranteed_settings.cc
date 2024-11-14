@@ -143,7 +143,7 @@ bool DialogStaticLoadGuaranteedSettings::OnEditControlChanged(void* param) {
         save = true;
       }
     }
-    set_value_to_control(edit_speed_, lss_->speed_);
+    set_value_to_edit(edit_speed_, lss_->speed_);
   } else if (pMsg->pSender == edit_retention_) {
     int64_t retention = 0;
     if (get_value_from_control(edit_retention_, &retention)) {
@@ -152,7 +152,7 @@ bool DialogStaticLoadGuaranteedSettings::OnEditControlChanged(void* param) {
         save = true;
       }
     }
-    set_value_to_control(edit_retention_, lss_->retention_);
+    set_value_to_edit(edit_retention_, lss_->retention_);
   } else if (pMsg->pSender == edit_displacement_) {
     int64_t displacement = 0;
     if (get_value_from_control(edit_displacement_, &displacement)) {
@@ -161,7 +161,7 @@ bool DialogStaticLoadGuaranteedSettings::OnEditControlChanged(void* param) {
         save = true;
       }
     }
-    set_value_to_control(edit_displacement_, lss_->displacement_);
+    set_value_to_edit(edit_displacement_, lss_->displacement_);
   } else if (pMsg->pSender == edit_keep_load_duration_) {
     int64_t keep_load_duration = 0;
     if (get_value_from_control(edit_keep_load_duration_, &keep_load_duration)) {
@@ -170,7 +170,7 @@ bool DialogStaticLoadGuaranteedSettings::OnEditControlChanged(void* param) {
         save = true;
       }
     }
-    set_value_to_control(edit_keep_load_duration_, lss_->keep_load_duration_);
+    set_value_to_edit(edit_keep_load_duration_, lss_->keep_load_duration_);
   }
 
   SaveSettingsToResource();
@@ -258,19 +258,10 @@ void DialogStaticLoadGuaranteedSettings::UpdateControlFromSettings() {
     opt_up_->Selected(false);
     opt_down_->Selected(true);
   }
-  edit_speed_->SetText(
-      anx::common::String2WString(std::to_string(lss_->speed_).c_str())
-          .c_str());
-  edit_retention_->SetText(
-      anx::common::String2WString(std::to_string(lss_->retention_).c_str())
-          .c_str());
-  edit_displacement_->SetText(
-      anx::common::String2WString(std::to_string(lss_->displacement_).c_str())
-          .c_str());
-  edit_keep_load_duration_->SetText(
-      anx::common::String2WString(
-          std::to_string(lss_->keep_load_duration_).c_str())
-          .c_str());
+  set_value_to_edit(edit_speed_, lss_->speed_);
+  set_value_to_edit(edit_retention_, lss_->retention_);
+  set_value_to_edit(edit_displacement_, lss_->displacement_);
+  set_value_to_edit(edit_keep_load_duration_, lss_->keep_load_duration_);
 }
 
 void DialogStaticLoadGuaranteedSettings::SaveSettingsToResource() {

@@ -302,7 +302,7 @@ bool WorkWindowSecondPageData::OnEditDataSampleChange(void* param) {
         save = true;
       }
     }
-    set_value_to_control(edit_sample_start_pos_, dedss_->sampling_start_pos_);
+    set_value_to_edit(edit_sample_start_pos_, dedss_->sampling_start_pos_);
   } else if (pMsg->pSender == edit_sample_end_pos_) {
     int64_t value = 0;
     if (get_value_from_control(edit_sample_end_pos_, &value)) {
@@ -311,7 +311,7 @@ bool WorkWindowSecondPageData::OnEditDataSampleChange(void* param) {
         save = true;
       }
     }
-    set_value_to_control(edit_sample_end_pos_, dedss_->sampling_end_pos_);
+    set_value_to_edit(edit_sample_end_pos_, dedss_->sampling_end_pos_);
   } else if (pMsg->pSender == edit_sample_interval_) {
     int64_t value = 0;
     if (get_value_from_control(edit_sample_interval_, &value)) {
@@ -320,7 +320,7 @@ bool WorkWindowSecondPageData::OnEditDataSampleChange(void* param) {
         save = true;
       }
     }
-    set_value_to_control(edit_sample_interval_, dedss_->sampling_interval_);
+    set_value_to_edit(edit_sample_interval_, dedss_->sampling_interval_);
   } else {
     return false;
   }
@@ -434,9 +434,9 @@ void WorkWindowSecondPageData::UpdateControlFromSettings() {
     edit_sample_interval_->SetEnabled(true);
     edit_sample_end_pos_->SetEnabled(true);
   }
-  set_value_to_control(edit_sample_start_pos_, dedss_->sampling_start_pos_);
-  set_value_to_control(edit_sample_end_pos_, dedss_->sampling_end_pos_);
-  set_value_to_control(edit_sample_interval_, dedss_->sampling_interval_);
+  set_value_to_edit(edit_sample_start_pos_, dedss_->sampling_start_pos_);
+  set_value_to_edit(edit_sample_end_pos_, dedss_->sampling_end_pos_);
+  set_value_to_edit(edit_sample_interval_, dedss_->sampling_interval_);
 }
 
 void WorkWindowSecondPageData::SaveSettingsToResource() {

@@ -388,11 +388,8 @@ void WorkWindowThirdPage::UpdateControlFromSettings() {
   }
   opt_direct_up_->Selected(lss->direct_ == 1);
   opt_direct_down_->Selected(lss->direct_ == 2);
-  edit_speed_->SetText(
-      anx::common::String2WString(std::to_string(lss->speed_).c_str()).c_str());
-  edit_retention_->SetText(
-      anx::common::String2WString(std::to_string(lss->retention_).c_str())
-          .c_str());
+  set_value_to_edit(edit_speed_, lss->speed_);
+  set_value_to_edit(edit_retention_, lss->retention_);
 }
 
 void WorkWindowThirdPage::OnDataReceived(

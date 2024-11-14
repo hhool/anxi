@@ -23,6 +23,7 @@
 #include "app/ui/dialog_com_port_settings.h"
 #include "app/ui/dialog_common.h"
 #include "app/ui/ui_constants.h"
+#include "app/ui/ui_num_string_convert.hpp"
 #include "app/ui/work_window.h"
 #include "app/ui/work_window_menu_design.h"
 #include "app/ui/work_window_menu_store.h"
@@ -32,51 +33,35 @@ namespace anx {
 namespace ui {
 namespace {
 template <typename R>
-R get_value_from_edit(DuiLib::CEditUI* edit) {
-  DuiLib::CDuiString value = edit->GetText();
-  return static_cast<R>(_ttof(value.GetData()));
-}
-template <typename R>
-R get_value_from_edit(const std::string& ctrl_name,
-                      const std::string& prefix,
-                      DuiLib::CPaintManagerUI* paint_manager_ui) {
+R get_value_from_edit_with_prefix(const std::string& ctrl_name,
+                                  const std::string& prefix,
+                                  DuiLib::CPaintManagerUI* paint_manager_ui) {
   std::string ctrl_name_with_prefix = ctrl_name + prefix;
   DuiLib::CDuiString dui_str_name;
   dui_str_name.Append(
       anx::common::String2WString(ctrl_name_with_prefix.c_str()).c_str());
   DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
       paint_manager_ui->FindControl(dui_str_name));
-  return get_value_from_edit<R>(edit);
+  return get_value_from_control<R>(edit);
 }
 
-void set_value_to_edit(DuiLib::CEditUI* edit, double value) {
-  DuiLib::CDuiString str;
-  str.Format(_T("%.2f"), value);
-  edit->SetText(str);
-}
-void set_value_to_edit(DuiLib::CEditUI* edit, int value) {
-  DuiLib::CDuiString str;
-  str.Format(_T("%d"), value);
-  edit->SetText(str);
-}
-
-void set_value_to_edit(const std::string& ctrl_name,
-                       const std::string& prefix,
-                       DuiLib::CPaintManagerUI* paint_manager_ui,
-                       double value) {
+void set_value_to_edit_with_prefix(const std::string& ctrl_name,
+                                   const std::string& prefix,
+                                   DuiLib::CPaintManagerUI* paint_manager_ui,
+                                   double value) {
   std::string ctrl_name_with_prefix = ctrl_name + prefix;
   DuiLib::CDuiString dui_str_name;
   dui_str_name.Append(
       anx::common::String2WString(ctrl_name_with_prefix.c_str()).c_str());
   DuiLib::CEditUI* edit = static_cast<DuiLib::CEditUI*>(
       paint_manager_ui->FindControl(dui_str_name));
-  set_value_to_edit(edit, value);
+  set_value_to_edit(edit, value, 2);
 }
 
-void set_value_to_edit(const std::string& ctrl_name,
-                       const std::string& prefix,
-                       DuiLib::CPaintManagerUI* paint_manager_ui,
-                       int value) {
+void set_value_to_edit_with_prefix(const std::string& ctrl_name,
+                                   const std::string& prefix,
+                                   DuiLib::CPaintManagerUI* paint_manager_ui,
+                                   int value) {
   std::string ctrl_name_with_prefix = ctrl_name + prefix;
   DuiLib::CDuiString dui_str_name;
   dui_str_name.Append(
@@ -240,14 +225,17 @@ PageSolutionDesignBase::UpadateTabMainFirstPageElementViewHeaderAndBaseParam() {
       }
     }
   }
-  set_value_to_edit("tm_page_first_left_elastic", t_prefix, paint_manager_ui_,
-                    base_param->f_elastic_modulus_GPa_);
-  set_value_to_edit("tm_page_first_left_density", t_prefix, paint_manager_ui_,
-                    base_param->f_density_kg_m3_);
-  set_value_to_edit("tm_page_first_left_max_stress", t_prefix,
-                    paint_manager_ui_, base_param->f_max_stress_MPa_);
-  set_value_to_edit("tm_page_first_left_ratio_stress", t_prefix,
-                    paint_manager_ui_, base_param->f_stress_ratio_);
+  set_value_to_edit_with_prefix("tm_page_first_left_elastic", t_prefix,
+                                paint_manager_ui_,
+                                base_param->f_elastic_modulus_GPa_);
+  set_value_to_edit_with_prefix("tm_page_first_left_density", t_prefix,
+                                paint_manager_ui_,
+                                base_param->f_density_kg_m3_);
+  set_value_to_edit_with_prefix("tm_page_first_left_max_stress", t_prefix,
+                                paint_manager_ui_,
+                                base_param->f_max_stress_MPa_);
+  set_value_to_edit_with_prefix("tm_page_first_left_ratio_stress", t_prefix,
+                                paint_manager_ui_, base_param->f_stress_ratio_);
   return 0;
 }
 
@@ -288,14 +276,18 @@ PageSolutionDesignBase::ExpDesignBaseParamFromControl() {
   anx::esolution::ExpDesignBaseParam exp_design_base_param;
   std::string material_name = anx::common::WString2String(value.GetData());
   memcpy(exp_design_base_param.material_name_, material_name.data(), 255);
-  exp_design_base_param.f_elastic_modulus_GPa_ = get_value_from_edit<float>(
-      "tm_page_first_left_elastic", t_prefix, paint_manager_ui_);
-  exp_design_base_param.f_density_kg_m3_ = get_value_from_edit<float>(
-      "tm_page_first_left_density", t_prefix, paint_manager_ui_);
-  exp_design_base_param.f_max_stress_MPa_ = get_value_from_edit<float>(
-      "tm_page_first_left_max_stress", t_prefix, paint_manager_ui_);
-  exp_design_base_param.f_stress_ratio_ = get_value_from_edit<float>(
-      "tm_page_first_left_ratio_stress", t_prefix, paint_manager_ui_);
+  exp_design_base_param.f_elastic_modulus_GPa_ =
+      get_value_from_edit_with_prefix<float>("tm_page_first_left_elastic",
+                                             t_prefix, paint_manager_ui_);
+  exp_design_base_param.f_density_kg_m3_ =
+      get_value_from_edit_with_prefix<float>("tm_page_first_left_density",
+                                             t_prefix, paint_manager_ui_);
+  exp_design_base_param.f_max_stress_MPa_ =
+      get_value_from_edit_with_prefix<float>("tm_page_first_left_max_stress",
+                                             t_prefix, paint_manager_ui_);
+  exp_design_base_param.f_stress_ratio_ =
+      get_value_from_edit_with_prefix<float>("tm_page_first_left_ratio_stress",
+                                             t_prefix, paint_manager_ui_);
   return std::unique_ptr<anx::esolution::ExpDesignBaseParam>(
       new anx::esolution::ExpDesignBaseParam(exp_design_base_param));
 }
@@ -345,55 +337,59 @@ void WorkWindowFirstPageAxiallySymmetrical::
   // update result
   anx::esolution::ExpDesignResultAxially* result_axially =
       reinterpret_cast<anx::esolution::ExpDesignResultAxially*>(result);
-  set_value_to_edit("tm_page_first_left_amplitude", t_prefix_,
-                    paint_manager_ui_, result_axially->f_eamplitude_);
-  set_value_to_edit("tm_page_first_left_dc_stress", t_prefix_,
-                    paint_manager_ui_, result_axially->f_dc_stress_MPa_);
-  set_value_to_edit("tm_page_first_left_radius_exp", t_prefix_,
-                    paint_manager_ui_,
-                    result_axially->f_exp_section_radius_R2_);
-  set_value_to_edit("tm_page_first_exp_section_trans", t_prefix_,
-                    paint_manager_ui_,
-                    result_axially->f_exp_section_length_L2_);
-  set_value_to_edit("tm_page_first_left_radus_parallel", t_prefix_,
-                    paint_manager_ui_,
-                    result_axially->f_parallel_section_radius_R1_);
-  set_value_to_edit("tm_page_first_left_radus_trans", t_prefix_,
-                    paint_manager_ui_,
-                    result_axially->f_transition_section_radius_R0_);
-  set_value_to_edit("tm_page_first_left_length_trans", t_prefix_,
-                    paint_manager_ui_,
-                    result_axially->f_transition_section_length_L1_);
-  set_value_to_edit("tm_page_first_left_length_parallel", t_prefix_,
-                    paint_manager_ui_,
-                    result_axially->f_parallel_section_length_L0_);
+  set_value_to_edit_with_prefix("tm_page_first_left_amplitude", t_prefix_,
+                                paint_manager_ui_,
+                                result_axially->f_eamplitude_);
+  set_value_to_edit_with_prefix("tm_page_first_left_dc_stress", t_prefix_,
+                                paint_manager_ui_,
+                                result_axially->f_dc_stress_MPa_);
+  set_value_to_edit_with_prefix("tm_page_first_left_radius_exp", t_prefix_,
+                                paint_manager_ui_,
+                                result_axially->f_exp_section_radius_R2_);
+  set_value_to_edit_with_prefix("tm_page_first_exp_section_trans", t_prefix_,
+                                paint_manager_ui_,
+                                result_axially->f_exp_section_length_L2_);
+  set_value_to_edit_with_prefix("tm_page_first_left_radus_parallel", t_prefix_,
+                                paint_manager_ui_,
+                                result_axially->f_parallel_section_radius_R1_);
+  set_value_to_edit_with_prefix(
+      "tm_page_first_left_radus_trans", t_prefix_, paint_manager_ui_,
+      result_axially->f_transition_section_radius_R0_);
+  set_value_to_edit_with_prefix(
+      "tm_page_first_left_length_trans", t_prefix_, paint_manager_ui_,
+      result_axially->f_transition_section_length_L1_);
+  set_value_to_edit_with_prefix("tm_page_first_left_length_parallel", t_prefix_,
+                                paint_manager_ui_,
+                                result_axially->f_parallel_section_length_L0_);
 }
 
 std::unique_ptr<anx::esolution::ExpDesignResult>
 WorkWindowFirstPageAxiallySymmetrical::ExpDesignResultFromControl() {
   anx::esolution::ExpDesignResultAxially exp_design_result_axially;
-  exp_design_result_axially.f_eamplitude_ = get_value_from_edit<double>(
-      "tm_page_first_left_amplitude", t_prefix_, paint_manager_ui_);
-  exp_design_result_axially.f_dc_stress_MPa_ = get_value_from_edit<double>(
-      "tm_page_first_left_dc_stress", t_prefix_, paint_manager_ui_);
+  exp_design_result_axially.f_eamplitude_ =
+      get_value_from_edit_with_prefix<double>("tm_page_first_left_amplitude",
+                                              t_prefix_, paint_manager_ui_);
+  exp_design_result_axially.f_dc_stress_MPa_ =
+      get_value_from_edit_with_prefix<double>("tm_page_first_left_dc_stress",
+                                              t_prefix_, paint_manager_ui_);
   exp_design_result_axially.f_exp_section_radius_R2_ =
-      get_value_from_edit<double>("tm_page_first_left_radius_exp", t_prefix_,
-                                  paint_manager_ui_);
+      get_value_from_edit_with_prefix<double>("tm_page_first_left_radius_exp",
+                                              t_prefix_, paint_manager_ui_);
   exp_design_result_axially.f_parallel_section_radius_R1_ =
-      get_value_from_edit<double>("tm_page_first_left_radus_parallel",
-                                  t_prefix_, paint_manager_ui_);
+      get_value_from_edit_with_prefix<double>(
+          "tm_page_first_left_radus_parallel", t_prefix_, paint_manager_ui_);
   exp_design_result_axially.f_transition_section_radius_R0_ =
-      get_value_from_edit<double>("tm_page_first_left_radus_trans", t_prefix_,
-                                  paint_manager_ui_);
+      get_value_from_edit_with_prefix<double>("tm_page_first_left_radus_trans",
+                                              t_prefix_, paint_manager_ui_);
   exp_design_result_axially.f_transition_section_length_L1_ =
-      get_value_from_edit<double>("tm_page_first_left_length_trans", t_prefix_,
-                                  paint_manager_ui_);
+      get_value_from_edit_with_prefix<double>("tm_page_first_left_length_trans",
+                                              t_prefix_, paint_manager_ui_);
   exp_design_result_axially.f_parallel_section_length_L0_ =
-      get_value_from_edit<double>("tm_page_first_left_length_parallel",
-                                  t_prefix_, paint_manager_ui_);
+      get_value_from_edit_with_prefix<double>(
+          "tm_page_first_left_length_parallel", t_prefix_, paint_manager_ui_);
   exp_design_result_axially.f_exp_section_length_L2_ =
-      get_value_from_edit<double>("tm_page_first_exp_section_trans", t_prefix_,
-                                  paint_manager_ui_);
+      get_value_from_edit_with_prefix<double>("tm_page_first_exp_section_trans",
+                                              t_prefix_, paint_manager_ui_);
   return std::unique_ptr<anx::esolution::ExpDesignResult>(
       new anx::esolution::ExpDesignResultAxially(exp_design_result_axially));
 }
@@ -454,30 +450,33 @@ void WorkWindownFirstPageStressAjustable::
   anx::esolution::ExpDesignResultStressesAdjustable* result_stresses =
       reinterpret_cast<anx::esolution::ExpDesignResultStressesAdjustable*>(
           result);
-  set_value_to_edit("tm_page_first_left_amplitude", t_prefix_,
-                    paint_manager_ui_, result_stresses->f_eamplitude_);
-  set_value_to_edit("tm_page_first_left_dc_stress", t_prefix_,
-                    paint_manager_ui_, result_stresses->f_dc_stress_MPa_);
-  set_value_to_edit("tm_page_first_left_static_load", t_prefix_,
-                    paint_manager_ui_, result_stresses->f_static_load_MPa_);
-  set_value_to_edit("tm_page_first_left_radius_exp", t_prefix_,
-                    paint_manager_ui_,
-                    result_stresses->f_exp_section_radius_R2_);
-  set_value_to_edit("tm_page_first_exp_section_trans", t_prefix_,
-                    paint_manager_ui_,
-                    result_stresses->f_exp_section_length_L2_);
-  set_value_to_edit("tm_page_first_left_radus_parallel", t_prefix_,
-                    paint_manager_ui_,
-                    result_stresses->f_parallel_section_radius_R1_);
-  set_value_to_edit("tm_page_first_left_radus_trans", t_prefix_,
-                    paint_manager_ui_,
-                    result_stresses->f_transition_section_radius_R0_);
-  set_value_to_edit("tm_page_first_left_length_trans", t_prefix_,
-                    paint_manager_ui_,
-                    result_stresses->f_transition_section_length_L1_);
-  set_value_to_edit("tm_page_first_left_length_parallel", t_prefix_,
-                    paint_manager_ui_,
-                    result_stresses->f_parallel_section_length_L0_);
+  set_value_to_edit_with_prefix("tm_page_first_left_amplitude", t_prefix_,
+                                paint_manager_ui_,
+                                result_stresses->f_eamplitude_);
+  set_value_to_edit_with_prefix("tm_page_first_left_dc_stress", t_prefix_,
+                                paint_manager_ui_,
+                                result_stresses->f_dc_stress_MPa_);
+  set_value_to_edit_with_prefix("tm_page_first_left_static_load", t_prefix_,
+                                paint_manager_ui_,
+                                result_stresses->f_static_load_MPa_);
+  set_value_to_edit_with_prefix("tm_page_first_left_radius_exp", t_prefix_,
+                                paint_manager_ui_,
+                                result_stresses->f_exp_section_radius_R2_);
+  set_value_to_edit_with_prefix("tm_page_first_exp_section_trans", t_prefix_,
+                                paint_manager_ui_,
+                                result_stresses->f_exp_section_length_L2_);
+  set_value_to_edit_with_prefix("tm_page_first_left_radus_parallel", t_prefix_,
+                                paint_manager_ui_,
+                                result_stresses->f_parallel_section_radius_R1_);
+  set_value_to_edit_with_prefix(
+      "tm_page_first_left_radus_trans", t_prefix_, paint_manager_ui_,
+      result_stresses->f_transition_section_radius_R0_);
+  set_value_to_edit_with_prefix(
+      "tm_page_first_left_length_trans", t_prefix_, paint_manager_ui_,
+      result_stresses->f_transition_section_length_L1_);
+  set_value_to_edit_with_prefix("tm_page_first_left_length_parallel", t_prefix_,
+                                paint_manager_ui_,
+                                result_stresses->f_parallel_section_length_L0_);
 }
 
 std::unique_ptr<anx::esolution::ExpDesignResult>
@@ -485,32 +484,32 @@ WorkWindownFirstPageStressAjustable::ExpDesignResultFromControl() {
   anx::esolution::ExpDesignResultStressesAdjustable
       exp_design_result_stresses_adjustable;
   exp_design_result_stresses_adjustable.f_eamplitude_ =
-      get_value_from_edit<double>("tm_page_first_left_amplitude", t_prefix_,
-                                  paint_manager_ui_);
+      get_value_from_edit_with_prefix<double>("tm_page_first_left_amplitude",
+                                              t_prefix_, paint_manager_ui_);
   exp_design_result_stresses_adjustable.f_dc_stress_MPa_ =
-      get_value_from_edit<double>("tm_page_first_left_dc_stress", t_prefix_,
-                                  paint_manager_ui_);
+      get_value_from_edit_with_prefix<double>("tm_page_first_left_dc_stress",
+                                              t_prefix_, paint_manager_ui_);
   exp_design_result_stresses_adjustable.f_static_load_MPa_ =
-      get_value_from_edit<double>("tm_page_first_left_static_load", t_prefix_,
-                                  paint_manager_ui_);
+      get_value_from_edit_with_prefix<double>("tm_page_first_left_static_load",
+                                              t_prefix_, paint_manager_ui_);
   exp_design_result_stresses_adjustable.f_exp_section_radius_R2_ =
-      get_value_from_edit<double>("tm_page_first_left_radius_exp", t_prefix_,
-                                  paint_manager_ui_);
+      get_value_from_edit_with_prefix<double>("tm_page_first_left_radius_exp",
+                                              t_prefix_, paint_manager_ui_);
   exp_design_result_stresses_adjustable.f_parallel_section_radius_R1_ =
-      get_value_from_edit<double>("tm_page_first_left_radus_parallel",
-                                  t_prefix_, paint_manager_ui_);
+      get_value_from_edit_with_prefix<double>(
+          "tm_page_first_left_radus_parallel", t_prefix_, paint_manager_ui_);
   exp_design_result_stresses_adjustable.f_transition_section_radius_R0_ =
-      get_value_from_edit<double>("tm_page_first_left_radus_trans", t_prefix_,
-                                  paint_manager_ui_);
+      get_value_from_edit_with_prefix<double>("tm_page_first_left_radus_trans",
+                                              t_prefix_, paint_manager_ui_);
   exp_design_result_stresses_adjustable.f_transition_section_length_L1_ =
-      get_value_from_edit<double>("tm_page_first_left_length_trans", t_prefix_,
-                                  paint_manager_ui_);
+      get_value_from_edit_with_prefix<double>("tm_page_first_left_length_trans",
+                                              t_prefix_, paint_manager_ui_);
   exp_design_result_stresses_adjustable.f_parallel_section_length_L0_ =
-      get_value_from_edit<double>("tm_page_first_left_length_parallel",
-                                  t_prefix_, paint_manager_ui_);
+      get_value_from_edit_with_prefix<double>(
+          "tm_page_first_left_length_parallel", t_prefix_, paint_manager_ui_);
   exp_design_result_stresses_adjustable.f_exp_section_length_L2_ =
-      get_value_from_edit<double>("tm_page_first_exp_section_trans", t_prefix_,
-                                  paint_manager_ui_);
+      get_value_from_edit_with_prefix<double>("tm_page_first_exp_section_trans",
+                                              t_prefix_, paint_manager_ui_);
   return std::unique_ptr<anx::esolution::ExpDesignResult>(
       new anx::esolution::ExpDesignResultStressesAdjustable(
           exp_design_result_stresses_adjustable));
@@ -565,7 +564,7 @@ void WorkWindowFirstPageTh3pointBending::Notify(TNotifyUI& msg) {
   if (ctrl_name.find("tm_page_first_left_elastic") != std::string::npos) {
     if (msg.sType == DUI_MSGTYPE_KILLFOCUS) {
       // check the value of edit_elastic_
-      double f_elastic_modulus_GPa = get_value_from_edit<double>(
+      double f_elastic_modulus_GPa = get_value_from_edit_with_prefix<double>(
           "tm_page_first_left_elastic", t_prefix_, paint_manager_ui_);
       if (f_elastic_modulus_GPa <= 0.0) {
         // TODO(hhool): show error message, show with tips
@@ -577,7 +576,7 @@ void WorkWindowFirstPageTh3pointBending::Notify(TNotifyUI& msg) {
                std::string::npos) {
       if (msg.sType == DUI_MSGTYPE_KILLFOCUS) {
         // check the value of edit_density_
-        double f_density_kg_m3 = get_value_from_edit<double>(
+        double f_density_kg_m3 = get_value_from_edit_with_prefix<double>(
             "tm_page_first_left_density", t_prefix_, paint_manager_ui_);
         if (f_density_kg_m3 <= 0.0f) {
           // TODO(hhool): show error message, show with tips
@@ -590,7 +589,7 @@ void WorkWindowFirstPageTh3pointBending::Notify(TNotifyUI& msg) {
                std::string::npos) {
       if (msg.sType == DUI_MSGTYPE_KILLFOCUS) {
         // check the value of edit_max_stress_
-        double f_max_stress_MPa = get_value_from_edit<double>(
+        double f_max_stress_MPa = get_value_from_edit_with_prefix<double>(
             "tm_page_first_left_max_stress", t_prefix_, paint_manager_ui_);
         if (f_max_stress_MPa <= 0.0f) {
           // TODO(hhool): show error message, show with tips
@@ -603,7 +602,7 @@ void WorkWindowFirstPageTh3pointBending::Notify(TNotifyUI& msg) {
                std::string::npos) {
       if (msg.sType == DUI_MSGTYPE_KILLFOCUS) {
         // check the value of edit_stress_ratio_
-        double f_stress_ratio = get_value_from_edit<double>(
+        double f_stress_ratio = get_value_from_edit_with_prefix<double>(
             "tm_page_first_left_ratio_stress", t_prefix_, paint_manager_ui_);
         if (f_stress_ratio <= 0.0f) {
           // TODO(hhool): show error message, show with tips
@@ -619,43 +618,45 @@ void WorkWindowFirstPageTh3pointBending::Notify(TNotifyUI& msg) {
 void WorkWindowFirstPageTh3pointBending::OnClick(TNotifyUI& msg) {
   if (msg.sType == kClick) {
     if (msg.pSender->GetName() == _T("solution_design_refresh")) {
-      double f_elastic_modulus_GPa = get_value_from_edit<double>(
+      double f_elastic_modulus_GPa = get_value_from_edit_with_prefix<double>(
           "tm_page_first_left_elastic", t_prefix_, paint_manager_ui_);
-      double f_density_kg_m3 = get_value_from_edit<double>(
+      double f_density_kg_m3 = get_value_from_edit_with_prefix<double>(
           "tm_page_first_left_density", t_prefix_, paint_manager_ui_);
-      double f_max_stress_MPa = get_value_from_edit<double>(
+      double f_max_stress_MPa = get_value_from_edit_with_prefix<double>(
           "tm_page_first_left_max_stress", t_prefix_, paint_manager_ui_);
-      double f_stress_ratio = get_value_from_edit<double>(
+      double f_stress_ratio = get_value_from_edit_with_prefix<double>(
           "tm_page_first_left_ratio_stress", t_prefix_, paint_manager_ui_);
-      double f_static_load_MPa = get_value_from_edit<double>(
+      double f_static_load_MPa = get_value_from_edit_with_prefix<double>(
           "tm_page_first_left_static_load", t_prefix_, paint_manager_ui_);
-      double f_amplitude = get_value_from_edit<double>(
+      double f_amplitude = get_value_from_edit_with_prefix<double>(
           "tm_page_first_left_amplitude", t_prefix_, paint_manager_ui_);
-      double f_height = get_value_from_edit<double>(
+      double f_height = get_value_from_edit_with_prefix<double>(
           "tm_page_first_left_speciments_height", t_prefix_, paint_manager_ui_);
-      double f_width = get_value_from_edit<double>(
+      double f_width = get_value_from_edit_with_prefix<double>(
           "tm_page_first_left_speciments_width", t_prefix_, paint_manager_ui_);
       double f_length = anx::esolution::algorithm::CalcTh3Design(
           f_elastic_modulus_GPa, f_height, f_density_kg_m3, 20, f_width,
           f_height, anx::esolution::algorithm::kConstForLenghtOfTh3Design);
-      set_value_to_edit("tm_page_first_left_speciments_length", t_prefix_,
-                        paint_manager_ui_, f_length);
+      set_value_to_edit_with_prefix("tm_page_first_left_speciments_length",
+                                    t_prefix_, paint_manager_ui_, f_length);
       double f_length_parallel = anx::esolution::algorithm::CalcTh3Design(
           f_elastic_modulus_GPa, f_height, f_density_kg_m3, 20, f_width,
           f_height, anx::esolution::algorithm::kConstForLength0OfTh3Design);
-      set_value_to_edit("tm_page_first_left_length_parallel", t_prefix_,
-                        paint_manager_ui_, f_length_parallel);
+      set_value_to_edit_with_prefix("tm_page_first_left_length_parallel",
+                                    t_prefix_, paint_manager_ui_,
+                                    f_length_parallel);
       LOG_F(LG_INFO) << "CalculateTh3pointBending:f_length:" << f_length
                      << " f_length_parallel:" << f_length_parallel;
       if (f_max_stress_MPa >= 0) {
         f_static_load_MPa = (1 + f_stress_ratio) / 2 * f_max_stress_MPa;
         LOG_F(LG_INFO) << "CalculateTh3pointBending:f_static_load_MPa:"
                        << f_static_load_MPa;
-        set_value_to_edit("tm_page_first_left_static_load", t_prefix_,
-                          paint_manager_ui_, f_static_load_MPa);
+        set_value_to_edit_with_prefix("tm_page_first_left_static_load",
+                                      t_prefix_, paint_manager_ui_,
+                                      f_static_load_MPa);
       }
 
-      double f_theroy_dc_stress = get_value_from_edit<double>(
+      double f_theroy_dc_stress = get_value_from_edit_with_prefix<double>(
           "tm_page_first_left_theory_dc_stress", t_prefix_, paint_manager_ui_);
       double f_theroy_dc_stress_cal =
           sqrt(12 * f_density_kg_m3 * f_elastic_modulus_GPa * f_height *
@@ -668,16 +669,18 @@ void WorkWindowFirstPageTh3pointBending::OnClick(TNotifyUI& msg) {
         // use f_theroy_dc_stress_cal to cal f_theory_eamplitude
         f_theory_eamplitude =
             (1 - f_stress_ratio) / 2 * f_max_stress_MPa / f_theroy_dc_stress;
-        set_value_to_edit("tm_page_first_left_theory_amplitude", t_prefix_,
-                          paint_manager_ui_, f_theory_eamplitude);
-        set_value_to_edit("tm_page_first_left_theory_dc_stress", t_prefix_,
-                          paint_manager_ui_, f_theroy_dc_stress);
+        set_value_to_edit_with_prefix("tm_page_first_left_theory_amplitude",
+                                      t_prefix_, paint_manager_ui_,
+                                      f_theory_eamplitude);
+        set_value_to_edit_with_prefix("tm_page_first_left_theory_dc_stress",
+                                      t_prefix_, paint_manager_ui_,
+                                      f_theroy_dc_stress);
         LOG_F(LG_INFO) << "CalculateTh3pointBending:f_theory_dc_stress:"
                        << f_theroy_dc_stress
                        << " f_theory_eamplitude:" << f_theory_eamplitude;
       }
 
-      double f_dc_stress = get_value_from_edit<double>(
+      double f_dc_stress = get_value_from_edit_with_prefix<double>(
           "tm_page_first_left_dc_stress", t_prefix_, paint_manager_ui_);
       // f_dc_stress  is not 0
       if (f_dc_stress != 0.0) {
@@ -685,8 +688,8 @@ void WorkWindowFirstPageTh3pointBending::OnClick(TNotifyUI& msg) {
         f_amplitude = (1 - f_stress_ratio) / 2 * f_max_stress_MPa / f_dc_stress;
         LOG_F(LG_INFO) << "CalculateTh3pointBending:f_dc_stress:" << f_dc_stress
                        << " f_amplitude:" << f_amplitude;
-        set_value_to_edit("tm_page_first_left_amplitude", t_prefix_,
-                          paint_manager_ui_, f_amplitude);
+        set_value_to_edit_with_prefix("tm_page_first_left_amplitude", t_prefix_,
+                                      paint_manager_ui_, f_amplitude);
       } else {
         f_amplitude = -1.0f;
       }
@@ -709,52 +712,65 @@ void WorkWindowFirstPageTh3pointBending::
   // update result
   anx::esolution::ExpDesignResultTh3pointBending* result_th3point =
       reinterpret_cast<anx::esolution::ExpDesignResultTh3pointBending*>(result);
-  set_value_to_edit("tm_page_first_left_theory_amplitude", t_prefix_,
-                    paint_manager_ui_, result_th3point->f_theory_eamplitude_);
-  set_value_to_edit("tm_page_first_left_theory_dc_stress", t_prefix_,
-                    paint_manager_ui_,
-                    result_th3point->f_theory_dc_stress_MPa_);
-  set_value_to_edit("tm_page_first_left_amplitude", t_prefix_,
-                    paint_manager_ui_, result_th3point->f_eamplitude_);
-  set_value_to_edit("tm_page_first_left_dc_stress", t_prefix_,
-                    paint_manager_ui_, result_th3point->f_dc_stress_MPa_);
-  set_value_to_edit("tm_page_first_left_static_load", t_prefix_,
-                    paint_manager_ui_, result_th3point->f_static_load_MPa_);
-  set_value_to_edit("tm_page_first_left_speciments_width", t_prefix_,
-                    paint_manager_ui_, result_th3point->f_specimen_width_B_);
-  set_value_to_edit("tm_page_first_left_speciments_height", t_prefix_,
-                    paint_manager_ui_,
-                    result_th3point->f_specimen_thickness_h_);
-  set_value_to_edit("tm_page_first_left_speciments_length", t_prefix_,
-                    paint_manager_ui_, result_th3point->f_specimen_length_L_);
-  set_value_to_edit("tm_page_first_left_length_parallel", t_prefix_,
-                    paint_manager_ui_, result_th3point->f_support_distance_L0_);
+  set_value_to_edit_with_prefix("tm_page_first_left_theory_amplitude",
+                                t_prefix_, paint_manager_ui_,
+                                result_th3point->f_theory_eamplitude_);
+  set_value_to_edit_with_prefix("tm_page_first_left_theory_dc_stress",
+                                t_prefix_, paint_manager_ui_,
+                                result_th3point->f_theory_dc_stress_MPa_);
+  set_value_to_edit_with_prefix("tm_page_first_left_amplitude", t_prefix_,
+                                paint_manager_ui_,
+                                result_th3point->f_eamplitude_);
+  set_value_to_edit_with_prefix("tm_page_first_left_dc_stress", t_prefix_,
+                                paint_manager_ui_,
+                                result_th3point->f_dc_stress_MPa_);
+  set_value_to_edit_with_prefix("tm_page_first_left_static_load", t_prefix_,
+                                paint_manager_ui_,
+                                result_th3point->f_static_load_MPa_);
+  set_value_to_edit_with_prefix("tm_page_first_left_speciments_width",
+                                t_prefix_, paint_manager_ui_,
+                                result_th3point->f_specimen_width_B_);
+  set_value_to_edit_with_prefix("tm_page_first_left_speciments_height",
+                                t_prefix_, paint_manager_ui_,
+                                result_th3point->f_specimen_thickness_h_);
+  set_value_to_edit_with_prefix("tm_page_first_left_speciments_length",
+                                t_prefix_, paint_manager_ui_,
+                                result_th3point->f_specimen_length_L_);
+  set_value_to_edit_with_prefix("tm_page_first_left_length_parallel", t_prefix_,
+                                paint_manager_ui_,
+                                result_th3point->f_support_distance_L0_);
 }
 
 std::unique_ptr<anx::esolution::ExpDesignResult>
 WorkWindowFirstPageTh3pointBending::ExpDesignResultFromControl() {
   anx::esolution::ExpDesignResultTh3pointBending exp_design_result_th3point;
-  exp_design_result_th3point.f_theory_eamplitude_ = get_value_from_edit<double>(
-      "tm_page_first_left_theory_amplitude", t_prefix_, paint_manager_ui_);
+  exp_design_result_th3point.f_theory_eamplitude_ =
+      get_value_from_edit_with_prefix<double>(
+          "tm_page_first_left_theory_amplitude", t_prefix_, paint_manager_ui_);
   exp_design_result_th3point.f_theory_dc_stress_MPa_ =
-      get_value_from_edit<double>("tm_page_first_left_theory_dc_stress",
-                                  t_prefix_, paint_manager_ui_);
-  exp_design_result_th3point.f_eamplitude_ = get_value_from_edit<double>(
-      "tm_page_first_left_amplitude", t_prefix_, paint_manager_ui_);
-  exp_design_result_th3point.f_dc_stress_MPa_ = get_value_from_edit<double>(
-      "tm_page_first_left_dc_stress", t_prefix_, paint_manager_ui_);
-  exp_design_result_th3point.f_static_load_MPa_ = get_value_from_edit<double>(
-      "tm_page_first_left_static_load", t_prefix_, paint_manager_ui_);
-  exp_design_result_th3point.f_specimen_width_B_ = get_value_from_edit<double>(
-      "tm_page_first_left_speciments_width", t_prefix_, paint_manager_ui_);
+      get_value_from_edit_with_prefix<double>(
+          "tm_page_first_left_theory_dc_stress", t_prefix_, paint_manager_ui_);
+  exp_design_result_th3point.f_eamplitude_ =
+      get_value_from_edit_with_prefix<double>("tm_page_first_left_amplitude",
+                                              t_prefix_, paint_manager_ui_);
+  exp_design_result_th3point.f_dc_stress_MPa_ =
+      get_value_from_edit_with_prefix<double>("tm_page_first_left_dc_stress",
+                                              t_prefix_, paint_manager_ui_);
+  exp_design_result_th3point.f_static_load_MPa_ =
+      get_value_from_edit_with_prefix<double>("tm_page_first_left_static_load",
+                                              t_prefix_, paint_manager_ui_);
+  exp_design_result_th3point.f_specimen_width_B_ =
+      get_value_from_edit_with_prefix<double>(
+          "tm_page_first_left_speciments_width", t_prefix_, paint_manager_ui_);
   exp_design_result_th3point.f_specimen_thickness_h_ =
-      get_value_from_edit<double>("tm_page_first_left_speciments_height",
-                                  t_prefix_, paint_manager_ui_);
-  exp_design_result_th3point.f_specimen_length_L_ = get_value_from_edit<double>(
-      "tm_page_first_left_speciments_length", t_prefix_, paint_manager_ui_);
+      get_value_from_edit_with_prefix<double>(
+          "tm_page_first_left_speciments_height", t_prefix_, paint_manager_ui_);
+  exp_design_result_th3point.f_specimen_length_L_ =
+      get_value_from_edit_with_prefix<double>(
+          "tm_page_first_left_speciments_length", t_prefix_, paint_manager_ui_);
   exp_design_result_th3point.f_support_distance_L0_ =
-      get_value_from_edit<double>("tm_page_first_left_length_parallel",
-                                  t_prefix_, paint_manager_ui_);
+      get_value_from_edit_with_prefix<double>(
+          "tm_page_first_left_length_parallel", t_prefix_, paint_manager_ui_);
   return std::unique_ptr<anx::esolution::ExpDesignResult>(
       new anx::esolution::ExpDesignResultTh3pointBending(
           exp_design_result_th3point));
@@ -822,50 +838,59 @@ void WorkWindowFirstPageVibrationBending::
   anx::esolution::ExpDesignResultVibrationBending* result_vibration =
       reinterpret_cast<anx::esolution::ExpDesignResultVibrationBending*>(
           result);
-  set_value_to_edit("tm_page_first_left_amplitude", t_prefix_,
-                    paint_manager_ui_, result_vibration->f_eamplitude_);
-  set_value_to_edit("tm_page_first_left_dc_stress", t_prefix_,
-                    paint_manager_ui_, result_vibration->f_dc_stress_MPa_);
-  set_value_to_edit("tm_page_first_left_length_parallel_section", t_prefix_,
-                    paint_manager_ui_,
-                    result_vibration->f_specimen_length_parallel_section_L1_);
-  set_value_to_edit("tm_page_first_left_specimen_radius_arc", t_prefix_,
-                    paint_manager_ui_,
-                    result_vibration->f_specimen_radius_arc_R1_);
-  set_value_to_edit("tm_page_first_left_specimen_radius_transition", t_prefix_,
-                    paint_manager_ui_,
-                    result_vibration->f_specimen_radius_transition_R2_);
-  set_value_to_edit("tm_page_first_left_thickness_clamp_section", t_prefix_,
-                    paint_manager_ui_,
-                    result_vibration->f_thickness_clamping_d1_);
-  set_value_to_edit("tm_page_first_left_thickness_exp_section", t_prefix_,
-                    paint_manager_ui_,
-                    result_vibration->f_thickness_exp_section_L0_d2_);
+  set_value_to_edit_with_prefix("tm_page_first_left_amplitude", t_prefix_,
+                                paint_manager_ui_,
+                                result_vibration->f_eamplitude_);
+  set_value_to_edit_with_prefix("tm_page_first_left_dc_stress", t_prefix_,
+                                paint_manager_ui_,
+                                result_vibration->f_dc_stress_MPa_);
+  set_value_to_edit_with_prefix(
+      "tm_page_first_left_length_parallel_section", t_prefix_,
+      paint_manager_ui_,
+      result_vibration->f_specimen_length_parallel_section_L1_);
+  set_value_to_edit_with_prefix("tm_page_first_left_specimen_radius_arc",
+                                t_prefix_, paint_manager_ui_,
+                                result_vibration->f_specimen_radius_arc_R1_);
+  set_value_to_edit_with_prefix(
+      "tm_page_first_left_specimen_radius_transition", t_prefix_,
+      paint_manager_ui_, result_vibration->f_specimen_radius_transition_R2_);
+  set_value_to_edit_with_prefix("tm_page_first_left_thickness_clamp_section",
+                                t_prefix_, paint_manager_ui_,
+                                result_vibration->f_thickness_clamping_d1_);
+  set_value_to_edit_with_prefix(
+      "tm_page_first_left_thickness_exp_section", t_prefix_, paint_manager_ui_,
+      result_vibration->f_thickness_exp_section_L0_d2_);
 }
 
 std::unique_ptr<anx::esolution::ExpDesignResult>
 WorkWindowFirstPageVibrationBending::ExpDesignResultFromControl() {
   anx::esolution::ExpDesignResultVibrationBending exp_design_result_vibration;
-  exp_design_result_vibration.f_eamplitude_ = get_value_from_edit<double>(
-      "tm_page_first_left_amplitude", t_prefix_, paint_manager_ui_);
-  exp_design_result_vibration.f_dc_stress_MPa_ = get_value_from_edit<double>(
-      "tm_page_first_left_dc_stress", t_prefix_, paint_manager_ui_);
+  exp_design_result_vibration.f_eamplitude_ =
+      get_value_from_edit_with_prefix<double>("tm_page_first_left_amplitude",
+                                              t_prefix_, paint_manager_ui_);
+  exp_design_result_vibration.f_dc_stress_MPa_ =
+      get_value_from_edit_with_prefix<double>("tm_page_first_left_dc_stress",
+                                              t_prefix_, paint_manager_ui_);
   exp_design_result_vibration.f_specimen_length_parallel_section_L1_ =
-      get_value_from_edit<double>("tm_page_first_left_length_parallel_section",
-                                  t_prefix_, paint_manager_ui_);
+      get_value_from_edit_with_prefix<double>(
+          "tm_page_first_left_length_parallel_section", t_prefix_,
+          paint_manager_ui_);
   exp_design_result_vibration.f_specimen_radius_arc_R1_ =
-      get_value_from_edit<double>("tm_page_first_left_specimen_radius_arc",
-                                  t_prefix_, paint_manager_ui_);
+      get_value_from_edit_with_prefix<double>(
+          "tm_page_first_left_specimen_radius_arc", t_prefix_,
+          paint_manager_ui_);
   exp_design_result_vibration.f_specimen_radius_transition_R2_ =
-      get_value_from_edit<double>(
+      get_value_from_edit_with_prefix<double>(
           "tm_page_first_left_specimen_radius_transition", t_prefix_,
           paint_manager_ui_);
   exp_design_result_vibration.f_thickness_clamping_d1_ =
-      get_value_from_edit<double>("tm_page_first_left_thickness_clamp_section",
-                                  t_prefix_, paint_manager_ui_);
+      get_value_from_edit_with_prefix<double>(
+          "tm_page_first_left_thickness_clamp_section", t_prefix_,
+          paint_manager_ui_);
   exp_design_result_vibration.f_thickness_exp_section_L0_d2_ =
-      get_value_from_edit<double>("tm_page_first_left_thickness_exp_section",
-                                  t_prefix_, paint_manager_ui_);
+      get_value_from_edit_with_prefix<double>(
+          "tm_page_first_left_thickness_exp_section", t_prefix_,
+          paint_manager_ui_);
   return std::unique_ptr<anx::esolution::ExpDesignResult>(
       new anx::esolution::ExpDesignResultVibrationBending(
           exp_design_result_vibration));

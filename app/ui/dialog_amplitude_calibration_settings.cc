@@ -111,10 +111,10 @@ void DialogAmplitudeCalibrationSettings::UpdateControlFromSettings() {
     return;
   }
   std::map<int32_t, int32_t> exp_power2amp_map = deas_->exp_power2amp_map_;
-  set_value_to_control(edit_amp_level_one_, exp_power2amp_map[20]);
-  set_value_to_control(edit_amp_level_two_, exp_power2amp_map[40]);
-  set_value_to_control(edit_amp_level_third_, exp_power2amp_map[60]);
-  set_value_to_control(edit_amp_level_fourth_, exp_power2amp_map[80]);
+  set_value_to_edit(edit_amp_level_one_, exp_power2amp_map[20]);
+  set_value_to_edit(edit_amp_level_two_, exp_power2amp_map[40]);
+  set_value_to_edit(edit_amp_level_third_, exp_power2amp_map[60]);
+  set_value_to_edit(edit_amp_level_fourth_, exp_power2amp_map[80]);
 }
 
 void DialogAmplitudeCalibrationSettings::SaveSettingsToResource() {

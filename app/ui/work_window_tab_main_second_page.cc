@@ -548,7 +548,7 @@ bool WorkWindowSecondPage::OnExpClipChanged(void* msg) {
         save = true;
       }
       set_value_to_edit(edit_frequency_fluctuations_range_,
-                        dus_.exp_frequency_fluctuations_range_);
+                           dus_.exp_frequency_fluctuations_range_);
     }
   } else {
     return false;
@@ -1098,12 +1098,13 @@ void WorkWindowSecondPage::UpdateControlFromSettings() {
       anx::device::LoadDeviceUltrasoundSettingsDefaultResource();
   if (dus != nullptr) {
     set_value_to_edit(edit_exp_clip_time_duration_,
-                      dus->exp_clip_time_duration_);
-    set_value_to_edit(edit_exp_clip_time_paused_, dus->exp_clip_time_paused_);
+                         dus->exp_clip_time_duration_);
+    set_value_to_edit(edit_exp_clip_time_paused_,
+                         dus->exp_clip_time_paused_);
     set_value_to_edit(edit_max_cycle_count_, dus->exp_max_cycle_count_, 3);
     set_value_to_edit(edit_max_cycle_power_, dus->exp_max_cycle_power_);
     set_value_to_edit(edit_frequency_fluctuations_range_,
-                      dus->exp_frequency_fluctuations_range_);
+                         dus->exp_frequency_fluctuations_range_);
 
     if (dus->exp_clipping_enable_ == 1) {
       chk_exp_clip_set_->Selected(true);
