@@ -23,12 +23,18 @@
 namespace anx {
 namespace device {
 namespace stload {
+
+/// @brief st load result
 class STResult {
-public:
-	STResult() : pos_(0), load_(0), status_(0) {}
-	double pos_;
-	double load_;
-	uint32_t status_;
+ public:
+  STResult() : pos_(0), load_(0), status_(0) {}
+  ~STResult() {}
+  /// @brief position value in mm unit
+  double pos_;
+  /// @brief load value in N unit
+  double load_;
+  /// @brief status value of the st load
+  uint32_t status_;
 };
 
 class STLoadHelper {

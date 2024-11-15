@@ -348,7 +348,7 @@ bool WorkWindowSecondPageGraph::OnOptGraphTimeRangeChange(void* param) {
   }
   if (page_graph_amplitude_ctrl_ == nullptr) {
     LOG_F(LG_INFO) << "page_graph_amplitude_ctrl is nullptr";
-	return false;
+    return false;
   }
   graphctrl_sample_total_minutes_ = graphctrl_sample_total_minutes;
   assert(page_graph_amplitude_ctrl_ != nullptr);
@@ -829,8 +829,8 @@ void WorkWindowSecondPageGraph::RefreshExpGraphTitleControl(double vartime) {
     }
   } else {
     snprintf(time_str, sizeof(time_str), "%02d月%02d日 %02d时%02d分",
-            timeinfo.tm_mon + 1, timeinfo.tm_mday,
-             timeinfo.tm_hour, timeinfo.tm_min);
+             timeinfo.tm_mon + 1, timeinfo.tm_mday, timeinfo.tm_hour,
+             timeinfo.tm_min);
   }
   // get the current time's hour and minute form timeinfo
   std::string tile_time_str = time_str;

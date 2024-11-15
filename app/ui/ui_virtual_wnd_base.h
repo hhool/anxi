@@ -21,11 +21,11 @@ namespace anx {
 namespace ui {
 class UIVirtualWndBase {
  public:
-  UIVirtualWndBase() {}
-  virtual ~UIVirtualWndBase() {}
-
- public:
+  /// @brief Bind the virtual window, only bind the virtual window to the
+  /// paint manager, only run once after the virtual window is created.
   virtual void Bind() = 0;
+  /// @brief Unbind the virtual window, only unbind the virtual window to the
+  /// paint manager, only run once. before the virtual window is destroyed.
   virtual void Unbind() = 0;
 };
 

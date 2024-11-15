@@ -57,7 +57,7 @@ class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
 
  public:
   DUI_DECLARE_MESSAGE_MAP()
-  void OnClick(TNotifyUI& msg);  // NOLINT
+  void OnClick(TNotifyUI& msg);         // NOLINT
   void OnValueChanged(TNotifyUI& msg);  // NOLINT
 
  protected:

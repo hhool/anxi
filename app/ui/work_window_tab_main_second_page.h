@@ -134,15 +134,28 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   std::unique_ptr<DuiLib::CNotifyPump>
       work_window_second_page_data_notify_pump_;
   UIVirtualWndBase* work_window_second_page_data_virtual_wnd_;
+  //////////////////////////////////////////////////////////////////////////
+  /// @brief ultrasound exp state related
   int32_t is_exp_state_ = kExpStateUnvalid;
   int32_t exp_pause_stop_reason_ = kExpPauseStopReasonNone;
   int32_t user_exp_state_ = kExpStateUnvalid;
   anx::device::UltraDevice* ultra_device_;
+  //////////////////////////////////////////////////////////////////////////
+  /// @brief ultrasound exp start working initial frequency and power,
+  /// used to detect frequency and power change, if the frequency over the
+  /// initial frequency at
+  /// DeviceUltrasoundSettings::exp_frequency_fluctuations_range_ value, then
+  /// stop the exp.
   int32_t initial_frequency_;
+  /// @brief ultrasound exp start working initial frequency and power,
+  /// only record the power value.
   int32_t initial_power_;
+  /// @brief ultrasound current frequency
   int32_t cur_freq_;
+  /// @brief ultrasound current power
   int32_t cur_power_;
-  /// @brief current total cycle count
+  //////////////////////////////////////////////////////////////////////////
+  /// @brief ultrasound current total cycle count
   /// if the value is -1, then the exp is not started
   /// if the value is >= 0, then the exp is started
   /// cur_total_cycle_count_ will increase with the cycle count value and
@@ -154,6 +167,10 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   /// and the pre cycle count value will record the last cycle count value
   int64_t pre_exp_start_time_ms_ = 0;
   int64_t pre_total_cycle_count_ = 0;
+  /// @brief pre total data table no for record the last data table no
+  /// when the exp is paused. then the data table no will not increase.
+  /// table related to the exp start time and exp stop time. database table
+  /// name is exp_data_list_
   int32_t pre_total_data_table_no_ = 0;
 
   anx::device::DeviceUltrasoundSettings dus_;

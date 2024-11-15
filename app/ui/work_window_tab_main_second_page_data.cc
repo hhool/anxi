@@ -40,7 +40,6 @@ namespace anx {
 namespace ui {
 namespace {
 
-
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief timer id for refresh control
 const uint32_t kTimerIdRefreshControl = 1;
@@ -217,45 +216,9 @@ void WorkWindowSecondPageData::OnClick(TNotifyUI& msg) {
 void WorkWindowSecondPageData::OnValueChanged(TNotifyUI& msg) {
   if (msg.sType == DUI_MSGTYPE_VALUECHANGED) {
     if (msg.pSender->GetName() == _T("work_args_area")) {
-      ENMsgStruct* enmsg = reinterpret_cast<ENMsgStruct*>(msg.wParam);
-      if (enmsg == nullptr) {
-        return;
-      }
-      if (enmsg->type_ == enmsg_type_exp_stress_amp) {
-        anx::esolution::SolutionDesign* design =
-            reinterpret_cast<anx::esolution::SolutionDesign*>(enmsg->ptr_);
-        if (design == nullptr) {
-          return;
-        }
-        double exp_amplitude =
-            reinterpret_cast<anx::esolution::ExpDesignResult0*>(
-                design->result_.get())
-                ->f_eamplitude_;
-        double exp_statc_load_mpa = 0.0f;
-        if (design->result_->solution_type_ ==
-            anx::esolution::kSolutionName_Stresses_Adjustable) {
-          exp_statc_load_mpa =
-              reinterpret_cast<
-                  anx::esolution::ExpDesignResultStressesAdjustable*>(
-                  design->result_.get())
-                  ->f_static_load_MPa_;
-        } else if (design->result_->solution_type_ ==
-                   anx::esolution::kSolutionName_Th3point_Bending) {
-          exp_statc_load_mpa =
-              reinterpret_cast<anx::esolution::ExpDesignResultTh3pointBending*>(
-                  design->result_.get())
-                  ->f_static_load_MPa_;
-        }
-        LOG_F(LG_INFO) << "exp_amplitude:" << exp_amplitude
-                       << " exp_statc_load_mpa:" << exp_statc_load_mpa;
-        // TODO(hhool):
-        if (exp_amplitude > 0.0f) {
-        }
-        if (exp_statc_load_mpa > 0.0f) {
-        }
-      }
+      // TODO(hhool): do nothing
     } else {
-      // do nothing
+      // TODO(hhool): do nothing
     }
   }
 }

@@ -39,14 +39,23 @@ namespace ui {
 
 typedef enum ENMsgType {
   enmsg_type_stload_max,
+  /// @brief stload current value message
+  /// @details the message is used to update the stload current value
+  /// @see anx::device::stload::STResult
   enmsg_type_stload_value_cur,
-  enmsg_type_amp_value_max,
-  enmsg_type_amp_value_cur,
+  /// @brief exp stress amplitude message
+  /// @details the message is used to update the exp stress amplitude
+  /// @see anx::esolution::SolutionDesign
   enmsg_type_exp_stress_amp,
 } ENMsgType;
 
+/// @brief message struct
 typedef struct ENMsgStruct {
+  /// @brief message type
+  /// @see anx::ui::ENMsgType
   ENMsgType type_;
+  /// @brief message pointer data
+  /// @details the pointer data is used to transfer the message data
   void* ptr_;
 } ENMsgStruct;
 

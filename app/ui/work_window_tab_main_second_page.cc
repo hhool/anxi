@@ -523,7 +523,7 @@ bool WorkWindowSecondPage::OnExpClipChanged(void* msg) {
       }
     }
     set_value_to_edit(edit_max_cycle_power_, dus_.exp_max_cycle_power_);
-    if (save)
+    if (save) {
       if (cur_total_cycle_count_ >= max_cycle_count) {
         if (is_exp_state_ == kExpStatePause) {
           btn_exp_resume_->SetEnabled(false);
@@ -537,6 +537,7 @@ bool WorkWindowSecondPage::OnExpClipChanged(void* msg) {
           btn_exp_start_->SetEnabled(true);
         }
       }
+    }
   } else if (pMsg->pSender == edit_frequency_fluctuations_range_) {
     int64_t exp_frequency_fluctuations_range = 0;
     if (get_value_from_control(edit_frequency_fluctuations_range_,
@@ -548,7 +549,7 @@ bool WorkWindowSecondPage::OnExpClipChanged(void* msg) {
         save = true;
       }
       set_value_to_edit(edit_frequency_fluctuations_range_,
-                           dus_.exp_frequency_fluctuations_range_);
+                        dus_.exp_frequency_fluctuations_range_);
     }
   } else {
     return false;
@@ -1098,13 +1099,12 @@ void WorkWindowSecondPage::UpdateControlFromSettings() {
       anx::device::LoadDeviceUltrasoundSettingsDefaultResource();
   if (dus != nullptr) {
     set_value_to_edit(edit_exp_clip_time_duration_,
-                         dus->exp_clip_time_duration_);
-    set_value_to_edit(edit_exp_clip_time_paused_,
-                         dus->exp_clip_time_paused_);
+                      dus->exp_clip_time_duration_);
+    set_value_to_edit(edit_exp_clip_time_paused_, dus->exp_clip_time_paused_);
     set_value_to_edit(edit_max_cycle_count_, dus->exp_max_cycle_count_, 3);
     set_value_to_edit(edit_max_cycle_power_, dus->exp_max_cycle_power_);
     set_value_to_edit(edit_frequency_fluctuations_range_,
-                         dus->exp_frequency_fluctuations_range_);
+                      dus->exp_frequency_fluctuations_range_);
 
     if (dus->exp_clipping_enable_ == 1) {
       chk_exp_clip_set_->Selected(true);
