@@ -74,6 +74,8 @@ class ExpDataInfo {
   /// !0: is initialized and valid.
   /// used to sync time period of exp data sample when data list ctrl display
   int64_t exp_time_interval_num_ = 0;
+  int64_t exp_pre_sample_timestamp_ms_ = 0;
+  int64_t exp_freq_total_count_ = 0;
   /// @brief exp data sample store in database exp table count since exp start
   /// time, 0: is not initialized: !0: is initialized and valid.
   /// valid from exp start time and exp stop time

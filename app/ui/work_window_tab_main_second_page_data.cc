@@ -191,6 +191,11 @@ void WorkWindowSecondPageData::Notify(TNotifyUI& msg) {
       RefreshSampleTimeControl();
       SaveSettingsToResource();
     }
+  } else if (msg.sType == kTimer) {
+    if (msg.pSender == text_sample_interval_) {
+      RefreshSampleTimeControl();
+      SaveSettingsToResource();
+    }
   } else {
     // do nothing
   }
@@ -249,12 +254,12 @@ bool WorkWindowSecondPageData::OnEditDataSampleChange(void* param) {
   if (pMsg == nullptr) {
     return false;
   }
-  LOG_F(LG_INFO) << pMsg->pSender->GetName() << " " << pMsg->sType << " "
-                 << pMsg->wParam << " " << pMsg->lParam;
   if (pMsg->sType != DUI_MSGTYPE_KILLFOCUS &&
       pMsg->sType != DUI_MSGTYPE_RETURN) {
     return false;
   }
+  LOG_F(LG_INFO) << pMsg->pSender->GetName() << " " << pMsg->sType << " "
+                 << pMsg->wParam << " " << pMsg->lParam;
   bool save = false;
   if (pMsg->pSender == edit_sample_start_pos_) {
     int64_t value = 0;
@@ -348,6 +353,8 @@ void WorkWindowSecondPageData::Bind() {
   LoadSettingsFromResource();
 
   UpdateControlFromSettings();
+
+  RefreshSampleTimeControl(true);
 
   paint_manager_ui_->SetTimer(text_sample_interval_, kTimerIdRefreshControl,
                               1000);
@@ -448,12 +455,12 @@ void WorkWindowSecondPageData::UpdateUIWithExpStatus(int status) {
   }
 }
 
-void WorkWindowSecondPageData::RefreshSampleTimeControl() {
+void WorkWindowSecondPageData::RefreshSampleTimeControl(bool force) {
   std::string value = ("=");
   if (!edit_sample_interval_->GetText().IsEmpty()) {
     int32_t sample_time_interval = 0;
     if (get_value_from_control(edit_sample_interval_, &sample_time_interval)) {
-      if (dedss_->sampling_interval_ != sample_time_interval) {
+      if (dedss_->sampling_interval_ != sample_time_interval || force) {
         if (sample_time_interval > 0) {
           dedss_->sampling_interval_ = sample_time_interval;
           double f_value = static_cast<double>(sample_time_interval);

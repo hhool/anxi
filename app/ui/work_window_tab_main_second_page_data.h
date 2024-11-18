@@ -77,7 +77,7 @@ class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
   /// @brief  Update button with exp status
   /// @param status  0 - stop, 1 - start, 2 - pause
   void UpdateUIWithExpStatus(int status);
-  void RefreshSampleTimeControl();
+  void RefreshSampleTimeControl(bool force = false);
 
  protected:
   // impliment anx::device::DeviceComListener;

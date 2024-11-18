@@ -74,7 +74,7 @@ int32_t UltraDevice::StartUltra() {
     LOG_F(LG_ERROR) << "port device is null";
     return -1;
   }
-
+  LOG_F(LG_INFO);
   uint8_t hex[8] = {0x01, 0x05, 0x00, 0x02, 0xFF, 0x00, 0x2D, 0xFA};
   int32_t written = port_device_->Write(hex, sizeof(hex));
   if (written < 8) {
@@ -113,7 +113,7 @@ int32_t UltraDevice::StopUltra() {
     LOG_F(LG_ERROR) << "port device is null";
     return -1;
   }
-
+  LOG_F(LG_INFO);
   uint8_t hex[8] = {0x01, 0x05, 0x00, 0x02, 0x00, 0x00, 0x6C, 0x0A};
   int32_t written = port_device_->Write(hex, sizeof(hex));
   if (written < 8) {
@@ -226,7 +226,11 @@ int32_t UltraDevice::GetCurrentFreq() {
   }
   /// get freq
   int32_t freq = hex_res[3] * 256 + hex_res[4];
+#if 0
+  return 20 * 1000;
+#else
   return freq;
+#endif
 }
 
 int32_t UltraDevice::GetCurrentPower() {

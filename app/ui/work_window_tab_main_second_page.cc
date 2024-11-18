@@ -265,6 +265,7 @@ void WorkWindowSecondPage::OnTimer(TNotifyUI& msg) {
               exp_data_list_info_.exp_start_time_ms_ =
                   anx::common::GetCurrentTimeMillis();
               exp_data_list_info_.exp_time_interval_num_ = 0;
+              exp_data_list_info_.exp_freq_total_count_ = 0;
               dedss_ = std::move(
                   anx::device::
                       LoadDeviceExpDataSampleSettingsDefaultResource());
@@ -849,6 +850,7 @@ void WorkWindowSecondPage::OnButtonExpReset() {
   exp_data_list_info_.exp_start_time_ms_ = anx::common::GetCurrentTimeMillis();
   exp_data_list_info_.exp_sample_interval_ms_ =
       dedss_->sampling_interval_ * 100;
+  exp_data_list_info_.exp_freq_total_count_ = 0;
 
   cur_total_cycle_count_ = 0;
 
@@ -1349,6 +1351,7 @@ int32_t WorkWindowSecondPage::exp_start() {
   exp_data_list_info_.exp_start_time_ms_ = anx::common::GetCurrentTimeMillis();
   exp_data_list_info_.exp_sample_interval_ms_ =
       dedss_->sampling_interval_ * 100;
+  exp_data_list_info_.exp_freq_total_count_ = 0;
 
   // set the ultrasound on state
   int32_t ret = ultra_device_->SetWedingTime(0);
@@ -1394,6 +1397,7 @@ int32_t WorkWindowSecondPage::exp_start() {
   work_window_second_page_graph_notify_pump_->NotifyPump(msg);
 
   is_exp_state_ = kExpStateStart;
+  LOG_F(LG_INFO);
   return 0;
 }
 
@@ -1450,6 +1454,7 @@ void WorkWindowSecondPage::exp_resume() {
 
   exp_data_list_info_.exp_start_time_ms_ = anx::common::GetCurrentTimeMillis();
   exp_data_list_info_.exp_time_interval_num_ = 0;
+  exp_data_list_info_.exp_freq_total_count_ = 0;
   dedss_ =
       std::move(anx::device::LoadDeviceExpDataSampleSettingsDefaultResource());
   exp_data_list_info_.exp_sample_interval_ms_ =
@@ -1485,6 +1490,7 @@ void WorkWindowSecondPage::exp_stop() {
 
   // stop the timer
   paint_manager_ui_->KillTimer(btn_exp_start_, kTimerIdSampling);
+  LOG_F(LG_INFO);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1589,7 +1595,9 @@ void WorkWindowSecondPage::OnDataReceived(
       f_exp_max_cycle_count *= 10;
     }
     int64_t exp_max_cycle_count = static_cast<int64_t>(f_exp_max_cycle_count);
+    bool reach_max_cycle_count = false;
     if (cur_total_cycle_count_ >= exp_max_cycle_count) {
+      reach_max_cycle_count = true;
       /// avoid renter;
       if (is_exp_state_ != kExpStatePause) {
         exp_pause();
@@ -1651,7 +1659,7 @@ void WorkWindowSecondPage::OnDataReceived(
                         << exp_data_list_info_.exp_data_table_no_;
     this->ProcessDataGraph();
     /// @note process intermittent exp clipping enabled
-    if (ultra_device_->IsUltraStarted()) {
+    if (ultra_device_->IsUltraStarted() && !reach_max_cycle_count) {
       assert(dedss_ != nullptr);
       if (dedss_->sample_mode_ ==
           anx::device::DeviceExpDataSample::kSampleModeExponent) {
@@ -1673,8 +1681,8 @@ void WorkWindowSecondPage::ProcessDataGraph() {
     exp_data_graph_info_.exp_time_interval_num_ = time_interval_num;
     exp_data_graph_info_.exp_data_table_no_++;
     // update the data to the database table amp, stress, um
-    int64_t cycle_count =
-        exp_data_graph_info_.exp_data_table_no_ * cur_freq_ * 2;
+    int64_t cycle_count = exp_data_graph_info_.exp_data_table_no_ *
+                          static_cast<int64_t>(exp_data_graph_info_.amp_freq_);
     double date = anx::common::GetCurrrentSystimeAsVarTime();
     // save to database
     // format cycle_count, KHz, MPa, um to the sql string and insert to the
@@ -1723,71 +1731,72 @@ void WorkWindowSecondPage::ProcessDataListModeLinear() {
     LOG_F(LG_WARN) << "time_ms_diff:" << time_ms_diff;
     return;
   }
-  /// @note calculate the time interval num and check the time interval num
-  int64_t time_interval_num = time_ms_diff / (dedss_->sampling_interval_ * 100);
-  if (time_interval_num < exp_data_list_info_.exp_time_interval_num_) {
-    return;
-  }
+  int64_t time_interval_num = 0;
+  int64_t need_store_count = 0;
+  int64_t need_store_count_left = 0;
+  do {
+    time_interval_num = time_ms_diff / 100;
+    if (time_interval_num > exp_data_list_info_.exp_time_interval_num_) {
+      int64_t diff_interval_num =
+          time_interval_num - exp_data_list_info_.exp_time_interval_num_;
+      need_store_count = diff_interval_num / dedss_->sampling_interval_;
+      need_store_count_left = diff_interval_num % dedss_->sampling_interval_;
+      int64_t cur_freq_count_100ms =
+          static_cast<int64_t>(exp_data_list_info_.amp_freq_ *
+                               dedss_->sampling_interval_  / 10.f);
+      for (int i = 0; i < need_store_count; i++) {
+        exp_data_list_info_.exp_freq_total_count_ += cur_freq_count_100ms;
+        exp_data_list_info_.exp_data_table_no_++;
+        // 1. save to database
+        // format cycle_count, KHz, MPa, um to the sql string and insert to
+        // the database
+        /*int64_t item_time_ms =
+            exp_data_list_info_.exp_pre_sample_timestamp_ms_ *
+            dedss_->sampling_interval_ * 100;*/
+        ///
+        StoreDataListItem(
+            pre_total_cycle_count_ + exp_data_list_info_.exp_freq_total_count_,
+            anx::common::GetCurrrentSystimeAsVarTime());
+      }
+      if (need_store_count > 0) {
+        exp_data_list_info_.exp_time_interval_num_ = time_interval_num;
+      }
+    }
+  } while (0);
 
   /// @note calculate the cycle count and update the args area,
   /// cycle_exp_clip_count that cantian the current cycle count and the exp
   /// clip count and the pre all cycle count from exp start action.
-  int64_t cycle_exp_clip_count =
-      (time_ms_diff) *
-      static_cast<int32_t>(exp_data_list_info_.amp_freq_ / 1000.f);
-  assert(cycle_exp_clip_count > 0);
-  LOG_F(LG_INFO) << "cycle_exp_clip_count:" << cycle_exp_clip_count
-                 << " pre_total_cycle_count_:" << pre_total_cycle_count_;
-  cur_total_cycle_count_ = cycle_exp_clip_count + pre_total_cycle_count_;
-  this->pWorkWindow_->UpdateArgsArea(cur_total_cycle_count_);
-
-  /// @note check the time interval num and update the data to the database
-  if (time_interval_num > exp_data_list_info_.exp_time_interval_num_) {
-    exp_data_list_info_.exp_time_interval_num_ = time_interval_num;
-    exp_data_list_info_.exp_data_table_no_++;
-    /////////////////////////////////////////////////////////////////////
-    int64_t cycle_count;
-    int32_t table_no;
-    // update the data to the database table amp, stress, um
-    {
-      table_no =
-          exp_data_list_info_.exp_data_table_no_ - pre_total_data_table_no_;
-      int32_t amp_freq = static_cast<int32_t>(exp_data_list_info_.amp_freq_);
-      cycle_count = static_cast<int64_t>(table_no) * amp_freq *
-                        (dedss_->sampling_interval_) / 10 +
-                    pre_total_cycle_count_;
-      LOG_F(LG_SENSITIVE) << "exp data list: cycle_count:" << cycle_count
-                          << " cur_total_cycle_count_:"
-                          << cur_total_cycle_count_
-                          << " exp_time_interval_num_:" << time_interval_num
-                          << " exp_data_table_no_:"
-                          << exp_data_list_info_.exp_data_table_no_
-                          << " amp_freq:" << amp_freq
-                          << " cur_freq_:" << cur_freq_;
-    }
-    // sync the data to pre_exp_start_time_ms_, pre_total_cycle_count_,
-    // pre_total_data_table_no_, reset the exp_time_interval_num_ to 0
-    if (table_no % 10 == 0 && table_no > 0) {
-      pre_exp_start_time_ms_ = anx::common::GetCurrentTimeMillis();
-      pre_total_cycle_count_ = cur_total_cycle_count_;
-      pre_total_data_table_no_ = exp_data_list_info_.exp_data_table_no_;
-      exp_data_list_info_.exp_time_interval_num_ = 0;
-      LOG_F(LG_INFO) << "exp data list: pre_exp_start_time_ms_"
-                     << pre_exp_start_time_ms_
-                     << " pre_total_cycle_count_:" << pre_total_cycle_count_
-                     << " pre_total_data_table_no_:"
-                     << pre_total_data_table_no_;
-    }
-    // 1. save to database
-    // format cycle_count, KHz, MPa, um to the sql string and insert to the
-    // database
-    StoreDataListItem(cycle_count, anx::common::GetCurrrentSystimeAsVarTime());
+  if (need_store_count) {
+    cur_total_cycle_count_ =
+        pre_total_cycle_count_ + exp_data_list_info_.exp_freq_total_count_;
+  } else {
+    cur_total_cycle_count_ =
+        pre_total_cycle_count_ + exp_data_list_info_.exp_freq_total_count_ +
+        static_cast<int64_t>(
+            (time_interval_num - exp_data_list_info_.exp_time_interval_num_) *
+            exp_data_list_info_.amp_freq_ / 10);
   }
+  this->pWorkWindow_->UpdateArgsArea(cur_total_cycle_count_);
+  LOG_F(LG_INFO) << "cur_total_cycle_count_:" << cur_total_cycle_count_
+                 << " pre_total_cycle_count_:" << pre_total_cycle_count_
+                 << " exp_data_list_info_.exp_time_interval_num_:"
+                 << exp_data_list_info_.exp_time_interval_num_
+                 << " need_store_count:" << need_store_count
+                 << " need_store_count_left:" << need_store_count_left;
+  exp_data_list_info_.exp_pre_sample_timestamp_ms_ = current_time_ms;
 }
 
 void WorkWindowSecondPage::ProcessDataListModeExponential() {
   /// @note get the current time and calculate the time interval num
   int64_t current_time_ms = anx::common::GetCurrentTimeMillis();
+  /// @note check the time interval num and the sampling end pos, if the
+  /// time interval num greater than the sampling end pos then return else
+  /// check the time diff and the sampling end pos, if the time diff greater
+  /// than the sampling end pos then return
+  /// @warning sampling_start_end_diff_ms contain ultra 2000C device pause
+  /// status time and resume status time.
+
   if (pre_exp_start_time_ms_ <= 0) {
     pre_exp_start_time_ms_ = exp_data_list_info_.exp_start_time_ms_;
   }
@@ -1801,62 +1810,85 @@ void WorkWindowSecondPage::ProcessDataListModeExponential() {
     LOG_F(LG_WARN) << "time_ms_diff:" << time_ms_diff;
     return;
   }
-  int64_t time_interval_num;
-  time_interval_num = time_ms_diff / 100;
+  int64_t time_interval_num = 0;
+  int64_t need_store_count = 0;
+  do {
+    time_interval_num = time_ms_diff / 100;
+    if (time_interval_num > exp_data_list_info_.exp_time_interval_num_) {
+      int64_t diff_interval_num =
+          time_interval_num - exp_data_list_info_.exp_time_interval_num_;
+      need_store_count = diff_interval_num;
+      int64_t cur_freq_count_100ms =
+          static_cast<int64_t>(exp_data_list_info_.amp_freq_ / 10.f);
+      for (int i = 0; i < need_store_count; i++) {
+        exp_data_list_info_.exp_freq_total_count_ += cur_freq_count_100ms;
 
-  /// @note calculate the cycle count and update the args area,
-  /// cycle_exp_clip_count that cantian the current cycle count and the exp
-  /// clip count and the pre cycle count
-  /// @note calculate the cycle count and update the args area,
-  /// cycle_exp_clip_count that cantian the current cycle count and the exp
-  /// clip count and the pre cycle count
-  int64_t cycle_exp_clip_count = static_cast<int64_t>(
-      (time_ms_diff * exp_data_list_info_.amp_freq_) / 1000);
-  assert(cycle_exp_clip_count > 0);
-  cur_total_cycle_count_ = cycle_exp_clip_count + pre_total_cycle_count_;
-  this->pWorkWindow_->UpdateArgsArea(cur_total_cycle_count_);
-
-  /// @note check the time interval num for sample mode Exponent 10^n
-  /// check n is 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000,
-  /// 100000000 then update the data to the database, else return.
-  {
-    if (exp_data_pre_duration_exponential_ == 0) {
-      if (cur_total_cycle_count_ > 0) {
-        exp_data_pre_duration_exponential_ =
-            static_cast<int64_t>(exp_data_list_info_.amp_freq_);
-      } else {
-        return;
+        ///////////////////////////////////////////////////////////////////////
+        /// @note check the time interval num for sample mode Exponent 10^n
+        /// check n is 1, 10, 100, 1000, 10000, 100000, 1000000, 10000000,
+        /// 100000000 then update the data to the database, else return.
+        {
+          if (exp_data_pre_duration_exponential_ == 0) {
+            if (cur_total_cycle_count_ > 0) {
+              exp_data_pre_duration_exponential_ =
+                  static_cast<int64_t>(exp_data_list_info_.amp_freq_);
+            } else {
+              break;
+            }
+          } else if ((cur_total_cycle_count_ <
+                      exp_data_pre_duration_exponential_) != 0) {
+            break;
+          } else {
+            exp_data_pre_duration_exponential_ *= 10;
+          }
+        }
+        exp_data_list_info_.exp_data_table_no_++;
+        {
+          int multiplier = 1;
+          for (int i = 1; i < exp_data_list_info_.exp_data_table_no_; i++) {
+            multiplier *= 10;
+          }
+          int64_t cycle_count = static_cast<int64_t>(
+              multiplier * exp_data_list_info_.amp_freq_ / 10.f);
+          LOG_F(LG_INFO) << "exp data list: cycle_count:" << cycle_count
+                         << " cur_total_cycle_count_:" << cur_total_cycle_count_
+                         << " exp_time_interval_num_:" << time_interval_num
+                         << " exp_data_table_no_:"
+                         << exp_data_list_info_.exp_data_table_no_
+                         << " cur_freq_:" << cur_freq_;
+          // 1. save to database
+          // format cycle_count, KHz, MPa, um to the sql string and insert to
+          // the database
+          StoreDataListItem(cycle_count,
+                            anx::common::GetCurrrentSystimeAsVarTime());
+        }
+        ///////////////////////////////////////////////////////////////////////
       }
-    } else if ((cur_total_cycle_count_ < exp_data_pre_duration_exponential_) !=
-               0) {
-      return;
-    } else {
-      exp_data_pre_duration_exponential_ *= 10;
+      if (need_store_count > 0) {
+        exp_data_list_info_.exp_time_interval_num_ = time_interval_num;
+      }
     }
+  } while (0);
+
+  /// @note calculate the cycle count and update the args area,
+  /// cycle_exp_clip_count that cantian the current cycle count and the exp
+  /// clip count and the pre all cycle count from exp start action.
+  if (need_store_count) {
+    cur_total_cycle_count_ =
+        pre_total_cycle_count_ + exp_data_list_info_.exp_freq_total_count_;
+  } else {
+    cur_total_cycle_count_ =
+        pre_total_cycle_count_ + exp_data_list_info_.exp_freq_total_count_ +
+        static_cast<int64_t>(
+            (time_interval_num - exp_data_list_info_.exp_time_interval_num_) *
+            exp_data_list_info_.amp_freq_ / 10);
   }
-  /// @note check the time interval num and update the data to the database
-  exp_data_list_info_.exp_time_interval_num_ = time_interval_num;
-  exp_data_list_info_.exp_data_table_no_++;
-  int64_t cycle_count;
-  // update the data to the database table amp, stress, um
-  {
-    int multiplier = 1;
-    for (int i = 1; i < exp_data_list_info_.exp_data_table_no_; i++) {
-      multiplier *= 10;
-    }
-    cycle_count =
-        static_cast<int64_t>(multiplier * exp_data_list_info_.amp_freq_ / 10.f);
-    LOG_F(LG_INFO) << "exp data list: cycle_count:" << cycle_count
-                   << " cur_total_cycle_count_:" << cur_total_cycle_count_
-                   << " exp_time_interval_num_:" << time_interval_num
-                   << " exp_data_table_no_:"
-                   << exp_data_list_info_.exp_data_table_no_
-                   << " cur_freq_:" << cur_freq_;
-  }
-  // 1. save to database
-  // format cycle_count, KHz, MPa, um to the sql string and insert to the
-  // database
-  StoreDataListItem(cycle_count, anx::common::GetCurrrentSystimeAsVarTime());
+  this->pWorkWindow_->UpdateArgsArea(cur_total_cycle_count_);
+  LOG_F(LG_INFO) << "cur_total_cycle_count_:" << cur_total_cycle_count_
+                 << " pre_total_cycle_count_:" << pre_total_cycle_count_
+                 << " exp_data_list_info_.exp_time_interval_num_:"
+                 << exp_data_list_info_.exp_time_interval_num_;
+  exp_data_list_info_.exp_pre_sample_timestamp_ms_ = current_time_ms;
 }
 
 void WorkWindowSecondPage::StoreDataListItem(int64_t cycle_count, double date) {
