@@ -253,7 +253,10 @@ PageSolutionDesignBase::ExpDesignHeaderFromControl() {
   std::string name = anx::common::UnicodeToUTF8(value.GetData());
   anx::esolution::ExpDesignHeader exp_design_header;
   exp_design_header.solution_type_ = design_type_;
-  memcpy(exp_design_header.name_, name.data(), 255);
+  // copy the name to the name_
+  size_t size = name.size() > 255 ? 255 : name.size();
+  memset(exp_design_header.name_, 0, sizeof(exp_design_header.name_));
+  memcpy(exp_design_header.name_, name.data(), size);
   return std::unique_ptr<anx::esolution::ExpDesignHeader>(
       new anx::esolution::ExpDesignHeader(exp_design_header));
 }
@@ -275,7 +278,10 @@ PageSolutionDesignBase::ExpDesignBaseParamFromControl() {
   }
   anx::esolution::ExpDesignBaseParam exp_design_base_param;
   std::string material_name = anx::common::WString2String(value.GetData());
-  memcpy(exp_design_base_param.material_name_, material_name.data(), 255);
+  size_t size = material_name.size() > 255 ? 255 : material_name.size();
+  memset(exp_design_base_param.material_name_, 0,
+         sizeof(exp_design_base_param.material_name_));
+  memcpy(exp_design_base_param.material_name_, material_name.data(), size);
   exp_design_base_param.f_elastic_modulus_GPa_ =
       get_value_from_edit_with_prefix<float>("tm_page_first_left_elastic",
                                              t_prefix, paint_manager_ui_);

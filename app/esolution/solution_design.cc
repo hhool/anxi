@@ -396,7 +396,9 @@ int32_t SolutionDesign::FromXml(const std::string& xml,
     if (name_element) {
       const char* name = name_element->GetText();
       if (name) {
-        memcpy(header.name_, name, strlen(name));
+        size_t size = strlen(name) > 255 ? 255 : strlen(name);
+        memset(header.name_, 0, sizeof(header.name_));
+        memcpy(header.name_, name, size);
       }
     }
   }
@@ -408,7 +410,9 @@ int32_t SolutionDesign::FromXml(const std::string& xml,
     if (material_name_element) {
       const char* material_name = material_name_element->GetText();
       if (material_name) {
-        memcpy(base_param.material_name_, material_name, strlen(material_name));
+        size_t size = strlen(material_name) > 255 ? 255 : strlen(material_name);
+        memset(base_param.material_name_, 0, sizeof(base_param.material_name_));
+        memcpy(base_param.material_name_, material_name, size);
       }
     }
 
