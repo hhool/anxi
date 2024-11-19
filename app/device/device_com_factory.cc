@@ -56,7 +56,7 @@ std::vector<ComPortDevice> DeviceComFactory::GetComPortDeviceList() {
   std::vector<itas109::SerialPortInfo> availablePortsInfoVector =
       itas109::CSerialPortInfo::availablePortInfos();
   for (const itas109::SerialPortInfo& portInfo : availablePortsInfoVector) {
-    ComPort com_port;
+    ComAddressPort com_port;
     com_port.baud_rate = 9600;
     com_port.data_bits = 3;
     com_port.stop_bits = 0;
@@ -64,7 +64,7 @@ std::vector<ComPortDevice> DeviceComFactory::GetComPortDeviceList() {
     com_port.flow_control = 0;
     com_port.timeout = 1000;
 
-    ComPortDevice com_port_device(portInfo.portName, com_port);
+    ComPortDevice com_port_device(portInfo.portName, &com_port);
     com_port_device_list.push_back(com_port_device);
   }
   return com_port_device_list;
@@ -96,6 +96,8 @@ DeviceComFactory::CreateOrGetDeviceComWithType(int32_t device_com_type,
     device_com = std::make_shared<ComPortDeviceImpl>("ul");
   } else if (device_com_type == kDeviceCom_StaticLoad) {
     device_com = std::make_shared<ComPortDeviceImpl>("sl");
+  } else if (device_com_type == kDeviceLan_StaticLoad) {
+    device_com = std::make_shared<ComPortDeviceImpl>("sl2");
   } else {
     return nullptr;
   }

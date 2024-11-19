@@ -118,7 +118,13 @@ void ComPortDeviceImpl::RemoveListener(DeviceComListener* listener) {
 }
 
 int32_t ComPortDeviceImpl::Open(const ComPortDevice& com_port) {
-  if (com_port.GetComPort().baud_rate == 0) {
+  if (com_port.GetComPort()->adrtype != 1) {
+    LOG_F(LG_ERROR) << "adrtype is not 1";
+    return -1;
+  }
+  ComAddressPort* com_adr_port =
+      reinterpret_cast<ComAddressPort*>(com_port.GetComPort());
+  if (com_adr_port->baud_rate == 0) {
     LOG_F(LG_ERROR) << "baud rate is 0";
     return -1;
   }
@@ -131,14 +137,14 @@ int32_t ComPortDeviceImpl::Open(const ComPortDevice& com_port) {
   itas109::CSerialPort* native_serialport =
       reinterpret_cast<itas109::CSerialPort*>(native_serialport_);
 
-  native_serialport->init(
-      com_port.GetComName().c_str(), com_port.GetComPort().baud_rate,
-      toItas109Parity(com_port.GetComPort().parity),
-      toItas109DataBits(com_port.GetComPort().data_bits),
-      toItas109StopBits(com_port.GetComPort().stop_bits),
-      toItas109FlowControl(com_port.GetComPort().flow_control));
+  native_serialport->init(com_port.GetComName().c_str(),
+                          com_adr_port->baud_rate,
+                          toItas109Parity(com_adr_port->parity),
+                          toItas109DataBits(com_adr_port->data_bits),
+                          toItas109StopBits(com_adr_port->stop_bits),
+                          toItas109FlowControl(com_adr_port->flow_control));
 
-  native_serialport->setReadIntervalTimeout(com_port.GetComPort().timeout);
+  native_serialport->setReadIntervalTimeout(com_adr_port->timeout);
 
   if (!native_serialport->open()) {
     LOG_F(LG_ERROR) << "open failed";

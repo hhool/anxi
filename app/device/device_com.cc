@@ -11,25 +11,28 @@
 
 #include "app/device/device_com.h"
 
+#include <assert.h>
 #include <algorithm>
 #include <iostream>
+#include <memory>
 
 namespace anx {
 namespace device {
 
 ////////////////////////////////////////////////////////
-// @brief  ComPort
-ComPort::ComPort()
-    : baud_rate(9600),
+// @brief  ComAddressPort
+ComAddressPort::ComAddressPort()
+    : ComBase(1),
+      baud_rate(9600),
       data_bits(3),
       stop_bits(0),
       parity(0),
       flow_control(0),
       timeout(1000) {}
 
-ComPort::~ComPort() {}
+ComAddressPort::~ComAddressPort() {}
 
-std::string ComPort::ValueBaudRateToString() const {
+std::string ComAddressPort::ValueBaudRateToString() const {
   switch (baud_rate) {
     case 9600:
       return "9600";
@@ -46,7 +49,7 @@ std::string ComPort::ValueBaudRateToString() const {
   }
 }
 
-std::string ComPort::ValueDataBitsToString() const {
+std::string ComAddressPort::ValueDataBitsToString() const {
   switch (data_bits) {
     case 0:
       return "5";
@@ -61,7 +64,7 @@ std::string ComPort::ValueDataBitsToString() const {
   }
 }
 
-std::string ComPort::ValueStopBitsToString() const {
+std::string ComAddressPort::ValueStopBitsToString() const {
   switch (stop_bits) {
     case 0:
       return "1";
@@ -74,7 +77,7 @@ std::string ComPort::ValueStopBitsToString() const {
   }
 }
 
-std::string ComPort::ValueParityToString() const {
+std::string ComAddressPort::ValueParityToString() const {
   switch (parity) {
     case 0:
       return "none";
@@ -91,7 +94,7 @@ std::string ComPort::ValueParityToString() const {
   }
 }
 
-std::string ComPort::ValueFlowControlToString() const {
+std::string ComAddressPort::ValueFlowControlToString() const {
   switch (flow_control) {
     case 0:
       return "none";
@@ -104,7 +107,8 @@ std::string ComPort::ValueFlowControlToString() const {
   }
 }
 
-int32_t ComPort::ValueBaudRateFromString(const std::string& baud_rate_str) {
+int32_t ComAddressPort::ValueBaudRateFromString(
+    const std::string& baud_rate_str) {
   if (baud_rate_str == "9600") {
     return 9600;
   } else if (baud_rate_str == "19200") {
@@ -120,7 +124,8 @@ int32_t ComPort::ValueBaudRateFromString(const std::string& baud_rate_str) {
   }
 }
 
-int32_t ComPort::ValueDataBitsFromString(const std::string& data_bits_str) {
+int32_t ComAddressPort::ValueDataBitsFromString(
+    const std::string& data_bits_str) {
   if (data_bits_str == "5") {
     return 0;
   } else if (data_bits_str == "6") {
@@ -134,7 +139,8 @@ int32_t ComPort::ValueDataBitsFromString(const std::string& data_bits_str) {
   }
 }
 
-int32_t ComPort::ValueStopBitsFromString(const std::string& stop_bits_str) {
+int32_t ComAddressPort::ValueStopBitsFromString(
+    const std::string& stop_bits_str) {
   std::string str = stop_bits_str;
   std::transform(str.begin(), str.end(), str.begin(), ::tolower);
   if (str == "1") {
@@ -148,7 +154,7 @@ int32_t ComPort::ValueStopBitsFromString(const std::string& stop_bits_str) {
   }
 }
 
-int32_t ComPort::ValueParityFromString(const std::string& parity_str) {
+int32_t ComAddressPort::ValueParityFromString(const std::string& parity_str) {
   std::string str = parity_str;
   std::transform(str.begin(), str.end(), str.begin(), ::tolower);
   if (str == "none") {
@@ -166,7 +172,7 @@ int32_t ComPort::ValueParityFromString(const std::string& parity_str) {
   }
 }
 
-int32_t ComPort::ValueFlowControlFromString(
+int32_t ComAddressPort::ValueFlowControlFromString(
     const std::string& flow_control_str) {
   std::string str = flow_control_str;
   std::transform(str.begin(), str.end(), str.begin(), ::tolower);
@@ -182,12 +188,29 @@ int32_t ComPort::ValueFlowControlFromString(
 }
 
 ////////////////////////////////////////////////////////
-// @brief  ComPortDevice
-ComPortDevice::ComPortDevice() : com_name_("COM1"), com_port_() {}
+// @brief  ComAddressLan
+ComAddressLan::ComAddressLan() : ComBase(2), ip("192.168.1.10"), port(5000) {}
 
-ComPortDevice::ComPortDevice(const std::string& com_name,
-                             const ComPort& com_port)
-    : com_name_(com_name), com_port_(com_port) {}
+ComAddressLan::ComAddressLan(const std::string& ip, int32_t port)
+    : ComBase(2), ip(ip), port(port) {}
+
+////////////////////////////////////////////////////////
+// @brief  ComPortDevice
+ComPortDevice::ComPortDevice() : com_name_("COM1"), com_base_() {}
+
+ComPortDevice::ComPortDevice(const std::string& com_name, ComBase* com_base)
+    : com_name_(com_name), com_base_(com_base) {
+  assert(com_base != nullptr);
+  if (com_base->adrtype == 1) {
+    com_type_ = 1;
+    com_adr_port_ = *static_cast<ComAddressPort*>(com_base);
+    com_base_ = &com_adr_port_;
+  } else if (com_base->adrtype == 2) {
+    com_type_ = 2;
+    com_adr_lan_ = *static_cast<ComAddressLan*>(com_base);
+    com_base_ = &com_adr_lan_;
+  }
+}
 
 ComPortDevice::~ComPortDevice() {}
 
@@ -195,8 +218,8 @@ const std::string& ComPortDevice::GetComName() const {
   return com_name_;
 }
 
-const ComPort& ComPortDevice::GetComPort() const {
-  return com_port_;
+ComBase* ComPortDevice::GetComPort() const {
+  return com_base_;
 }
 
 }  // namespace device

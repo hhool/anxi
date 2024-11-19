@@ -66,14 +66,14 @@ class UltraDeviceTest : public ::testing::Test {
   UltraDevice* ultra_device_;
   std::shared_ptr<anx::device::DeviceComInterface> device_com_interface_;
   DeviceComEvent device_com_event_;
-  ComPort com_port_;
+  ComAddressPort com_port_;
   std::string com_port_name_;
   static const int kSleepTimeMs = 1000;
 };
 
 TEST_F(UltraDeviceTest, OpenClose) {
   anx::device::ComSettings com_settings(anx::device::kDeviceCom_Ultrasound,
-                                        com_port_name_.c_str(), com_port_);
+                                        com_port_name_.c_str(), &com_port_);
   EXPECT_EQ(0, ultra_device_->Open(com_settings));
   anx::common::sleep_ms(kSleepTimeMs);
   ultra_device_->Close();
@@ -81,7 +81,7 @@ TEST_F(UltraDeviceTest, OpenClose) {
 
 TEST_F(UltraDeviceTest, StartStopUltraLoop) {
   anx::device::ComSettings com_settings(anx::device::kDeviceCom_Ultrasound,
-                                        com_port_name_.c_str(), com_port_);
+                                        com_port_name_.c_str(), &com_port_);
   EXPECT_EQ(0, ultra_device_->Open(com_settings));
   EXPECT_EQ(0, ultra_device_->StartUltra());
   anx::common::sleep_ms(kSleepTimeMs);
@@ -91,7 +91,7 @@ TEST_F(UltraDeviceTest, StartStopUltraLoop) {
 
 TEST_F(UltraDeviceTest, GetFaultCode) {
   anx::device::ComSettings com_settings(anx::device::kDeviceCom_Ultrasound,
-                                        com_port_name_.c_str(), com_port_);
+                                        com_port_name_.c_str(), &com_port_);
   EXPECT_EQ(0, ultra_device_->Open(com_settings));
   EXPECT_EQ(0, ultra_device_->GetFaultCode());
   anx::common::sleep_ms(kSleepTimeMs);
@@ -103,7 +103,7 @@ TEST_F(UltraDeviceTest, GetFaultCode) {
 
 TEST_F(UltraDeviceTest, GetCurrentFreq) {
   anx::device::ComSettings com_settings(anx::device::kDeviceCom_Ultrasound,
-                                        com_port_name_.c_str(), com_port_);
+                                        com_port_name_.c_str(), &com_port_);
   EXPECT_EQ(0, ultra_device_->Open(com_settings));
   EXPECT_LT(0, ultra_device_->GetCurrentFreq());
   anx::common::sleep_ms(kSleepTimeMs);
@@ -115,7 +115,7 @@ TEST_F(UltraDeviceTest, GetCurrentFreq) {
 
 TEST_F(UltraDeviceTest, GetCurrentPower) {
   anx::device::ComSettings com_settings(anx::device::kDeviceCom_Ultrasound,
-                                        com_port_name_.c_str(), com_port_);
+                                        com_port_name_.c_str(), &com_port_);
   EXPECT_EQ(0, ultra_device_->Open(com_settings));
   EXPECT_LT(0, ultra_device_->GetCurrentPower());
   anx::common::sleep_ms(kSleepTimeMs);
@@ -127,7 +127,7 @@ TEST_F(UltraDeviceTest, GetCurrentPower) {
 
 TEST_F(UltraDeviceTest, SetAndGetAmplitude) {
   anx::device::ComSettings com_settings(anx::device::kDeviceCom_Ultrasound,
-                                        com_port_name_.c_str(), com_port_);
+                                        com_port_name_.c_str(), &com_port_);
   EXPECT_EQ(0, ultra_device_->Open(com_settings));
   EXPECT_EQ(0, ultra_device_->SetAmplitude(100));
   EXPECT_EQ(100, ultra_device_->GetAmplitude());
@@ -145,7 +145,7 @@ TEST_F(UltraDeviceTest, SetAndGetAmplitude) {
 
 TEST_F(UltraDeviceTest, SetGetWedingTime) {
   anx::device::ComSettings com_settings(anx::device::kDeviceCom_Ultrasound,
-                                        com_port_name_.c_str(), com_port_);
+                                        com_port_name_.c_str(), &com_port_);
   EXPECT_EQ(0, ultra_device_->Open(com_settings));
   EXPECT_EQ(0, ultra_device_->SetWedingTime(90));
   EXPECT_EQ(90, ultra_device_->GetWedingTime());
@@ -163,7 +163,7 @@ TEST_F(UltraDeviceTest, SetGetWedingTime) {
 
 TEST_F(UltraDeviceTest, GetMaxFreq) {
   anx::device::ComSettings com_settings(anx::device::kDeviceCom_Ultrasound,
-                                        com_port_name_.c_str(), com_port_);
+                                        com_port_name_.c_str(), &com_port_);
   EXPECT_EQ(0, ultra_device_->Open(com_settings));
   EXPECT_LT(0, ultra_device_->GetMaxFreq());
   anx::common::sleep_ms(kSleepTimeMs);
@@ -175,7 +175,7 @@ TEST_F(UltraDeviceTest, GetMaxFreq) {
 
 TEST_F(UltraDeviceTest, GetMinFreq) {
   anx::device::ComSettings com_settings(anx::device::kDeviceCom_Ultrasound,
-                                        com_port_name_.c_str(), com_port_);
+                                        com_port_name_.c_str(), &com_port_);
   EXPECT_EQ(0, ultra_device_->Open(com_settings));
   EXPECT_LT(0, ultra_device_->GetMinFreq());
   anx::common::sleep_ms(kSleepTimeMs);
@@ -187,7 +187,7 @@ TEST_F(UltraDeviceTest, GetMinFreq) {
 
 TEST_F(UltraDeviceTest, GetMaxPower) {
   anx::device::ComSettings com_settings(anx::device::kDeviceCom_Ultrasound,
-                                        com_port_name_.c_str(), com_port_);
+                                        com_port_name_.c_str(), &com_port_);
   EXPECT_EQ(0, ultra_device_->Open(com_settings));
   EXPECT_EQ(0, ultra_device_->StartUltra());
   EXPECT_LT(0, ultra_device_->GetMaxPower());
@@ -200,7 +200,7 @@ TEST_F(UltraDeviceTest, GetMaxPower) {
 
 TEST_F(UltraDeviceTest, GetFreqAtMachineOn) {
   anx::device::ComSettings com_settings(anx::device::kDeviceCom_Ultrasound,
-                                        com_port_name_.c_str(), com_port_);
+                                        com_port_name_.c_str(), &com_port_);
   EXPECT_EQ(0, ultra_device_->Open(com_settings));
   EXPECT_LT(0, ultra_device_->GetFreqAtMachineOn());
   anx::common::sleep_ms(kSleepTimeMs);
@@ -212,7 +212,7 @@ TEST_F(UltraDeviceTest, GetFreqAtMachineOn) {
 
 TEST_F(UltraDeviceTest, GetSoftTimeAtMachineOn) {
   anx::device::ComSettings com_settings(anx::device::kDeviceCom_Ultrasound,
-                                        com_port_name_.c_str(), com_port_);
+                                        com_port_name_.c_str(), &com_port_);
   EXPECT_EQ(0, ultra_device_->Open(com_settings));
   EXPECT_LT(0, ultra_device_->GetSoftTimeAtMachineOn());
   anx::common::sleep_ms(kSleepTimeMs);

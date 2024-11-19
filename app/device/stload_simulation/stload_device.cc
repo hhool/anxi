@@ -124,6 +124,11 @@ BOOL CALL OpenDevice(long uUnit) {  // NOLINT
   return TRUE;
 }
 
+BOOL __stdcall OpenDeviceLAN(char* IpAddress, short nPort) {  // NOLINT
+  LOG_F(LOG_LEVEL) << "OpenDeviceLAN";
+  return TRUE;
+}
+
 BOOL CALL CloseDevice() {
   LOG_F(LOG_LEVEL) << "CloseDevice";
   return TRUE;

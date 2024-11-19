@@ -15,6 +15,7 @@
 #include "app/common/module_utils.h"
 #include "app/common/string_utils.h"
 #include "app/esolution/solution_design.h"
+#include "app/ui/dialog_app_settings.h"
 #include "app/ui/ui_constants.h"
 #include "app/ui/work_window.h"
 
@@ -43,10 +44,19 @@ void MainWindow::InitWindow() {
       m_PaintManager.FindControl(_T("work_3point_bending")));
   btn_work_vibration_bending_ = static_cast<CButtonUI*>(
       m_PaintManager.FindControl(_T("work_vibration_bending")));
+  hlayout_work_pilot_e10c_ = static_cast<CHorizontalLayoutUI*>(
+      m_PaintManager.FindControl(_T("hlayout_work_pilot_e10c")));
   btn_work_pilot_e10c_ =
       static_cast<CButtonUI*>(m_PaintManager.FindControl(_T("btn_pilot_e10c")));
-  third_app_list_ = LoadThirdAppList();
+  std::string name = anx::settings::SettingAppThird::GetThirdAppName();
+  if (!name.empty()) {
+    btn_work_pilot_e10c_->SetText(anx::common::UTF8ToUnicode(name).c_str());
+  } else {
+    hlayout_work_pilot_e10c_->SetVisible(false);
+  }
   std::map<std::string, std::string> app_config = LoadAppConfig();
+  btn_app_settings_ = static_cast<CButtonUI*>(
+      m_PaintManager.FindControl(_T("btn_app_settings")));
   CLabelUI* lb_code =
       static_cast<CLabelUI*>(m_PaintManager.FindControl(_T("lb_code")));
   CDuiString lb_text_code =
@@ -86,24 +96,26 @@ void MainWindow::OnClick(DuiLib::TNotifyUI& msg) {
     Switch_Vibration_Bending();
   } else if (msg.pSender == btn_work_pilot_e10c_) {
     Switch_ThirdApp();
+  } else if (msg.pSender == btn_app_settings_) {
+    OnBtnAppSettings();
   } else {
     // TODO(hhool):
   }
 }
 
-LRESULT anx::ui::MainWindow::OnClose(UINT uMsg,
-                                     WPARAM wParam,
-                                     LPARAM lParam,
-                                     BOOL& bHandled) {
+LRESULT MainWindow::OnClose(UINT uMsg,
+                            WPARAM wParam,
+                            LPARAM lParam,
+                            BOOL& bHandled) {
   bHandled = TRUE;
   PostQuitMessage(0);
   return 0;
 }
 
-LRESULT anx::ui::MainWindow::OnSetFocus(UINT /*uMsg*/,
-                                        WPARAM /*wParam*/,
-                                        LPARAM /*lParam*/,
-                                        BOOL& bHandled) {
+LRESULT MainWindow::OnSetFocus(UINT /*uMsg*/,
+                               WPARAM /*wParam*/,
+                               LPARAM /*lParam*/,
+                               BOOL& bHandled) {
   bHandled = TRUE;
   /// @note redraw the window when it is shown again.
   /// @note it is necessary to redraw the window when it is shown again.
@@ -113,10 +125,10 @@ LRESULT anx::ui::MainWindow::OnSetFocus(UINT /*uMsg*/,
   return 0;
 }
 
-LRESULT anx::ui::MainWindow::OnNcHitTest(UINT uMsg,
-                                         WPARAM wParam,
-                                         LPARAM lParam,
-                                         BOOL& bHandled) {
+LRESULT MainWindow::OnNcHitTest(UINT uMsg,
+                                WPARAM wParam,
+                                LPARAM lParam,
+                                BOOL& bHandled) {
   POINT pt;
   pt.x = GET_X_LPARAM(lParam);
   pt.y = GET_Y_LPARAM(lParam);
@@ -143,7 +155,7 @@ LRESULT MainWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
   return __super::HandleMessage(uMsg, wParam, lParam);
 }
 
-void anx::ui::MainWindow::Switch_Axially_Symmetrical() {
+void MainWindow::Switch_Axially_Symmetrical() {
   this->ShowWindow(false, false);
   ui::WorkWindow* work_window = new ui::WorkWindow(
       this, anx::esolution::kSolutionName_Axially_Symmetrical);
@@ -154,7 +166,7 @@ void anx::ui::MainWindow::Switch_Axially_Symmetrical() {
   ::PostMessage(*work_window, WM_SYSCOMMAND, SC_MAXIMIZE, 0);
 }
 
-void anx::ui::MainWindow::Switch_Stresses_Adjustable() {
+void MainWindow::Switch_Stresses_Adjustable() {
   this->ShowWindow(false, false);
   ui::WorkWindow* work_window = new ui::WorkWindow(
       this, anx::esolution::kSolutionName_Stresses_Adjustable);
@@ -165,7 +177,7 @@ void anx::ui::MainWindow::Switch_Stresses_Adjustable() {
   ::PostMessage(*work_window, WM_SYSCOMMAND, SC_MAXIMIZE, 0);
 }
 
-void anx::ui::MainWindow::Switch_Th3point_Bending() {
+void MainWindow::Switch_Th3point_Bending() {
   this->ShowWindow(false, false);
   ui::WorkWindow* work_window =
       new ui::WorkWindow(this, anx::esolution::kSolutionName_Th3point_Bending);
@@ -176,7 +188,7 @@ void anx::ui::MainWindow::Switch_Th3point_Bending() {
   ::PostMessage(*work_window, WM_SYSCOMMAND, SC_MAXIMIZE, 0);
 }
 
-void anx::ui::MainWindow::Switch_Vibration_Bending() {
+void MainWindow::Switch_Vibration_Bending() {
   this->ShowWindow(false, false);
   ui::WorkWindow* work_window =
       new ui::WorkWindow(this, anx::esolution::kSolutionName_Vibration_Bending);
@@ -187,55 +199,33 @@ void anx::ui::MainWindow::Switch_Vibration_Bending() {
   ::PostMessage(*work_window, WM_SYSCOMMAND, SC_MAXIMIZE, 0);
 }
 
-void anx::ui::MainWindow::Switch_ThirdApp() {
-  if (third_app_list_.empty()) {
-    return;
-  }
-  std::string path = third_app_list_.begin()->c_str();
+void MainWindow::Switch_ThirdApp() {
+  std::string filepath = anx::settings::SettingAppThird::GetThirdAppPath();
   // check the path is valid and exists
-  if (path.empty() || !anx::common::FileExists(path)) {
+  if (filepath.empty() || !anx::common::FileExists(filepath)) {
     return;
   }
   ShellExecute(NULL, _T("open"),
-               anx::common::String2WString(path.c_str()).c_str(), NULL, NULL,
-               SW_SHOW);
+               anx::common::String2WString(filepath.c_str()).c_str(), NULL,
+               NULL, SW_SHOW);
 }
 
-std::vector<std::string> anx::ui::MainWindow::LoadThirdAppList() {
-  std::string module_dir = anx::common::GetModuleDir();
-  if (module_dir.empty()) {
-    return std::vector<std::string>();
+void MainWindow::OnBtnAppSettings() {
+  DialogAppSettings* dialog_app_settings = new DialogAppSettings(this);
+  dialog_app_settings->Create(*this, _T("dialog_app_settings"),
+                              UI_WNDSTYLE_FRAME,
+                              WS_EX_STATICEDGE | WS_EX_APPWINDOW, 0, 0);
+  dialog_app_settings->CenterWindow();
+  dialog_app_settings->ShowModal();
+  /// @note update the third app name and path
+  std::string name = anx::settings::SettingAppThird::GetThirdAppName();
+  if (!name.empty()) {
+    btn_work_pilot_e10c_->SetText(anx::common::UTF8ToUnicode(name).c_str());
+  } else {
+    hlayout_work_pilot_e10c_->SetVisible(false);
   }
-  std::string module_path = module_dir + "\\default\\third_app.xml";
-  std::vector<std::string> third_app_list;
-  tinyxml2::XMLDocument doc;
-  if (doc.LoadFile(module_path.c_str()) != tinyxml2::XML_SUCCESS) {
-    return std::vector<std::string>();
-  }
-  tinyxml2::XMLElement* root = doc.RootElement();
-  if (root == nullptr) {
-    return std::vector<std::string>();
-  }
-  tinyxml2::XMLElement* ele_item = root->FirstChildElement("item");
-  if (ele_item == nullptr) {
-    return std::vector<std::string>();
-  }
-  do {
-    if (ele_item == nullptr) {
-      break;
-    }
-    tinyxml2::XMLElement* ele_name = ele_item->FirstChildElement("name");
-    if (ele_name == nullptr) {
-      break;
-    }
-    tinyxml2::XMLElement* ele_path = ele_item->FirstChildElement("path");
-    if (ele_path == nullptr) {
-      break;
-    }
-    third_app_list.push_back(ele_path->GetText());
-  } while (ele_item = ele_item->NextSiblingElement("item"));
-  return third_app_list;
 }
+
 
 std::map<std::string, std::string> MainWindow::LoadAppConfig() {
   std::map<std::string, std::string> app_config;

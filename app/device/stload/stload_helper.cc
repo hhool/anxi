@@ -64,9 +64,14 @@ static bool LoadConfig(ConfigStLoad* config) {
 STLoadLoader anx::device::stload::STLoadHelper::st_load_loader_;
 bool anx::device::stload::STLoadHelper::is_stload_simulation_ = false;
 
-bool STLoadHelper::InitStLoad() {
+bool STLoadHelper::InitStLoad(int32_t version) {
   std::string module_dir = anx::common::GetModuleDir();
-  std::string module_path = module_dir + "\\CTRL.dll";
+  std::string module_path = module_dir;
+  if (version == 1) {
+    module_path += "\\CTRL.dll";
+  } else {
+    module_path += "\\CTRL2.dll";
+  }
   ConfigStLoad config_stload;
   LoadConfig(&config_stload);
   if (config_stload.use_stload_simulation) {
@@ -76,11 +81,13 @@ bool STLoadHelper::InitStLoad() {
   if (!STLoadLoader::Load(module_path)) {
     return false;
   }
-  STLoadLoader::st_api_.load_hardware_parameters(4);
+  if (version == 1) {
+	STLoadLoader::st_api_.load_hardware_parameters(4);
+  }
   return true;
 }
 
-int32_t STLoadHelper::STLoadSetup() {
+int32_t STLoadHelper::STLoadSetup(int32_t version) {
   int machineType = 4;
   int nDTCType = 2;
   int nCommport = 4;
@@ -90,7 +97,12 @@ int32_t STLoadHelper::STLoadSetup() {
   int TestSpace = 0;
   int nDataBlockSize = 2;
   bool isAE = false;
-
+  if (version == 2) {
+    rate = 150;
+    machineType = 0;
+    nDTCType = 0;
+    nDataBlockSize = 5;
+  }
   // 力传感器P值
   int lLoad_P = 20;
   int lLoad_I = 0;

@@ -29,17 +29,19 @@ namespace device {
 // constants
 extern const int32_t kDeviceCom_Ultrasound;
 extern const int32_t kDeviceCom_StaticLoad;
+extern const int32_t kDeviceLan_StaticLoad;
 
-class ComSettings : public ComPortDevice {
+class ComSettings {
  public:
   ComSettings(int32_t device_com_type,
               const std::string& com_name,
-              const ComPort& com_port);
+              ComBase* com_base);
   virtual ~ComSettings();
 
  public:
   int32_t GetDeviceComType() const;
 
+  ComPortDevice* GetComPortDevice() const { return device_com_port_.get(); }
   /// @brief  ToXml function
   /// @param close_tag
   /// @return  std::string
@@ -48,6 +50,7 @@ class ComSettings : public ComPortDevice {
  protected:
   /// @brief device com type @see kDeviceCom_Ultrasound, kDeviceCom_StaticLoad,
   int32_t device_com_type_;
+  std::unique_ptr<ComPortDevice> device_com_port_;
 
  public:
   static std::unique_ptr<ComSettings> FromXml(const std::string& xml);

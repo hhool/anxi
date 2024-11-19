@@ -56,6 +56,8 @@ bool STLoadLoader::Load(const std::string& dll_path) {
       GetProcAddress(h_module_, "GetExtendSensors"));
   st_api_.open_device =
       reinterpret_cast<OpenDevice>(GetProcAddress(h_module_, "OpenDevice"));
+  st_api_.open_device_lan = reinterpret_cast<OpenDeviceLAN>(
+      GetProcAddress(h_module_, "OpenDeviceLAN"));
   st_api_.close_device =
       reinterpret_cast<CloseDevice>(GetProcAddress(h_module_, "CloseDevice"));
 
@@ -126,6 +128,9 @@ bool STLoadLoader::Load(const std::string& dll_path) {
       st_api_.set_dest_wnd == nullptr || st_api_.get_load == nullptr) {
     FreeLibrary(h_module_);
     return false;
+  }
+  if (st_api_.open_device_lan == nullptr) {
+    printf("open_device_lane is nullptr, stload is version 1\n");
   }
 
   handle_ = h_module_;

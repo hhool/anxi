@@ -43,7 +43,8 @@ int32_t UltraDevice::Open(const anx::device::ComSettings& com_settings) {
     return -1;
   }
 
-  if (port_device_->Open(com_settings) != 0) {
+  anx::device::ComPortDevice com_port_device = *com_settings.GetComPortDevice();
+  if (port_device_->Open(com_port_device) != 0) {
     LOG_F(LG_ERROR) << "port device open failed";
     return -2;
   }

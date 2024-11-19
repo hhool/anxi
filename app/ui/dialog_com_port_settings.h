@@ -19,7 +19,7 @@
 
 namespace anx {
 namespace device {
-class ComPort;
+class ComAddressPort;
 }  // namespace device
 }  // namespace anx
 
@@ -69,7 +69,7 @@ class DialogComPortSettings : public DuiLib::WindowImplBase {
 
  protected:
   void SaveComInfoFromControlAll();
-  void SaveComInfoFromControl(std::string tail_prefix);
+  void SaveComInfoFromControl(std::string tail_prefix, int32_t adrtype = 1);
 
   std::string GetComPortNameFromControl(std::string tail_prefix);
   std::string GetBaudRateFromControl(std::string tail_prefix);
@@ -89,6 +89,11 @@ class DialogComPortSettings : public DuiLib::WindowImplBase {
   void SetParityToControl(std::string tail_prefix, std::string parity);
   void SetFlowControlToControl(std::string tail_prefix,
                                std::string flow_control);
+
+  std::string GetIpAdrFromControl(std::string tail_prefix);
+  int32_t GetPortFromControl(std::string tail_prefix);
+  void SetIpAdrToControl(std::string tail_prefix, std::string ip_adr);
+  void SetPortToControl(std::string tail_prefix, int32_t port);
 
  private:
   CButtonUI* btn_close_;

@@ -19,12 +19,21 @@ namespace anx {
 namespace device {
 
 ////////////////////////////////////////////////////////////
-// struct ComPort
-
-class ComPort {
+// struct ComAddressPort
+class ComBase {
  public:
-  ComPort();
-  virtual ~ComPort();
+  explicit ComBase(int32_t type = 1) : adrtype(type) {}
+  virtual ~ComBase() {}
+
+ public:
+  /// @brief  address type 1: com, 2: lan
+  int32_t adrtype;
+};
+
+class ComAddressPort : public ComBase {
+ public:
+  ComAddressPort();
+  ~ComAddressPort() override;
 
  public:
   // @brief baud rate 9600, 19200, 38400, 57600, 115200
@@ -73,19 +82,33 @@ class ComPort {
       const std::string& flow_control_str);
 };
 
+class ComAddressLan : public ComBase {
+ public:
+  ComAddressLan();
+  ComAddressLan(const std::string& ip, int32_t port);
+  ~ComAddressLan() override {}
+
+ public:
+  std::string ip;
+  int32_t port;
+};
+
 class ComPortDevice {
  public:
   ComPortDevice();
-  ComPortDevice(const std::string& com_name, const ComPort& com_port);
+  ComPortDevice(const std::string& com_name, ComBase* com_port);
   virtual ~ComPortDevice();
 
  public:
   const std::string& GetComName() const;
-  const ComPort& GetComPort() const;
+  ComBase* GetComPort() const;
 
  protected:
   std::string com_name_;
-  ComPort com_port_;
+  ComBase* com_base_;
+  int32_t com_type_;
+  ComAddressPort com_adr_port_;
+  ComAddressLan com_adr_lan_;
 };
 
 ////////////////////////////////////////////////////////////

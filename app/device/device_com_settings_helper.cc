@@ -27,6 +27,8 @@ std::string DefaultDeviceComSettingsXmlFilePath(int32_t device_com_type) {
     return "default/com_settings_ua.xml";
   } else if (device_com_type == kDeviceCom_StaticLoad) {
     return "default/com_settings_sl.xml";
+  } else if (device_com_type == kDeviceLan_StaticLoad) {
+    return "default/com_settings_sl2.xml";
   }
   return "";
 }

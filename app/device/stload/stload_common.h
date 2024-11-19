@@ -41,10 +41,9 @@
 #define END_TIME 3  // 时间相对量,0.01s
 
 // 运行方向DIR_XXXX
-#define DIR_NO 0  // 方向由下位机自己定义
-#define DIR_UP 1  // 正向
+#define DIR_NO 0     // 方向由下位机自己定义
+#define DIR_UP 1     // 正向
 #define DIR_DOWN -1  // 负向
-
 
 #define KP_DEST 0  // 保持指定值
 #define KP_CURR 1  // 保持当前值
@@ -150,6 +149,7 @@ typedef char*(CALL* GetExtensions)();
 typedef char*(CALL* GetExtendSensors)();
 
 typedef BOOL(CALL* OpenDevice)(long uUnit);  // NOLINT
+typedef BOOL(CALL* OpenDeviceLAN)(char* IpAddress, short nPort);  // NOLINT
 typedef BOOL(CALL* CloseDevice)();
 typedef BOOL(CALL* EndRead)();
 typedef BOOL(CALL* OnLine)(long channelNo,  // NOLINT
@@ -270,6 +270,7 @@ struct stload_api {
   GetExtensions get_extensions;
   GetExtendSensors get_extend_sensors;
   OpenDevice open_device;
+  OpenDeviceLAN open_device_lan;
   CloseDevice close_device;
   OnLine on_line;
   OffLine off_line;

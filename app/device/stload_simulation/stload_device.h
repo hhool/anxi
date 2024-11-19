@@ -516,6 +516,7 @@ STLOAD_SIMULATION_API char* __stdcall GetExtensions();
 STLOAD_SIMULATION_API char* __stdcall GetExtendSensors();
 
 STLOAD_SIMULATION_API BOOL __stdcall OpenDevice(long Unit);  // NOLINT
+STLOAD_SIMULATION_API BOOL __stdcall OpenDeviceLAN(char* IpAddress, short nPort);   // NOLINT
 STLOAD_SIMULATION_API BOOL __stdcall CloseDevice();
 
 STLOAD_SIMULATION_API void __stdcall SetTestDir(long dir);   // NOLINT

@@ -74,9 +74,9 @@ class MainWindow : public DuiLib::WindowImplBase {
   void Switch_Th3point_Bending();
   void Switch_Vibration_Bending();
   void Switch_ThirdApp();
+  void OnBtnAppSettings();
 
  protected:
-  std::vector<std::string> LoadThirdAppList();
   std::map<std::string, std::string> LoadAppConfig();
 
  private:
@@ -85,8 +85,9 @@ class MainWindow : public DuiLib::WindowImplBase {
   CButtonUI* btn_work_stresses_adjustable_;
   CButtonUI* btn_work_th3point_bending_;
   CButtonUI* btn_work_vibration_bending_;
+  CHorizontalLayoutUI* hlayout_work_pilot_e10c_;
   CButtonUI* btn_work_pilot_e10c_;
-  std::vector<std::string> third_app_list_;
+  CButtonUI* btn_app_settings_;
 };
 }  // namespace ui
 }  // namespace anx

@@ -226,6 +226,10 @@ if(WIN32)
         ui/dialog_about.h
         ui/dialog_amplitude_calibration_settings.cc
         ui/dialog_amplitude_calibration_settings.h
+        ui/dialog_app_settings_helper.cc
+        ui/dialog_app_settings_helper.h
+        ui/dialog_app_settings.cc
+        ui/dialog_app_settings.h
         ui/dialog_com_port_settings.cc
         ui/dialog_com_port_settings.h
         ui/dialog_common.cc
@@ -322,6 +326,9 @@ set_target_properties(app_exe PROPERTIES OUTPUT_NAME ${PRODUCT_NAME})
 add_custom_command(TARGET app_exe POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${PROJECT_SOURCE_DIR}/resource/pilot/etm ${PROJECT_BINARY_DIR}/../bin/${CMAKE_BUILD_TYPE}/)
+add_custom_command(TARGET app_exe POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${PROJECT_SOURCE_DIR}/resource/pilot/etm2 ${PROJECT_BINARY_DIR}/../bin/${CMAKE_BUILD_TYPE}/)
 add_custom_command(TARGET app_exe POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${PROJECT_SOURCE_DIR}/resource/skin ${PROJECT_BINARY_DIR}/../bin/${CMAKE_BUILD_TYPE}/skin)

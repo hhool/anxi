@@ -34,6 +34,7 @@
 #include "app/esolution/solution_design.h"
 #include "app/esolution/solution_design_default.h"
 #include "app/esolution/solution_design_helper.h"
+#include "app/ui/dialog_app_settings_helper.h"
 #include "app/ui/dialog_com_port_settings.h"
 #include "app/ui/dialog_common.h"
 #include "app/ui/dialog_exp_data_record.h"
@@ -73,7 +74,13 @@ WorkWindow::WorkWindow(DuiLib::WindowImplBase* pOwner, int32_t solution_type)
   is_device_stload_connected_ = false;
   is_device_ultra_connected_ = false;
 
-  anx::device::stload::STLoadHelper::InitStLoad();
+  // initial device com
+  int32_t ver = anx::settings::SettingSTLoad::GetEnableStloadVersion();
+  if (ver == 2) {
+    anx::device::stload::STLoadHelper::InitStLoad(2);
+  } else {
+    anx::device::stload::STLoadHelper::InitStLoad(1);
+  }
   anx::device::ultrasonic::UltrasonicHelper::InitUltrasonic();
   // database initial
   // remove database
@@ -614,12 +621,12 @@ LRESULT WorkWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
         if (lss->direct_ == 1) {
           str_value = "↑ ";
           /// load with .1f to string
-          str_value.append(to_string_with_precision(load, 1));
+          str_value.append(to_string_with_precision(load, 3));
         } else if (lss->direct_ == 2) {
           str_value = "↓ ";
-          str_value.append(to_string_with_precision(load, 1));
+          str_value.append(to_string_with_precision(load, 3));
         } else {
-          str_value = to_string_with_precision(load, 1);
+          str_value = to_string_with_precision(load, 3);
         }
         btn_args_area_value_static_load_n_->SetText(
             anx::common::UTF8ToUnicode(str_value.c_str()).c_str());
@@ -637,12 +644,12 @@ LRESULT WorkWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
         /// move up
         if (lss->direct_ == 1) {
           str_value = "↑ ";
-          str_value.append(to_string_with_precision(pos, 1));
+          str_value.append(to_string_with_precision(pos, 4));
         } else if (lss->direct_ == 2) {
           str_value = "↓ ";
-          str_value.append(to_string_with_precision(pos, 1));
+          str_value.append(to_string_with_precision(pos, 4));
         } else {
-          str_value = to_string_with_precision(pos, 1);
+          str_value = to_string_with_precision(pos, 4);
         }
         btn_args_area_value_static_shift_mm_->SetText(
             anx::common::UTF8ToUnicode(str_value.c_str()).c_str());
@@ -904,7 +911,12 @@ void WorkWindow::OnMenuDeviceConnectClicked(DuiLib::TNotifyUI& msg) {
         *this, "提示", "连接失败，超声连接失败",
         anx::ui::DialogCommon::kDialogCommonStyleOk);
   }
-  ret = OpenDeviceCom(anx::device::kDeviceCom_StaticLoad);
+  int32_t ver = anx::settings::SettingSTLoad::GetEnableStloadVersion();
+  if (ver == 2) {
+    ret = OpenDeviceCom(anx::device::kDeviceLan_StaticLoad);
+  } else {
+    ret = OpenDeviceCom(anx::device::kDeviceCom_StaticLoad);
+  }
   if (ret == 0) {
     is_device_stload_connected_ = true;
   } else if (ret < 0) {
@@ -972,11 +984,13 @@ int32_t WorkWindow::OpenDeviceCom(int32_t device_type) {
     if (com_settings == nullptr) {
       return -1;
     }
-    int32_t port = PortNameToInt32(com_settings->GetComName());
+    int32_t port =
+        PortNameToInt32(com_settings->GetComPortDevice()->GetComName());
     if (port >= 0) {
       bool bSuccess =
           anx::device::stload::STLoadHelper::st_load_loader_.st_api_
-                  .open_device(PortNameToInt32(com_settings->GetComName()))
+                  .open_device(PortNameToInt32(
+                      com_settings->GetComPortDevice()->GetComName()))
               ? true
               : false;
       if (!bSuccess) {
@@ -992,6 +1006,37 @@ int32_t WorkWindow::OpenDeviceCom(int32_t device_type) {
       }
     } else {
       return -2;
+    }
+  } else if (device_type == anx::device::kDeviceLan_StaticLoad) {
+    std::unique_ptr<anx::device::ComSettings> com_settings =
+        anx::device::LoadDeviceComSettingsDefaultResourceWithType(
+            anx::device::kDeviceLan_StaticLoad);
+    if (com_settings == nullptr) {
+      return -1;
+    }
+    anx::device::ComBase* com_base =
+        com_settings->GetComPortDevice()->GetComPort();
+    if (com_base == nullptr) {
+      return -1;
+    }
+    anx::device::ComAddressLan* com_address_lan =
+        static_cast<anx::device::ComAddressLan*>(com_base);
+    char ip[1024] = {0};
+    ip[1023] = '\0';
+    strncpy(ip, com_address_lan->ip.c_str(), 1023);
+    bool bSuccess = anx::device::stload::STLoadHelper::st_load_loader_.st_api_
+                            .open_device_lan(ip, com_address_lan->port)
+                        ? true
+                        : false;
+    if (!bSuccess) {
+      LOG_F(LG_ERROR) << "OpenDevice failed";
+      return -1;
+    }
+    bSuccess =
+        (anx::device::stload::STLoadHelper::STLoadSetup(2) == 0) ? true : false;
+    if (!bSuccess) {
+      LOG_F(LG_ERROR) << "STLoadSetup failed";
+      return -1;
     }
   } else {
     assert(false && "Invalid device type");
