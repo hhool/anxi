@@ -558,7 +558,15 @@ void WorkWindowSecondPageData::ExportToCSV(int64_t start_time) {
   // TODO(hhool): auto save the data to the file
   // file path is execuatable path/recored/xxx.csv
   // file format is csv
-  anx::expdata::SaveExperimentDataToCsvWithDefaultPath(exp_datas, start_time);
+  std::string file_pathname_csv;
+  int ret = anx::expdata::SaveExperimentDataToCsvWithDefaultPath(
+      exp_datas, start_time, &file_pathname_csv);
+  if (ret != 0) {
+    LOG_F(LG_ERROR) << "save exp data to csv failed";
+    return;
+  }
+  anx::expdata::SaveReportToDocxWithDefaultPath(
+      anx::expdata::ExperimentReport(), file_pathname_csv, "report.docx");
 }
 
 }  // namespace ui

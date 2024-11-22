@@ -37,7 +37,8 @@ class ExperimentData {
 /// @return the experiment data vector
 int32_t SaveExperimentDataToCsvWithDefaultPath(
     const std::vector<anx::expdata::ExperimentData>& exp_data,
-    int64_t start_time);
+    int64_t start_time,
+    std::string* file_pathname = nullptr);
 
 class ExperimentFileSummary {
  public:
@@ -55,6 +56,63 @@ class ExperimentFileSummary {
 /// @return int32_t 0 if success, -1 if failed
 int32_t TraverseExpDataFolder(
     std::vector<anx::expdata::ExperimentFileSummary>* exp_file_list);
+
+class ExperimentReport {
+ public:
+  ExperimentReport();
+  virtual ~ExperimentReport();
+
+ public:
+  /// @brief generate xml file with experiment final result and experiment
+  /// parameters.
+  /// @return std::string
+  /// example:
+  ///
+  /// <ExperimentReport>
+  ///     <StartTime>2022-01-01 12:00:00</StartTime>
+  ///     <EndTime>2022-01-01 13:00:00</EndTime>
+  ///     <ExperimentName>Sample ExperimentReport</ExperimentName>
+  ///     <ElasticModulus>100 GPa</ElasticModulus>
+  ///     <Density>2.7 g/cm^3</Density>
+  ///     <MaxStress>200 MPa</MaxStress>
+  ///     <RatioOfStress>0.5</RatioOfStress>
+  ///     <CycleCount>1000</CycleCount>
+  ///     <BottomAmplitude>10 mm</BottomAmplitude>
+  /// </ExperimentReport>
+  std::string ToXml() const;
+
+ public:
+  /// @brief experiment start time
+  uint64_t start_time_ = 0;
+  /// @brief experiment end time
+  uint64_t end_time_ = 0;
+  /// @brief experiment name
+  std::string experiment_name_ = "";
+  /// @brief unit: GPa
+  double elastic_modulus_ = 0;
+  /// @brief unit: g/cm^3
+  double density_ = 0;
+  /// @brief unit: MPa
+  double max_stress_ = 0;
+  /// @brief unit: none
+  double ratio_stress_ = 0;
+  int64_t cycle_count_ = 0;
+  /// @brief unit: mm
+  double amplitude_ = 0;
+  /// @brief IntermittentExp 1 or ContinuousExp 0
+  int32_t exp_type_ = 0;
+  /// @brief excitation time in ms valid when exp_type_ is IntermittentExp
+  int32_t excitation_time = 0;
+  /// @brief interval time in ms valid when exp_type_ is IntermittentExp
+  int32_t interval_time = 0;
+  /// @brief exp_mode 0 - linear, 1 - exponent
+  int32_t exp_mode = 0;
+};
+
+/// @brief Save the report to the docx file
+int32_t SaveReportToDocxWithDefaultPath(const ExperimentReport& exp_report,
+                                        const std::string& cvs_file_pathname,
+                                        const std::string& file_name);
 
 }  // namespace expdata
 }  // namespace anx
