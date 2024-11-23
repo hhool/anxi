@@ -14,10 +14,13 @@
 #include <string>
 
 #if defined(_WIN32) || defined(_WIN64)
+#include <shlobj.h>
 #include <windows.h>
 #else
 #include <unistd.h>
 #endif
+
+#include "app/common/string_utils.h"
 
 namespace anx {
 namespace common {
@@ -63,27 +66,78 @@ std::string GetModuleName() {
   return path;
 }
 
+bool FolderPathExist(const std::string& dir) {
+#if defined(_WIN32) || defined(_WIN64)
+  DWORD dwAttr = GetFileAttributes(String2WString(dir).c_str());
+  if (dwAttr == 0xffffffff || !(dwAttr & FILE_ATTRIBUTE_DIRECTORY)) {
+    return false;
+  }
+  return true;
+#else
+  if (access(dir.c_str(), 0) != 0) {
+    return false;
+  }
+  return true;
+#endif
+}
+
 bool MakeSureFolderPathExist(const std::string& path) {
   std::string dir = path;
   if (dir.empty()) {
     return false;
   }
-  // find the last '/' or '\'
-  size_t pos = dir.find_last_of("/\\");
-  if (pos == std::string::npos) {
+  /// check if the directory exists
+  if (FolderPathExist(dir)) {
+    return true;
+  }
+  /// check last word of the path is not a directory, then remove the last word.
+  /// get the last word of the path
+  std::string::size_type last_pos = dir.find_last_of("\\/");
+  if (last_pos == std::string::npos) {
     return false;
   }
-  dir = dir.substr(0, pos);
-  bool ret = false;
+  std::string last_word = dir.substr(last_pos + 1);
+  if (last_word.empty()) {
+    return false;
+  }
+  /// check last word with file extension
+  if (last_word.find(".") != std::string::npos) {
+    dir = dir.substr(0, last_pos);
+  }
+  /// create the directory. loop to create the directory
+  std::string::size_type pos = 0;
+  bool reached_end = false;
+  while (!reached_end) {
+    pos = dir.find_first_of("\\/", pos + 1);
+    if (pos == std::string::npos) {
+      pos = dir.size();
+      reached_end = true;
+    }
+    std::string sub_dir = dir.substr(0, pos);
+    if (!FolderPathExist(sub_dir)) {
 #if defined(_WIN32) || defined(_WIN64)
-  CreateDirectoryA(dir.c_str(), NULL);
-  // TODO(hhool):
-  ret = true;
+      if (!CreateDirectory(anx::common::UTF8ToUnicode(sub_dir).c_str(), NULL)) {
+        return false;
+      }
 #else
-  ret = mkdir(dir.c_str(), 0777) == 0;
+      if (mkdir(sub_dir.c_str(), 0777) != 0) {
+        return false;
+      }
 #endif
-  return ret;
+    }
+  }
+  return true;
 }
 
+std::string GetApplicationDataPath() {
+#if defined(_WIN32) || defined(_WIN64)
+  char path[MAX_PATH];
+  SHGetSpecialFolderPathA(NULL, path, CSIDL_APPDATA, FALSE);
+  std::string app_path(path);
+  return app_path;
+#else
+  return "";
+#endif
+}
 }  // namespace common
 }  // namespace anx

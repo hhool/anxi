@@ -118,6 +118,9 @@ set_property(TARGET SQLite3 PROPERTY FOLDER "third_party")
 add_subdirectory(third_party/tinyxml2)
 set_property(TARGET tinyxml2 PROPERTY FOLDER "third_party")
 
+add_subdirectory(third_party/todocx)
+set_property(TARGET todocx PROPERTY FOLDER "third_party")
+
 if(TARGET xmltest)
     set_property(TARGET xmltest PROPERTY FOLDER "third_party")
 endif()

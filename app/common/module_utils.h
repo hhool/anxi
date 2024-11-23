@@ -28,10 +28,27 @@ std::string GetModuleDir();
 /// @return the module name
 std::string GetModuleName();
 
+/// @brief Folder path exist
+/// @param dir the directory
+/// @return true if the directory exists, otherwise false
+bool FolderPathExist(const std::string& dir);
+
 /// @brief Make sure the directory exists
 /// @param dir the directory
 /// @return true if success, otherwise false
+/// @note if the directory does not exist, it will create the directory
+/// @note if the directory exists, it will return true
+/// @note if the directory exists but not a directory, it will return false
+/// @note if the directory exists but not writable, it will return false
+/// @note if the directory exists but not readable, it will return false
+/// @note e.g. MakeSureFolderPathExist("C:/test") will return true if the
+/// directory exists, otherwise it will create the directory and return true
 bool MakeSureFolderPathExist(const std::string& dir);
+
+/// @brief Get the AppData path
+/// @return the AppData path
+std::string GetApplicationDataPath();
+
 }  // namespace common
 }  // namespace anx
 

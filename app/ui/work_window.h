@@ -18,6 +18,7 @@
 
 #include "app/device/device_com.h"
 #include "app/device/ultrasonic/ultra_device.h"
+#include "app/expdata/experiment_data_base.h"
 #include "app/ui/ui_virtual_wnd_base.h"
 #include "app/ui/work_window_tab_main_first_page_solution_design_base.h"
 #include "app/ui/work_window_tab_main_second_page_base.h"
@@ -42,6 +43,7 @@ class CMenuDesignWnd;
 class CMenuStoreWnd;
 class WorkWindowStatusBar;
 class WorkWindowSecondPage;
+class WorkWindowSecondPageData;
 class WorkWindowThirdPage;
 }  // namespace ui
 }  // namespace anx
@@ -130,6 +132,7 @@ class WorkWindow : public DuiLib::WindowImplBase,
   friend class WorkWindowFirstPageTh3pointBending;
   friend class WorkWindowStatusBar;
   friend class WorkWindowSecondPage;
+  friend class WorkWindowSecondPageData;
   friend class WorkWindowThirdPage;
   /// @brief Is device com interface connected
   bool IsDeviceComInterfaceConnected() const;
@@ -161,10 +164,7 @@ class WorkWindow : public DuiLib::WindowImplBase,
 
  protected:
   void OnExpStart();
-  void OnExpStop() {
-    // TODO(hhool):
-    is_exp_state_ = kExpStateStop;
-  }
+  void OnExpStop();
   void OnExpPause() {
     // TODO(hhool):
     is_exp_state_ = kExpStatePause;
@@ -197,6 +197,8 @@ class WorkWindow : public DuiLib::WindowImplBase,
   /// @brief exp status
   /// 0 - stop, 1 - start, 2 - pause, <0 - unvalid
   int32_t is_exp_state_ = kExpStateUnvalid;
+  /// @brief exp report data
+  std::unique_ptr<anx::expdata::ExperimentReport> exp_report_;
 
   CButtonUI* btn_close_;
   CButtonUI* btn_max_;

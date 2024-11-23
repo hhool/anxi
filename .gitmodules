@@ -22,3 +22,6 @@
 [submodule "third_party/zlib/source"]
 	path = third_party/zlib/source
 	url = git@github.com:hhool/zlib.git
+[submodule "third_party/todocx/source"]
+	path = third_party/todocx/source
+	url = git@github.com:hhool/anxi_todocx.git

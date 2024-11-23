@@ -1082,6 +1082,26 @@ void WorkWindow::OnExpStart() {
     LOG_F(LG_ERROR) << "SolutionDesignFromPage failed";
     return;
   }
+
+  exp_report_.reset(new anx::expdata::ExperimentReport());
+  exp_report_->start_time_ = time(nullptr);
+  exp_report_->elastic_modulus_ = design->base_param_->f_elastic_modulus_GPa_;
+  exp_report_->density_ = design->base_param_->f_density_kg_m3_;
+  exp_report_->max_stress_ = design->base_param_->f_max_stress_MPa_;
+  exp_report_->ratio_stress_ = design->base_param_->f_stress_ratio_;
+  exp_report_->amplitude_ =
+      reinterpret_cast<anx::esolution::ExpDesignResult0*>(design->result_.get())
+          ->f_eamplitude_;
+  exp_report_->experiment_name_.assign(
+      design->header_->name_,
+      design->header_->name_ + strlen((const char*)(design->header_->name_)));
+  std::unique_ptr<anx::device::DeviceUltrasoundSettings> dus =
+      anx::device::LoadDeviceUltrasoundSettingsDefaultResource();
+  if (dus != nullptr) {
+    exp_report_->exp_type_ = dus->exp_clipping_enable_;
+    exp_report_->excitation_time_ = dus->exp_clip_time_duration_;
+    exp_report_->interval_time_ = dus->exp_clip_time_paused_;
+  }
   DuiLib::TNotifyUI msg;
   msg.pSender = this->h_layout_args_area_;
   msg.sType = kValueChanged;
@@ -1091,6 +1111,13 @@ void WorkWindow::OnExpStart() {
   msg.wParam = reinterpret_cast<WPARAM>(&enmsg);
   tab_main_pages_["WorkWindowThirdPage"]->NotifyPump(msg);
   tab_main_pages_["WorkWindowSecondPage"]->NotifyPump(msg);
+}
+
+void WorkWindow::OnExpStop() {
+  is_exp_state_ = kExpStateStop;
+  if (exp_report_.get()) {
+    exp_report_->end_time_ = time(nullptr);
+  }
 }
 
 void WorkWindow::ClearArgsFreqNum() {
@@ -1106,6 +1133,9 @@ void WorkWindow::UpdateArgsArea(int64_t cycle_count,
   // update cycle count
   if (cycle_count >= 0) {
     set_value_to_button(btn_args_area_value_freq_num_, cycle_count);
+    if (exp_report_.get()) {
+      exp_report_->cycle_count_ = cycle_count;
+    }
   }
   // update freq
   if (freq >= 0) {

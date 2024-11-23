@@ -96,17 +96,18 @@ class ExperimentReport {
   double max_stress_ = 0;
   /// @brief unit: none
   double ratio_stress_ = 0;
+  /// @brief unit: none
   int64_t cycle_count_ = 0;
   /// @brief unit: mm
   double amplitude_ = 0;
   /// @brief IntermittentExp 1 or ContinuousExp 0
   int32_t exp_type_ = 0;
   /// @brief excitation time in ms valid when exp_type_ is IntermittentExp
-  int32_t excitation_time = 0;
+  int64_t excitation_time_ = 0;
   /// @brief interval time in ms valid when exp_type_ is IntermittentExp
-  int32_t interval_time = 0;
-  /// @brief exp_mode 0 - linear, 1 - exponent
-  int32_t exp_mode = 0;
+  int64_t interval_time_ = 0;
+  /// @brief exp_mode_ 0 - linear, 1 - exponent
+  int32_t exp_mode_ = 0;
 };
 
 /// @brief Save the report to the docx file

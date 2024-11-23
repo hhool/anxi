@@ -565,8 +565,13 @@ void WorkWindowSecondPageData::ExportToCSV(int64_t start_time) {
     LOG_F(LG_ERROR) << "save exp data to csv failed";
     return;
   }
-  anx::expdata::SaveReportToDocxWithDefaultPath(
-      anx::expdata::ExperimentReport(), file_pathname_csv, "report.docx");
+  if (pWorkWindow_->exp_report_.get() == nullptr) {
+    LOG_F(LG_ERROR) << "exp report is nullptr";
+    return;
+  }
+  anx::expdata::ExperimentReport report = *(pWorkWindow_->exp_report_.get());
+  anx::expdata::SaveReportToDocxWithDefaultPath(report, file_pathname_csv,
+                                                "report.docx");
 }
 
 }  // namespace ui

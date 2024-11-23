@@ -49,6 +49,13 @@ std::string TimeToString(int64_t time) {
   return std::string(buffer);
 }
 
+std::string TimeToString(int64_t time, const std::string& format) {
+  struct tm* timeinfo = localtime(&time);
+  char buffer[80];
+  strftime(buffer, 80, format.c_str(), timeinfo);
+  return std::string(buffer);
+}
+
 uint64_t StringToTime(const std::string& time_str) {
   struct tm tm;
   memset(&tm, 0, sizeof(tm));
@@ -105,31 +112,16 @@ int32_t SaveExperimentDataToCsvWithDefaultPath(
   std::string stop_time_str = TimeToString(time(nullptr));
   std::string default_csv = start_time_str + "_" + stop_time_str + ".csv";
   // get module path
-  std::string module_dir = anx::common::GetModuleDir();
+  std::string app_data_dir = anx::common::GetApplicationDataPath();
   std::string sub_dir = kCsvDefaultPath;
-  module_dir = module_dir + "\\" + sub_dir;
-  // create sub dir
-#if defined(_WIN32)
-  int status = _mkdir(module_dir.c_str());
-#else
-  int status = mkdir(module_dir.c_str(), 0777);
-#endif
-  // check status
-  if (status != 0) {
-// check if dir exists
-#if defined(_WIN32)
-    DWORD dwAttr = GetFileAttributes(
-        anx::common::String2WString(module_dir.c_str()).c_str());
-    if (dwAttr == 0xffffffff || !(dwAttr & FILE_ATTRIBUTE_DIRECTORY)) {
-#else
-    if (access(module_dir.c_str(), 0) != 0) {
-#endif
-      LOG_F(LG_ERROR) << "create dir failed:" << module_dir;
-      return -1;
-    }
+  app_data_dir = app_data_dir + "\\anxi\\" + sub_dir;
+  // make sure the folder exist
+  if (!anx::common::MakeSureFolderPathExist(app_data_dir)) {
+    LOG_F(LG_ERROR) << "make sure folder path exist failed:" << app_data_dir;
+    return -1;
   }
 
-  default_csv = module_dir + "\\" + default_csv;
+  default_csv = app_data_dir + "\\" + default_csv;
   if (file_pathname != nullptr) {
     *file_pathname = default_csv;
   }
@@ -198,6 +190,29 @@ int32_t TraverseExpDataFolder(
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+namespace {
+int32_t win_system(const std::string& cmd, const std::string& par) {
+  DWORD ReturnValue = -1;
+  SHELLEXECUTEINFOA ShExecInfo = {0};
+  ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
+  ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
+  ShExecInfo.hwnd = NULL;
+  ShExecInfo.lpVerb = NULL;
+  ShExecInfo.lpFile = cmd.c_str();
+  ShExecInfo.lpParameters = par.c_str();
+  ShExecInfo.lpDirectory = NULL;
+  ShExecInfo.nShow = SW_HIDE;
+  ShExecInfo.hInstApp = NULL;
+  if (!ShellExecuteExA(&ShExecInfo)) {
+    return -1;
+  }
+  WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
+  if (!GetExitCodeProcess(ShExecInfo.hProcess, &ReturnValue)) {
+    return -2;
+  }
+  return ReturnValue;
+}
+}  // namespace
 
 ExperimentReport::ExperimentReport() {}
 ExperimentReport::~ExperimentReport() {}
@@ -205,8 +220,11 @@ ExperimentReport::~ExperimentReport() {}
 std::string ExperimentReport::ToXml() const {
   std::stringstream ss;
   ss << "<ExperimentReport>\r\n";
-  ss << "<StartTime>" << start_time_ << "</StartTime>\r\n";
-  ss << "<EndTime>" << end_time_ << "</EndTime>\r\n";
+  /// format the time to string format e.g. 2024-08-11_12-00-00
+  std::string start_time_str = TimeToString(start_time_, "%m/%d %H-%M-%S");
+  std::string end_time_str = TimeToString(end_time_, "%m/%d %H-%M-%S");
+  ss << "<StartTime>" << start_time_str << "</StartTime>\r\n";
+  ss << "<EndTime>" << end_time_str << "</EndTime>\r\n";
   ss << "<ExperimentName>"
      << ((experiment_name_.length() == 0) ? "default_experiment_name"
                                           : experiment_name_)
@@ -218,9 +236,9 @@ std::string ExperimentReport::ToXml() const {
   ss << "<CycleCount>" << cycle_count_ << "</CycleCount>\r\n";
   ss << "<BottomAmplitude>" << amplitude_ << "</BottomAmplitude>\r\n";
   ss << "<IntermittentExp>" << exp_type_ << "</IntermittentExp>\r\n";
-  ss << "<ExcitationTime>" << excitation_time << "</ExcitationTime>\r\n";
-  ss << "<IntervalTime>" << interval_time << "</IntervalTime>\r\n";
-  ss << "<ExpMode>" << exp_mode << "</ExpMode>\r\n";
+  ss << "<ExcitationTime>" << excitation_time_ * 100 << "</ExcitationTime>\r\n";
+  ss << "<IntervalTime>" << interval_time_ * 100 << "</IntervalTime>\r\n";
+  ss << "<ExpMode>" << exp_mode_ << "</ExpMode>\r\n";
   ss << "</ExperimentReport>\r\n";
   return ss.str();
 }
@@ -235,90 +253,55 @@ int32_t SaveReportToDocxWithDefaultPath(const ExperimentReport& exp_report,
   // file.
   // 4. remove the temp xml and csv file.
   // get module path
-  std::string module_dir = anx::common::GetModuleDir();
-  std::string sub_dir = kCsvDefaultPath;
-  std::string cvs_module_dir = module_dir + "\\" + sub_dir;
-  // create sub dir
-#if defined(_WIN32)
-  int status = _mkdir(cvs_module_dir.c_str());
-#else
-  int status = mkdir(cvs_module_dir.c_str(), 0777);
-#endif
-  // check status
-  if (status != 0) {
-// check if dir exists
-#if defined(_WIN32)
-    DWORD dwAttr = GetFileAttributes(
-        anx::common::UTF8ToUnicode(cvs_module_dir.c_str()).c_str());
-    if (dwAttr == 0xffffffff || !(dwAttr & FILE_ATTRIBUTE_DIRECTORY)) {
-#else
-    if (access(cvs_module_dir.c_str(), 0) != 0) {
-#endif
-      LOG_F(LG_ERROR) << "create dir failed:" << cvs_module_dir;
-      return -1;
-    }
-  }
+  std::string app_data_dir = anx::common::GetApplicationDataPath();
   // generate xml file, save to the module dir
   //// copy file to the expreport dir under the module dir
-  std::string exp_report_dir = module_dir + "\\expreport";
-  status = 0;
-#if defined(_WIN32)
-  status = _mkdir(exp_report_dir.c_str());
-#else
-  status = mkdir(exp_report_dir.c_str(), 0777);
-#endif
-  if (status != 0) {
-// check if dir exists
-#if defined(_WIN32)
-    DWORD dwAttr = GetFileAttributes(
-        anx::common::UTF8ToUnicode(cvs_module_dir.c_str()).c_str());
-    if (dwAttr == 0xffffffff || !(dwAttr & FILE_ATTRIBUTE_DIRECTORY)) {
-#else
-    if (access(cvs_module_dir.c_str(), 0) != 0) {
-#endif
-      LOG_F(LG_ERROR) << "create dir failed:" << cvs_module_dir;
-      return -2;
-    }
+  std::string exp_report_dir = app_data_dir + "\\anxi\\expreport";
+  if (!anx::common::MakeSureFolderPathExist(exp_report_dir)) {
+    LOG_F(LG_ERROR) << "make sure folder path exist failed:" << exp_report_dir;
+    return -1;
   }
   std::string xml_file = exp_report_dir + "\\summary.xml";
   std::string xml_content = exp_report.ToXml();
   FILE* file = fopen(xml_file.c_str(), "wb");
   if (file == nullptr) {
     LOG_F(LG_ERROR) << "open file failed:" << xml_file;
-    return -3;
+    return -2;
   }
   size_t size = xml_content.size();
   size_t written = fwrite(xml_content.c_str(), 1, size, file);
   if (written != size) {
     fclose(file);
     LOG_F(LG_ERROR) << "write file failed:" << xml_file;
-    return -4;
+    return -3;
   }
   fclose(file);
-  //// template file is in the module dir
-  std::string template_file =
-      module_dir + "\\template\\3th_report_template.docx";
-  std::string template_file_copy =
-      exp_report_dir + "\\3th_report_template.docx";
+  //// template file is in the app data dir
+  std::string template_file_src =
+      anx::common::GetModuleDir() + "\\template\\3th_report_template.docx";
+  std::string template_file_to = exp_report_dir + "\\3th_report_template.docx";
   //// copy the template file to the expreport dir force overwrite
-  std::string cmd = "copy " + template_file + " " + template_file_copy + " /y";
-  int ret = system(cmd.c_str());
-  if (ret != 0) {
-    LOG_F(LG_ERROR) << "copy file failed:" << cmd;
+  if (!CopyFileA(template_file_src.c_str(), template_file_to.c_str(), FALSE)) {
+    LOG_F(LG_ERROR) << "copy file failed:" << template_file_to;
     return -5;
   }
   // start todocx program with args
-  //  todocx.exe -j input.xml -i input.csv -t template.docx
-  std::string todocx = module_dir + "\\todocx.exe";
-  std::string args = "-s " + xml_file + " -i " + cvs_file_pathname + " -t " +
-                     template_file_copy;
-  cmd = todocx + " " + args;
+  //  todocx.exe -j summary.xml -i input.csv -t template.docx
+  std::string todocx = anx::common::GetModuleDir() + "\\todocx.exe";
+  std::string args =
+      "-s " + xml_file + " -i " + cvs_file_pathname + " -t " + template_file_to;
+  std::string cmd = todocx + " " + args;
   /// @note call the todocx program that is console program, hide the console
   /// window wait for the program to finish, get result from the program and
   /// remove the temp xml and csv file.
+  int ret;
+#if defined(_WIN32)
+  ret = win_system(todocx, args);
+#else
   ret = system(cmd.c_str());
+#endif
   if (ret != 0) {
-    LOG_F(LG_ERROR) << "call todocx failed:" << cmd;
+    LOG_F(LG_ERROR) << "call todocx failed:" << ret << " " << cmd;
     return -6;
   }
   // remove the temp xml and csv file

@@ -15,6 +15,7 @@ install(FILES ${PROJECT_SOURCE_DIR}/app/resource/pilot/etm/WanceMachine.mdb DEST
 install(FILES ${PROJECT_SOURCE_DIR}/app/resource/pilot/etm2/CTRL2.dll DESTINATION bin COMPONENT binaries)
 install(FILES ${PROJECT_SOURCE_DIR}/app/resource/pilot/etm2/TestLeader-CN.sys DESTINATION bin COMPONENT binaries)
 install(FILES ${PROJECT_SOURCE_DIR}/app/resource/pilot/etm2/WanceMachine-CN.mdb DESTINATION bin COMPONENT binaries)
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/app/resource/template DESTINATION bin COMPONENT binaries)
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/app/resource/default DESTINATION bin COMPONENT binaries)
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/app/resource/db DESTINATION bin COMPONENT binaries)
 install(FILES ${PROJECT_SOURCE_DIR}/package/README.install.zh.md DESTINATION bin COMPONENT binaries)
@@ -23,6 +24,8 @@ install(FILES ${PROJECT_SOURCE_DIR}/third_party/dmgraph/script/install.bat DESTI
 install(FILES ${PROJECT_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}/dmgraph.dll DESTINATION bin COMPONENT binaries)
 install(FILES ${PROJECT_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}/duilib.dll DESTINATION bin COMPONENT binaries)
 install(FILES ${PROJECT_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}/app_stload_simulator.dll DESTINATION bin COMPONENT binaries)
+install(FILES ${PROJECT_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}/todocx.exe DESTINATION bin COMPONENT binaries)
+install(FILES ${PROJECT_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}/DocumentFormat.OpenXml.dll DESTINATION bin COMPONENT binaries)
 
 if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
     # install files at resource/runtime/debug/ to the target directory
