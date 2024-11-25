@@ -34,3 +34,4 @@ EXPORTS
   TareLoad @29 PRIVATE
   TarePosi @30 PRIVATE
   TareTime @31 PRIVATE
+  OpenDeviceLAN @32 PRIVATE

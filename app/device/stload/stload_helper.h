@@ -39,16 +39,19 @@ class STResult {
 
 class STLoadHelper {
  public:
-  static bool InitStLoad(int32_t verison=1);
+  static bool InitStLoad(int32_t verison = 1);
   static void UnInitStLoad();
 
   static anx::device::stload::STLoadLoader st_load_loader_;
   static bool Is_Stload_Simulation();
 
-  static int32_t STLoadSetup(int32_t version = 1);
+  static int32_t STLoadSetup();
+
+  static int32_t STLoadVersion() { return version_; }
 
  private:
   static bool is_stload_simulation_;
+  static int32_t version_;
 };
 
 }  // namespace stload

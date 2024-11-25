@@ -1521,7 +1521,25 @@ bool WorkWindowSecondPage::StaticAircraftDoMoveUp() {
       end_value = lss_->displacement_ * 1.0f;
     }
   }
-  // TODO(hhool):
+  if (anx::device::stload::STLoadHelper::STLoadVersion() == 2) {
+    if (st_load_event_from_ == kSTLoadEventFromButtonUpDown) {
+      bool bSuccess =
+          anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
+              CH_POSI, 100, 1, 3);
+      if (!bSuccess) {
+        LOG_F(LG_ERROR) << "carry_pid failed";
+        return false;
+      }
+    } else {
+      bool bSuccess =
+          anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
+              ctrl_type, 100, 1, 3);
+      if (!bSuccess) {
+        LOG_F(LG_ERROR) << "carry_pid failed";
+        return false;
+      }
+    }
+  }
   bool bSuccess =
       anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_200(
           ctrl_type, endtype, speed, end_value, 0, true, DIR_NO, 0, 1, 0)
@@ -1557,9 +1575,27 @@ bool WorkWindowSecondPage::StaticAircraftDoMoveDown() {
       end_value = lss_->displacement_ * 1.0f;
     }
   }
+  if (anx::device::stload::STLoadHelper::STLoadVersion() == 2) {
+    if (st_load_event_from_ == kSTLoadEventFromButtonUpDown) {
+      bool bSuccess =
+          anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
+              CH_POSI, 100, 1, 3);
+      if (!bSuccess) {
+        LOG_F(LG_ERROR) << "carry_pid failed";
+        return false;
+      }
+    } else {
+      bool bSuccess =
+          anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
+              ctrl_type, 100, 1, 3);
+      if (!bSuccess) {
+        LOG_F(LG_ERROR) << "carry_pid failed";
+        return false;
+      }
+    }
+  }
   /// RUN the static load, the direction is down and the speed is 2.0f
   /// / 60.0f
-  // TODO(hhool):
   bool bSuccess =
       anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_200(
           ctrl_type, endtype, speed, end_value, 0, true, DIR_NO, 0, 1, 0)
@@ -1743,9 +1779,8 @@ void WorkWindowSecondPage::ProcessDataListModeLinear() {
           time_interval_num - exp_data_list_info_.exp_time_interval_num_;
       need_store_count = diff_interval_num / dedss_->sampling_interval_;
       need_store_count_left = diff_interval_num % dedss_->sampling_interval_;
-      int64_t cur_freq_count_100ms =
-          static_cast<int64_t>(exp_data_list_info_.amp_freq_ *
-                               dedss_->sampling_interval_  / 10.f);
+      int64_t cur_freq_count_100ms = static_cast<int64_t>(
+          exp_data_list_info_.amp_freq_ * dedss_->sampling_interval_ / 10.f);
       for (int i = 0; i < need_store_count; i++) {
         exp_data_list_info_.exp_freq_total_count_ += cur_freq_count_100ms;
         exp_data_list_info_.exp_data_table_no_++;

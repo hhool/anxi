@@ -1033,7 +1033,7 @@ int32_t WorkWindow::OpenDeviceCom(int32_t device_type) {
       return -1;
     }
     bSuccess =
-        (anx::device::stload::STLoadHelper::STLoadSetup(2) == 0) ? true : false;
+        (anx::device::stload::STLoadHelper::STLoadSetup() == 0) ? true : false;
     if (!bSuccess) {
       LOG_F(LG_ERROR) << "STLoadSetup failed";
       return -1;

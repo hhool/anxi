@@ -40,8 +40,12 @@ typedef struct Config_t {
  * </stload>
  */
 static bool LoadConfig(ConfigStLoad* config) {
-  std::string module_dir = anx::common::GetApplicationDataPath();
-  std::string config_file = module_dir + "\\default\\config_stload.xml";
+  std::string app_data_dir = anx::common::GetApplicationDataPath();
+#if defined(_WIN32) || defined(_WIN64)
+  std::string config_file = app_data_dir + "\\anxi\\default\\config_stload.xml";
+#else
+  std::string config_file = app_data_dir + "/anxi/default/config_stload.xml";
+#endif
   tinyxml2::XMLDocument doc;
   if (doc.LoadFile(config_file.c_str()) != tinyxml2::XML_SUCCESS) {
     LOG_F(LG_ERROR) << "Load config file failed: " << config_file;
@@ -63,6 +67,7 @@ static bool LoadConfig(ConfigStLoad* config) {
 
 STLoadLoader anx::device::stload::STLoadHelper::st_load_loader_;
 bool anx::device::stload::STLoadHelper::is_stload_simulation_ = false;
+int32_t anx::device::stload::STLoadHelper::version_ = 1;
 
 bool STLoadHelper::InitStLoad(int32_t version) {
   std::string module_dir = anx::common::GetModuleDir();
@@ -81,13 +86,14 @@ bool STLoadHelper::InitStLoad(int32_t version) {
   if (!STLoadLoader::Load(module_path)) {
     return false;
   }
+  version_ = version;
   if (version == 1) {
-	STLoadLoader::st_api_.load_hardware_parameters(4);
+    STLoadLoader::st_api_.load_hardware_parameters(4);
   }
   return true;
 }
 
-int32_t STLoadHelper::STLoadSetup(int32_t version) {
+int32_t STLoadHelper::STLoadSetup() {
   int machineType = 4;
   int nDTCType = 2;
   int nCommport = 4;
@@ -97,7 +103,7 @@ int32_t STLoadHelper::STLoadSetup(int32_t version) {
   int TestSpace = 0;
   int nDataBlockSize = 2;
   bool isAE = false;
-  if (version == 2) {
+  if (version_ == 2) {
     rate = 150;
     machineType = 0;
     nDTCType = 0;
@@ -127,32 +133,34 @@ int32_t STLoadHelper::STLoadSetup(int32_t version) {
     LOG_F(LG_ERROR) << "on_line failed";
     return -1;
   }
-  bSuccess =
-      anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
-          CH_LOAD, lLoad_P, lLoad_I, lLoad_D)
-          ? true
-          : false;
-  if (!bSuccess) {
-    LOG_F(LG_ERROR) << "carry_pid failed";
-    return -2;
-  }
-  bSuccess =
-      anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
-          CH_POSI, lPosi_P, lPosi_I, lPosi_D)
-          ? true
-          : false;
-  if (!bSuccess) {
-    LOG_F(LG_ERROR) << "carry_pid failed";
-    return -3;
-  }
-  bSuccess =
-      anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
-          CH_EXTN, lExt_P, lExt_I, lExt_D)
-          ? true
-          : false;
-  if (!bSuccess) {
-    LOG_F(LG_ERROR) << "carry_pid failed";
-    return -4;
+  if (version_ == 1) {
+    bSuccess =
+        anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
+            CH_LOAD, lLoad_P, lLoad_I, lLoad_D)
+            ? true
+            : false;
+    if (!bSuccess) {
+      LOG_F(LG_ERROR) << "carry_pid failed";
+      return -2;
+    }
+    bSuccess =
+        anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
+            CH_POSI, lPosi_P, lPosi_I, lPosi_D)
+            ? true
+            : false;
+    if (!bSuccess) {
+      LOG_F(LG_ERROR) << "carry_pid failed";
+      return -3;
+    }
+    bSuccess =
+        anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
+            CH_EXTN, lExt_P, lExt_I, lExt_D)
+            ? true
+            : false;
+    if (!bSuccess) {
+      LOG_F(LG_ERROR) << "carry_pid failed";
+      return -4;
+    }
   }
   return 0;
 }
