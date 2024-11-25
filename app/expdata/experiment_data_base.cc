@@ -103,18 +103,22 @@ int32_t SaveExperimentDataFile(
 }
 
 int32_t SaveExperimentDataToCsvWithDefaultPath(
+    const ExperimentReport& exp_report,
     const std::vector<anx::expdata::ExperimentData>& exp_data,
-    int64_t start_time,
     std::string* file_pathname) {
   // format file name as start_time_stop_time.csv
   // represent as 2024-08-11_12-00-00_2024-08-11_12-00-00.csv
-  std::string start_time_str = TimeToString(start_time);
-  std::string stop_time_str = TimeToString(time(nullptr));
+  std::string start_time_str = TimeToString(exp_report.start_time_);
+  std::string stop_time_str = TimeToString(exp_report.end_time_);
   std::string default_csv = start_time_str + "_" + stop_time_str + ".csv";
   // get module path
   std::string app_data_dir = anx::common::GetApplicationDataPath();
   std::string sub_dir = kCsvDefaultPath;
+#if defined(_WIN32)
   app_data_dir = app_data_dir + "\\anxi\\" + sub_dir;
+#else
+  app_data_dir = app_data_dir + "/anxi/" + sub_dir;
+#endif
   // make sure the folder exist
   if (!anx::common::MakeSureFolderPathExist(app_data_dir)) {
     LOG_F(LG_ERROR) << "make sure folder path exist failed:" << app_data_dir;
@@ -172,13 +176,17 @@ int32_t TraverseDir(
 int32_t TraverseExpDataFolder(
     std::vector<anx::expdata::ExperimentFileSummary>* exp_file_list) {
   // get module path
-  std::string module_dir = anx::common::GetModuleDir();
+  std::string app_data_dir = anx::common::GetApplicationDataPath();
   std::string sub_dir = kCsvDefaultPath;
-  module_dir = module_dir + "\\" + sub_dir;
+#if defined(_WIN32)
+  app_data_dir = app_data_dir + "\\anxi\\" + sub_dir;
+#else
+  app_data_dir = app_data_dir + "/anxi/" + sub_dir;
+#endif
   // check if dir exists
 #if defined(_WIN32)
   DWORD dwAttr = GetFileAttributes(
-      anx::common::String2WString(module_dir.c_str()).c_str());
+      anx::common::String2WString(app_data_dir.c_str()).c_str());
   if (dwAttr == 0xffffffff || !(dwAttr & FILE_ATTRIBUTE_DIRECTORY)) {
 #else
   if (access(module_dir.c_str(), 0) != 0) {
@@ -186,7 +194,7 @@ int32_t TraverseExpDataFolder(
     return -1;
   }
   // traverse the directory
-  return TraverseDir(module_dir, exp_file_list);
+  return TraverseDir(app_data_dir, exp_file_list);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -243,9 +251,55 @@ std::string ExperimentReport::ToXml() const {
   return ss.str();
 }
 
+int32_t SaveExperimentReportToXmlWithDefaultPath(
+    const ExperimentReport& exp_report,
+    std::string* file_pathname) {
+  // get app data path
+  std::string app_data_dir = anx::common::GetApplicationDataPath();
+  // generate xml file, save to the app data dir under the anxi/expdata dir
+  std::string sub_dir = kCsvDefaultPath;
+#if defined(_WIN32)
+  app_data_dir = app_data_dir + "\\anxi\\" + sub_dir;
+#else
+  app_data_dir = app_data_dir + "/anxi/" + sub_dir;
+#endif
+  // make sure the folder exist
+  if (!anx::common::MakeSureFolderPathExist(app_data_dir)) {
+    LOG_F(LG_ERROR) << "make sure folder path exist failed:" << app_data_dir;
+    return -1;
+  }
+  // format file name as start_time_stop_time.xml
+  // represent as 2024-08-11_12-00-00_2024-08-11_12-00-00.xml
+  std::string start_time_str = TimeToString(exp_report.start_time_);
+  std::string stop_time_str = TimeToString(exp_report.end_time_);
+  std::string default_xml = start_time_str + "_" + stop_time_str + ".xml";
+#if defined(_WIN32)
+  default_xml = app_data_dir + "\\" + default_xml;
+#else
+  default_xml = app_data_dir + "/" + default_xml;
+#endif
+  if (file_pathname != nullptr) {
+    *file_pathname = default_xml;
+  }
+  // write to the file
+  std::string xml_content = exp_report.ToXml();
+  FILE* file = fopen(default_xml.c_str(), "wb");
+  if (file == nullptr) {
+    return -2;
+  }
+  size_t size = xml_content.size();
+  size_t written = fwrite(xml_content.c_str(), 1, size, file);
+  if (written != size) {
+    fclose(file);
+    return -3;
+  }
+  fclose(file);
+  return 0;
+}
+
 int32_t SaveReportToDocxWithDefaultPath(const ExperimentReport& exp_report,
                                         const std::string& cvs_file_pathname,
-                                        const std::string& file_name) {
+                                        std::string* file_pathname) {
   // 1. generate xml file with experiment final result and experiment
   // parameters.
   // 2. generate csv file with the experiment data.
@@ -256,12 +310,20 @@ int32_t SaveReportToDocxWithDefaultPath(const ExperimentReport& exp_report,
   std::string app_data_dir = anx::common::GetApplicationDataPath();
   // generate xml file, save to the module dir
   //// copy file to the expreport dir under the module dir
+#if defined(_WIN32)
   std::string exp_report_dir = app_data_dir + "\\anxi\\expreport";
+#else
+  std::string exp_report_dir = app_data_dir + "/anxi/expreport";
+#endif
   if (!anx::common::MakeSureFolderPathExist(exp_report_dir)) {
     LOG_F(LG_ERROR) << "make sure folder path exist failed:" << exp_report_dir;
     return -1;
   }
+#if defined(_WIN32)
   std::string xml_file = exp_report_dir + "\\summary.xml";
+#else
+  std::string xml_file = exp_report_dir + "/summary.xml";
+#endif
   std::string xml_content = exp_report.ToXml();
   FILE* file = fopen(xml_file.c_str(), "wb");
   if (file == nullptr) {
@@ -277,16 +339,23 @@ int32_t SaveReportToDocxWithDefaultPath(const ExperimentReport& exp_report,
   }
   fclose(file);
   //// template file is in the app data dir
+#if defined(_WIN32)
   std::string template_file_src =
       anx::common::GetModuleDir() + "\\template\\3th_report_template.docx";
   std::string template_file_to = exp_report_dir + "\\3th_report_template.docx";
+#else
+  std::string template_file_src =
+      anx::common::GetModuleDir() + "/template/3th_report_template.docx";
+  std::string template_file_to = exp_report_dir + "/3th_report_template.docx";
+#endif
   //// copy the template file to the expreport dir force overwrite
   if (!CopyFileA(template_file_src.c_str(), template_file_to.c_str(), FALSE)) {
     LOG_F(LG_ERROR) << "copy file failed:" << template_file_to;
     return -5;
   }
-  // start todocx program with args
-  //  todocx.exe -j summary.xml -i input.csv -t template.docx
+
+  /// @note start todocx program with args
+  ///       todocx.exe -j summary.xml -i input.csv -t template.docx
   std::string todocx = anx::common::GetModuleDir() + "\\todocx.exe";
   std::string args =
       "-s " + xml_file + " -i " + cvs_file_pathname + " -t " + template_file_to;
@@ -302,10 +371,13 @@ int32_t SaveReportToDocxWithDefaultPath(const ExperimentReport& exp_report,
 #endif
   if (ret != 0) {
     LOG_F(LG_ERROR) << "call todocx failed:" << ret << " " << cmd;
-    return -6;
+    return -6;  // NOLINT
   }
   // remove the temp xml and csv file
   remove(xml_file.c_str());
+  if (file_pathname != nullptr) {
+    *file_pathname = template_file_to;
+  }
   return 0;
 }
 

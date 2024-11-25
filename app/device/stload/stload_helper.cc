@@ -40,7 +40,7 @@ typedef struct Config_t {
  * </stload>
  */
 static bool LoadConfig(ConfigStLoad* config) {
-  std::string module_dir = anx::common::GetModuleDir();
+  std::string module_dir = anx::common::GetApplicationDataPath();
   std::string config_file = module_dir + "\\default\\config_stload.xml";
   tinyxml2::XMLDocument doc;
   if (doc.LoadFile(config_file.c_str()) != tinyxml2::XML_SUCCESS) {

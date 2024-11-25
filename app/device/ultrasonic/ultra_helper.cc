@@ -34,11 +34,17 @@ typedef struct Config_t {
  */
 
 static bool LoadConfig(ConfigStLoad* config) {
-  std::string module_dir = anx::common::GetModuleDir();
-  std::string config_file = module_dir + "\\default\\config_ultrasound.xml";
+  // get app data path
+  std::string app_data_dir = anx::common::GetApplicationDataPath();
+  std::string default_xml = "\\default\\config_ultrasound.xml";
+#ifdef _WIN32
+  default_xml = app_data_dir + "\\anxi\\" + default_xml;
+#else
+  default_xml = app_data_dir + "/anxi/" + default_xml;
+#endif
   tinyxml2::XMLDocument doc;
-  if (doc.LoadFile(config_file.c_str()) != tinyxml2::XML_SUCCESS) {
-    LOG_F(LG_ERROR) << "Load config file failed: " << config_file;
+  if (doc.LoadFile(default_xml.c_str()) != tinyxml2::XML_SUCCESS) {
+    LOG_F(LG_ERROR) << "Load config file failed: " << default_xml;
     return false;
   }
   tinyxml2::XMLElement* root = doc.RootElement();
@@ -56,7 +62,7 @@ static bool LoadConfig(ConfigStLoad* config) {
 }
 
 bool UltrasonicHelper::InitUltrasonic() {
-  std::string module_dir = anx::common::GetModuleDir();
+  std::string module_dir = anx::common::GetApplicationDataPath();
   ConfigStLoad config_stload;
   LoadConfig(&config_stload);
   if (config_stload.use_stload_simulation) {

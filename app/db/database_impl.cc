@@ -14,6 +14,8 @@
 
 #include <sqlite3.h>
 
+#include "app/common/logger.h"
+#include "app/common/module_utils.h"
 #include "app/common/string_utils.h"
 
 namespace anx {
@@ -35,6 +37,10 @@ bool Database::Open(const std::string& db_name) {
   std::wstring w_name = anx::common::String2WString(db_name.c_str());
   name = anx::common::UnicodeToUTF8(w_name.c_str());
 #endif
+  if (!anx::common::MakeSureFolderPathExist(db_name)) {
+    LOG_F(LG_ERROR) << "Failed to make sure folder path exist: " << db_name;
+    return false;
+  }
   int ret = sqlite3_open(name.c_str(), reinterpret_cast<sqlite3**>(&db_));
   if (ret != SQLITE_OK) {
     return false;

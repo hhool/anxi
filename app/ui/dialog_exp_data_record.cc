@@ -406,11 +406,16 @@ bool DialogExpDataRecord::OnOpenFolderButtonClick(void* msg) {
     return false;
   }
   /// get the folder path that is absolute path
-  std::string folder_file_path = anx::common::GetAppPath();
-  folder_file_path += "\\expdata\\";
+  std::string app_data_dir = anx::common::GetApplicationDataPath();
+#ifdef _WIN32
+  app_data_dir += "\\anxi\\expdata\\";
+#else
+  app_data_dir += "/anxi/expdata/";
+#endif
+  std::string folder_file_path = app_data_dir;
   /// make sure the folder exists
-  if (!anx::common::DirectoryExists(folder_file_path)) {
-    anx::common::MakeSureFolderPathExist(folder_file_path);
+  if (!anx::common::DirectoryExists(app_data_dir)) {
+    anx::common::MakeSureFolderPathExist(app_data_dir);
   }
   /// get current selected item
   int index = exp_data_list_->GetCurSel();

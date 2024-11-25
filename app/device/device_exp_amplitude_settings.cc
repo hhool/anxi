@@ -128,9 +128,13 @@ LoadDeviceExpAmplitudeSettingsDefaultWithFilePath(
 std::unique_ptr<DeviceExpAmplitudeSettings>
 LoadDeviceExpAmplitudeSettingsDefaultResource() {
   std::string default_xml = DefaultDeviceExpAmplitudeSettingsXmlFilePath();
-  // get module path
-  std::string module_dir = anx::common::GetModuleDir();
-  default_xml = module_dir + "\\" + default_xml;
+  // get app data path
+  std::string app_data_dir = anx::common::GetApplicationDataPath();
+#ifdef _WIN32
+  default_xml = app_data_dir + "\\anxi\\" + default_xml;
+#else
+  default_xml = app_data_dir + "/anxi/" + default_xml;
+#endif
 
   std::unique_ptr<DeviceExpAmplitudeSettings> settings =
       LoadDeviceExpAmplitudeSettingsDefaultWithFilePath(default_xml);
@@ -162,8 +166,13 @@ int32_t SaveDeviceExpAmplitudeSettingsFile(
 int32_t SaveDeviceExpAmplitudeSettingsDefaultResource(
     const DeviceExpAmplitudeSettings& settings) {
   std::string default_xml = DefaultDeviceExpAmplitudeSettingsXmlFilePath();
-  std::string module_dir = anx::common::GetModuleDir();
-  default_xml = module_dir + "\\" + default_xml;
+  // get app data path
+  std::string app_data_dir = anx::common::GetApplicationDataPath();
+#ifdef _WIN32
+  default_xml = app_data_dir + "\\anxi\\" + default_xml;
+#else
+  default_xml = app_data_dir + "/anxi/" + default_xml;
+#endif
   return SaveDeviceExpAmplitudeSettingsFile(default_xml, settings);
 }
 

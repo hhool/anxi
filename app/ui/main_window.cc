@@ -15,6 +15,7 @@
 #include "app/common/module_utils.h"
 #include "app/common/string_utils.h"
 #include "app/esolution/solution_design.h"
+#include "app/ui/app_config.h"
 #include "app/ui/dialog_app_settings.h"
 #include "app/ui/ui_constants.h"
 #include "app/ui/work_window.h"
@@ -28,7 +29,9 @@ DUI_END_MESSAGE_MAP()
 namespace anx {
 namespace ui {
 
-MainWindow::MainWindow() {}
+MainWindow::MainWindow() {
+  AppConfig::PrepareAppConfig();
+}
 
 MainWindow::~MainWindow() {}
 
@@ -229,10 +232,11 @@ void MainWindow::OnBtnAppSettings() {
 
 std::map<std::string, std::string> MainWindow::LoadAppConfig() {
   std::map<std::string, std::string> app_config;
-  std::string module_dir = anx::common::GetModuleDir();
-  std::string module_path = module_dir + "\\default\\config_app.xml";
+  std::string app_data_dir =
+      anx::ui::AppConfig::GetAppDataPathWithFolderName("anxi");
+  std::string config_pathname = app_data_dir + "\\default\\config_app.xml";
   tinyxml2::XMLDocument doc;
-  if (doc.LoadFile(module_path.c_str()) != tinyxml2::XML_SUCCESS) {
+  if (doc.LoadFile(config_pathname.c_str()) != tinyxml2::XML_SUCCESS) {
     return app_config;
   }
   tinyxml2::XMLElement* root = doc.RootElement();

@@ -20,6 +20,7 @@
 #include <unistd.h>
 #endif
 
+#include "app/common/file_utils.h"
 #include "app/common/string_utils.h"
 
 namespace anx {
@@ -66,6 +67,17 @@ std::string GetModuleName() {
   return path;
 }
 
+std::string GetApplicationDataPath() {
+#if defined(_WIN32) || defined(_WIN64)
+  char path[MAX_PATH];
+  SHGetSpecialFolderPathA(NULL, path, CSIDL_APPDATA, FALSE);
+  std::string app_path(path);
+  return app_path;
+#else
+  return "";
+#endif
+}
+
 bool FolderPathExist(const std::string& dir) {
 #if defined(_WIN32) || defined(_WIN64)
   DWORD dwAttr = GetFileAttributes(String2WString(dir).c_str());
@@ -79,6 +91,43 @@ bool FolderPathExist(const std::string& dir) {
   }
   return true;
 #endif
+}
+
+int32_t CopyFolder(const std::string& src, const std::string& dest) {
+  // check if the source folder exists
+  if (!DirectoryExists(src)) {
+    return -1;
+  }
+  // check if the destination folder exists
+  if (!MakeSureFolderPathExist(dest)) {
+    return -2;
+  }
+  // copy the folder
+#if defined(_WIN32) || defined(_WIN64)
+  // enumerate the source folder
+  std::string src_folder = src + "\\*";
+  WIN32_FIND_DATAA find_data;
+  HANDLE hFind = FindFirstFileA(src_folder.c_str(), &find_data);
+  if (hFind == INVALID_HANDLE_VALUE) {
+    return -3;
+  }
+  do {
+    if (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+      continue;
+    }
+    std::string src_file = src + "\\" + find_data.cFileName;
+    std::string dest_file = dest + "\\" + find_data.cFileName;
+    if (!CopyFileA(src_file.c_str(), dest_file.c_str(), FALSE)) {
+      FindClose(hFind);
+      return -4;
+    }
+  } while (FindNextFileA(hFind, &find_data) != 0);
+  FindClose(hFind);
+#else
+  // TODO(hhool): implement the copy folder for linux
+  return -5;
+#endif
+  return 0;
 }
 
 bool MakeSureFolderPathExist(const std::string& path) {
@@ -127,17 +176,6 @@ bool MakeSureFolderPathExist(const std::string& path) {
     }
   }
   return true;
-}
-
-std::string GetApplicationDataPath() {
-#if defined(_WIN32) || defined(_WIN64)
-  char path[MAX_PATH];
-  SHGetSpecialFolderPathA(NULL, path, CSIDL_APPDATA, FALSE);
-  std::string app_path(path);
-  return app_path;
-#else
-  return "";
-#endif
 }
 }  // namespace common
 }  // namespace anx

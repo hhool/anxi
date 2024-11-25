@@ -11,6 +11,7 @@
 
 #include "app/db/database_helper.h"
 
+#include <cassert>
 #include <string>
 
 #include "app/common/file_utils.h"
@@ -119,29 +120,33 @@ const char* kQueryTableSendNotifySqlByTimeFormat =
     "SELECT * FROM send_notify WHERE date >= %f AND date <= %f";
 }  // namespace sql
 
-void DefaultDatabasePathname(std::string* db_filepathname) {
+int32_t DefaultDatabasePathname(std::string* db_filepathname) {
+  assert(db_filepathname);
   if (db_filepathname) {
-    std::string module_dir = anx::common::GetModuleDir();
-    if (module_dir.empty()) {
-      return;
+    std::string app_data_dir = anx::common::GetApplicationDataPath();
+    if (app_data_dir.empty()) {
+      LOG_F(LG_ERROR) << "Failed to get application data path";
+      return -1;
     }
 #if defined(_WIN32) || defined(_WIN64)
-    *db_filepathname = module_dir + "\\" + kDefaultDatabasePathname;
+    *db_filepathname = app_data_dir + "\\anxi\\" + kDefaultDatabasePathname;
 #else
-    *db_filepathname = module_dir + "/" + kDefaultDatabasePathname;
+    *db_filepathname = app_data_dir + "/anxi/" + kDefaultDatabasePathname;
 #endif
+    return 0;
   }
+  return -1;
 }
 
 void ClearDatabaseFile(const std::string& db_name) {
-  std::string module_dir = anx::common::GetModuleDir();
-  if (module_dir.empty()) {
+  std::string app_data_dir = anx::common::GetApplicationDataPath();
+  if (app_data_dir.empty()) {
     return;
   }
 #if defined(_WIN32) || defined(_WIN64)
-  std::string db_filepathname = module_dir + "\\" + db_name;
+  std::string db_filepathname = app_data_dir + "\\anxi\\" + db_name;
 #else
-  std::string db_filepathname = module_dir + "/" + db_name;
+  std::string db_filepathname = app_data_dir + "/anxi/" + db_name;
 #endif
   if (anx::common::FileExists(db_filepathname)) {
     if (!anx::common::RemoveFile(db_filepathname)) {
@@ -159,17 +164,21 @@ void InitializeDefaultDataBase() {
 bool InitializeDataBase(const std::string& db_pathname,
                         const std::vector<std::string>& sql) {
   if (db_pathname.empty() || sql.empty()) {
+    LOG_F(LG_ERROR) << "db_pathname or sql is empty";
     return false;
   }
   std::string db_filepathname;
   DefaultDatabasePathname(&db_filepathname);
   if (!anx::common::MakeSureFolderPathExist(db_filepathname)) {
+    LOG_F(LG_ERROR) << "Failed to make sure folder path exist: "
+                    << db_filepathname;
     return false;
   }
   auto db = DatabaseFactory::Instance()->CreateOrGetDatabase(db_filepathname);
   if (db) {
     for (auto& s : sql) {
       if (!db->Execute(s)) {
+        LOG_F(LG_ERROR) << "Failed to execute sql: " << s;
         return false;
       }
     }

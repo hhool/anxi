@@ -99,7 +99,7 @@ class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
  protected:
   friend class WorkWindowSecondPage;
   void ClearExpData();
-  void ExportToCSV(int64_t start_time);
+  int32_t ExportExpResult();
 
  protected:
   class ListVirtalDataView;

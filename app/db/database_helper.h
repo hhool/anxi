@@ -62,7 +62,8 @@ extern const char* kQueryTableSendNotifySqlByTimeFormat;
 
 /// @brief Get the default database pathname
 /// @param db_pathname the database path name
-void DefaultDatabasePathname(std::string* db_pathname);
+/// @return 0 if success, -1 if failed
+int32_t DefaultDatabasePathname(std::string* db_pathname);
 
 /// @brief Clear the database file and remove it
 /// @param db_name the database name

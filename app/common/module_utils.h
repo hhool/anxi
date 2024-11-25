@@ -28,10 +28,15 @@ std::string GetModuleDir();
 /// @return the module name
 std::string GetModuleName();
 
-/// @brief Folder path exist
-/// @param dir the directory
-/// @return true if the directory exists, otherwise false
-bool FolderPathExist(const std::string& dir);
+/// @brief Get the AppData path
+/// @return the AppData path
+std::string GetApplicationDataPath();
+
+/// @brief Copy the folder
+/// @param src the source folder
+/// @param dst the destination folder
+/// @return 0 if success, <0 if failed
+int32_t CopyFolder(const std::string& src, const std::string& dest);
 
 /// @brief Make sure the directory exists
 /// @param dir the directory
@@ -44,10 +49,6 @@ bool FolderPathExist(const std::string& dir);
 /// @note e.g. MakeSureFolderPathExist("C:/test") will return true if the
 /// directory exists, otherwise it will create the directory and return true
 bool MakeSureFolderPathExist(const std::string& dir);
-
-/// @brief Get the AppData path
-/// @return the AppData path
-std::string GetApplicationDataPath();
 
 }  // namespace common
 }  // namespace anx

@@ -222,6 +222,8 @@ list(APPEND APP_SOURCES ${APP_FILES})
 # add platform specific sources
 if(WIN32)
     set(UI_FILES
+        ui/app_config.cc
+        ui/app_config.h
         ui/dialog_about.cc
         ui/dialog_about.h
         ui/dialog_amplitude_calibration_settings.cc

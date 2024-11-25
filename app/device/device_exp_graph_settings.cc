@@ -124,9 +124,13 @@ LoadDeviceExpGraphSettingsDefaultWithFilePath(const std::string& file_path) {
 std::unique_ptr<DeviceExpGraphSettings>
 LoadDeviceExpGraphSettingsDefaultResource() {
   std::string default_xml = DefaultDeviceExpGraphSettingsXmlFilePath();
-  // get module path
-  std::string module_dir = anx::common::GetModuleDir();
-  default_xml = module_dir + "\\" + default_xml;
+  // get app data path
+  std::string app_data_dir = anx::common::GetApplicationDataPath();
+#ifdef _WIN32
+  default_xml = app_data_dir + "\\anxi\\" + default_xml;
+#else
+  default_xml = app_data_dir + "/anxi/" + default_xml;
+#endif
 
   std::unique_ptr<DeviceExpGraphSettings> settings =
       LoadDeviceExpGraphSettingsDefaultWithFilePath(default_xml);
@@ -157,8 +161,13 @@ int32_t SaveDeviceExpGraphSettingsFile(const std::string& file_path,
 int32_t SaveDeviceExpGraphSettingsDefaultResource(
     const DeviceExpGraphSettings& settings) {
   std::string default_xml = DefaultDeviceExpGraphSettingsXmlFilePath();
-  std::string module_dir = anx::common::GetModuleDir();
-  default_xml = module_dir + "\\" + default_xml;
+  // get app data path
+  std::string app_data_dir = anx::common::GetApplicationDataPath();
+#ifdef _WIN32
+  default_xml = app_data_dir + "\\anxi\\" + default_xml;
+#else
+  default_xml = app_data_dir + "/anxi/" + default_xml;
+#endif
   return SaveDeviceExpGraphSettingsFile(default_xml, settings);
 }
 

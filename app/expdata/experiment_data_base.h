@@ -18,6 +18,7 @@
 
 namespace anx {
 namespace expdata {
+class ExperimentReport;
 class ExperimentData {
  public:
   ExperimentData();
@@ -36,8 +37,8 @@ class ExperimentData {
 /// @param file_path the file path of the csv file
 /// @return the experiment data vector
 int32_t SaveExperimentDataToCsvWithDefaultPath(
+    const ExperimentReport& exp_report,
     const std::vector<anx::expdata::ExperimentData>& exp_data,
-    int64_t start_time,
     std::string* file_pathname = nullptr);
 
 class ExperimentFileSummary {
@@ -110,10 +111,22 @@ class ExperimentReport {
   int32_t exp_mode_ = 0;
 };
 
+/// @brief Save the ExperimentReport to the xml file
+/// @param exp_report the experiment report
+/// @param file_pathname the file path name
+/// @return int32_t 0 if success, -1 if failed
+int32_t SaveExperimentReportToXmlWithDefaultPath(
+    const ExperimentReport& exp_report,
+    std::string* file_pathname = nullptr);
+
 /// @brief Save the report to the docx file
+/// @param exp_report the experiment report
+/// @param cvs_file_pathname the csv file path name
+/// @param file_pathname the file path name of the docx file
+/// @return int32_t 0 if success, -1 if failed
 int32_t SaveReportToDocxWithDefaultPath(const ExperimentReport& exp_report,
                                         const std::string& cvs_file_pathname,
-                                        const std::string& file_name);
+                                        std::string* file_pathname = nullptr);
 
 }  // namespace expdata
 }  // namespace anx

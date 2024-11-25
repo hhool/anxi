@@ -173,9 +173,13 @@ LoadDeviceExpDataSampleSettingsDefaultWithFilePath(
 std::unique_ptr<DeviceExpDataSampleSettings>
 LoadDeviceExpDataSampleSettingsDefaultResource() {
   std::string default_xml = DefaultDeviceExpDataSampleSettingsXmlFilePath();
-  // get module path
-  std::string module_dir = anx::common::GetModuleDir();
-  default_xml = module_dir + "\\" + default_xml;
+  // get app data path
+  std::string app_data_dir = anx::common::GetApplicationDataPath();
+#ifdef _WIN32
+  default_xml = app_data_dir + "\\anxi\\" + default_xml;
+#else
+  default_xml = app_data_dir + "/anxi/" + default_xml;
+#endif
 
   std::unique_ptr<DeviceExpDataSampleSettings> settings =
       LoadDeviceExpDataSampleSettingsDefaultWithFilePath(default_xml);
@@ -207,8 +211,13 @@ int32_t SaveDeviceExpDataSampleSettingsFile(
 int32_t SaveDeviceExpDataSampleSettingsDefaultResource(
     const DeviceExpDataSampleSettings& settings) {
   std::string default_xml = DefaultDeviceExpDataSampleSettingsXmlFilePath();
-  std::string module_dir = anx::common::GetModuleDir();
-  default_xml = module_dir + "\\" + default_xml;
+  // get app data path
+  std::string app_data_dir = anx::common::GetApplicationDataPath();
+#ifdef _WIN32
+  default_xml = app_data_dir + "\\anxi\\" + default_xml;
+#else
+  default_xml = app_data_dir + "/anxi/" + default_xml;
+#endif
   return SaveDeviceExpDataSampleSettingsFile(default_xml, settings);
 }
 

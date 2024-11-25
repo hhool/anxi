@@ -62,6 +62,7 @@ bool GetFilesInFolder(const std::string& dir_path,
 /// otherwise open the folder
 /// @param folder_file_path  the folder path or the file path
 bool OpenFolder(const std::string& folder_file_path);
+
 }  // namespace common
 }  // namespace anx
 

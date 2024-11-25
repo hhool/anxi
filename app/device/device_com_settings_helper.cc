@@ -18,6 +18,7 @@
 #include "app/common/module_utils.h"
 #include "app/common/string_utils.h"
 #include "app/device/device_com_settings.h"
+#include "app/ui/app_config.h"
 
 namespace anx {
 namespace device {
@@ -65,9 +66,14 @@ std::unique_ptr<ComSettings> LoadDeviceComSettingsDefaultResourceWithType(
     int32_t device_com_type) {
   std::string default_xml =
       DefaultDeviceComSettingsXmlFilePath(device_com_type);
-  // get module path
-  std::string module_dir = anx::common::GetModuleDir();
-  default_xml = module_dir + "\\" + default_xml;
+  // get app data path
+  std::string app_data_dir =
+      anx::ui::AppConfig::GetAppDataPathWithFolderName("anxi");
+#ifdef _WIN32
+  default_xml = app_data_dir + "\\" + default_xml;
+#else
+  default_xml = app_data_dir + "/" + default_xml;
+#endif
 
   std::unique_ptr<ComSettings> com_setting =
       LoadDeviceComSettingsWithFilePath(default_xml);
@@ -98,9 +104,13 @@ int32_t SaveDeviceComSettingsFile(const std::string& file_path,
 int32_t SaveDeviceComSettingsFileDefaultPath(const ComSettings& settings) {
   std::string default_xml =
       DefaultDeviceComSettingsXmlFilePath(settings.GetDeviceComType());
-  // get module path
-  std::string module_dir = anx::common::GetModuleDir();
-  default_xml = module_dir + "\\" + default_xml;
+  // get app data path
+  std::string app_data_dir = anx::common::GetApplicationDataPath();
+#ifdef _WIN32
+  default_xml = app_data_dir + "\\anxi\\" + default_xml;
+#else
+  default_xml = app_data_dir + "/anxi/" + default_xml;
+#endif
   return SaveDeviceComSettingsFile(default_xml, settings);
 }
 

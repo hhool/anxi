@@ -503,7 +503,7 @@ void WorkWindowSecondPageData::OnExpStart() {
 void WorkWindowSecondPageData::OnExpStop() {
   is_exp_state_ = kExpStateStop;
   UpdateUIWithExpStatus(0);
-  ExportToCSV(exp_start_date_time_);
+  ExportExpResult();
   // reset exp params;
   exp_time_interval_num_ = 0;
   exp_start_date_time_ = 0;
@@ -532,7 +532,7 @@ void WorkWindowSecondPageData::ClearExpData() {
   }
 }
 
-void WorkWindowSecondPageData::ExportToCSV(int64_t start_time) {
+int32_t WorkWindowSecondPageData::ExportExpResult() {
   std::string sql_str = "SELECT * FROM ";
   sql_str += anx::db::helper::kTableExpDataList;
   sql_str += " ORDER BY date ASC";
@@ -542,7 +542,8 @@ void WorkWindowSecondPageData::ExportToCSV(int64_t start_time) {
                                  anx::db::helper::kTableExpDataList, sql_str,
                                  &result);
   if (result.size() == 0) {
-    return;
+    LOG_F(LG_ERROR) << "exp data is empty";
+    return -1;
   }
 
   std::vector<anx::expdata::ExperimentData> exp_datas;
@@ -555,23 +556,34 @@ void WorkWindowSecondPageData::ExportToCSV(int64_t start_time) {
     data.um_ = std::stod(item["um"]);
     exp_datas.push_back(data);
   }
-  // TODO(hhool): auto save the data to the file
-  // file path is execuatable path/recored/xxx.csv
-  // file format is csv
-  std::string file_pathname_csv;
-  int ret = anx::expdata::SaveExperimentDataToCsvWithDefaultPath(
-      exp_datas, start_time, &file_pathname_csv);
-  if (ret != 0) {
-    LOG_F(LG_ERROR) << "save exp data to csv failed";
-    return;
-  }
+
   if (pWorkWindow_->exp_report_.get() == nullptr) {
     LOG_F(LG_ERROR) << "exp report is nullptr";
-    return;
+    return -2;
   }
   anx::expdata::ExperimentReport report = *(pWorkWindow_->exp_report_.get());
-  anx::expdata::SaveReportToDocxWithDefaultPath(report, file_pathname_csv,
-                                                "report.docx");
+  std::string file_pathname_xml;
+  int32_t ret = anx::expdata::SaveExperimentReportToXmlWithDefaultPath(
+      report, &file_pathname_xml);
+  if (ret != 0) {
+    LOG_F(LG_ERROR) << "save exp report to xml failed";
+    return -3;
+  }
+  std::string file_pathname_csv;
+  ret = anx::expdata::SaveExperimentDataToCsvWithDefaultPath(
+      report, exp_datas, &file_pathname_csv);
+  if (ret != 0) {
+    LOG_F(LG_ERROR) << "save exp data to csv failed";
+    return -4;
+  }
+  std::string file_pathname_docx;
+  ret = anx::expdata::SaveReportToDocxWithDefaultPath(report, file_pathname_csv,
+                                                      &file_pathname_docx);
+  if (ret != 0) {
+    LOG_F(LG_ERROR) << "save report to docx failed";
+    return -5;
+  }
+  return 0;
 }
 
 }  // namespace ui

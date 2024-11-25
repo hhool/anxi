@@ -88,8 +88,13 @@ void DialogAbout::OnPrepare(const DuiLib::TNotifyUI& msg) {
 
 std::map<std::string, std::string> DialogAbout::LoadAboutConfig() {
   std::map<std::string, std::string> about_config;
-  std::string module_dir = anx::common::GetModuleDir();
-  std::string module_path = module_dir + "\\default\\config_about.xml";
+  std::string app_data_dir = anx::common::GetApplicationDataPath();
+#if defined(_WIN32) || defined(_WIN64)
+  app_data_dir += "\\anxi\\default\\config_about.xm";
+#else
+  app_data_dir += "/anxi/default/config_about.xm";
+#endif
+  std::string module_path = app_data_dir;
   tinyxml2::XMLDocument doc;
   if (doc.LoadFile(module_path.c_str()) != tinyxml2::XML_SUCCESS) {
     return about_config;

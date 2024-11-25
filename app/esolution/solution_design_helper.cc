@@ -72,8 +72,12 @@ std::unique_ptr<SolutionDesign> LoadSolutionDesignDefaultResourceWithType(
   }
 
   // get module path
-  std::string module_dir = anx::common::GetModuleDir();
-  default_xml = module_dir + "\\" + default_xml;
+  std::string app_data_dir = anx::common::GetApplicationDataPath();
+#ifdef _WIN32
+  default_xml = app_data_dir + "\\anxi\\" + default_xml;
+#else
+  default_xml = app_data_dir + "/anxi/" + default_xml;
+#endif
 
   std::unique_ptr<SolutionDesign> design =
       LoadSolutionDesignWithFilePath(default_xml);

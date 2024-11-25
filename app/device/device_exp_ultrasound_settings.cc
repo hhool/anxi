@@ -215,8 +215,13 @@ LoadDeviceUltrasoundSettingsWithFilePath(const std::string& file_path) {
 std::unique_ptr<DeviceUltrasoundSettings>
 LoadDeviceUltrasoundSettingsDefaultResource() {
   std::string default_xml = DefaultDeviceUltrasoundSettingsXmlFilePath();
-  std::string module_dir = anx::common::GetModuleDir();
-  default_xml = module_dir + "\\" + default_xml;
+  // get app data path
+  std::string app_data_dir = anx::common::GetApplicationDataPath();
+#ifdef _WIN32
+  default_xml = app_data_dir + "\\anxi\\" + default_xml;
+#else
+  default_xml = app_data_dir + "/anxi/" + default_xml;
+#endif
 
   std::unique_ptr<DeviceUltrasoundSettings> ultrasound_settings =
       LoadDeviceUltrasoundSettingsWithFilePath(default_xml);
@@ -248,8 +253,13 @@ int32_t SaveDeviceUltrasoundSettingsFile(
 int32_t SaveDeviceUltrasoundSettingsDefaultResource(
     const DeviceUltrasoundSettings& settings) {
   std::string default_xml = DefaultDeviceUltrasoundSettingsXmlFilePath();
-  std::string module_dir = anx::common::GetModuleDir();
-  default_xml = module_dir + "\\" + default_xml;
+  // get app data path
+  std::string app_data_dir = anx::common::GetApplicationDataPath();
+#ifdef _WIN32
+  default_xml = app_data_dir + "\\anxi\\" + default_xml;
+#else
+  default_xml = app_data_dir + "/anxi/" + default_xml;
+#endif
 
   return SaveDeviceUltrasoundSettingsFile(default_xml, settings);
 }
