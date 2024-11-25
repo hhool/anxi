@@ -22,14 +22,30 @@ namespace esolution {
 
 std::string DefaultSolutionDesignXmlFilePath(int32_t solution_type) {
   if (solution_type == anx::esolution::kSolutionName_Axially_Symmetrical) {
+#if defined(_WIN32) || defined(_WIN64)
+    return "default\\default_axially_symmetrical.xml";
+#else
     return "default/default_axially_symmetrical.xml";
+#endif
   } else if (solution_type ==
              anx::esolution::kSolutionName_Stresses_Adjustable) {
+#if defined(_WIN32) || defined(_WIN64)
+    return "default\\default_stresses_adjustable.xml";
+#else
     return "default/default_stresses_adjustable.xml";
+#endif
   } else if (solution_type == anx::esolution::kSolutionName_Th3point_Bending) {
+#if defined(_WIN32) || defined(_WIN64)
+    return "default\\default_th3point_bending.xml";
+#else
     return "default/default_th3point_bending.xml";
+#endif
   } else if (solution_type == anx::esolution::kSolutionName_Vibration_Bending) {
+#if defined(_WIN32) || defined(_WIN64)
+    return "default\\default_vibration_bending.xml";
+#else
     return "default/default_vibration_bending.xml";
+#endif
   } else {
     assert(false && "Invalid solution type");
     return "";

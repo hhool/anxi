@@ -94,7 +94,11 @@ std::unique_ptr<DeviceExpAmplitudeSettings> DeviceExpAmplitudeSettings::FromXml(
 ////////////////////////////////////////////////////////////////////
 // helper function
 std::string DefaultDeviceExpAmplitudeSettingsXmlFilePath() {
+#if defined(_WIN32) || defined(_WIN64)
+  return "default\\device_exp_amp_settings.xml";
+#else
   return "default/device_exp_amp_settings.xml";
+#endif
 }
 
 std::unique_ptr<DeviceExpAmplitudeSettings>

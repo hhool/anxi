@@ -178,7 +178,11 @@ std::unique_ptr<DeviceUltrasoundSettings> DeviceUltrasoundSettings::FromXml(
 // helper function
 
 std::string DefaultDeviceUltrasoundSettingsXmlFilePath() {
+#if defined(_WIN32) || defined(_WIN64)
+  return "default\\device_exp_ultrasound_settings.xml";
+#else
   return "default/device_exp_ultrasound_settings.xml";
+#endif
 }
 
 std::unique_ptr<DeviceUltrasoundSettings>

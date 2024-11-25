@@ -65,8 +65,9 @@ class DialogAmplitudeCalibrationSettings : public DuiLib::WindowImplBase {
     return _T("dialog_amplitude_calibration_settings");
   }
 
+ protected:
   void OnPrepare(const DuiLib::TNotifyUI& msg);
-
+  bool OnEditControlChanged(void* param);
   void LoadSettingsFromResource();
   void UpdateControlFromSettings();
   void SaveSettingsToResource();

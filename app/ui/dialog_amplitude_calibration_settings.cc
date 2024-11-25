@@ -50,6 +50,14 @@ void DialogAmplitudeCalibrationSettings::InitWindow() {
   edit_amp_level_fourth_ = static_cast<CEditUI*>(
       m_PaintManager.FindControl(_T("tab_page_three_left_amp_level_fourth")));
 
+  edit_amp_level_one_->OnNotify += MakeDelegate(
+      this, &DialogAmplitudeCalibrationSettings::OnEditControlChanged);
+  edit_amp_level_two_->OnNotify += MakeDelegate(
+      this, &DialogAmplitudeCalibrationSettings::OnEditControlChanged);
+  edit_amp_level_third_->OnNotify += MakeDelegate(
+      this, &DialogAmplitudeCalibrationSettings::OnEditControlChanged);
+  edit_amp_level_fourth_->OnNotify += MakeDelegate(
+      this, &DialogAmplitudeCalibrationSettings::OnEditControlChanged);
   LoadSettingsFromResource();
 
   UpdateControlFromSettings();
@@ -95,6 +103,63 @@ void DialogAmplitudeCalibrationSettings::OnPrepare(
   ::SetWindowLong(
       m_hWnd, GWL_STYLE,
       ::GetWindowLong(m_hWnd, GWL_STYLE) & ~WS_MAXIMIZEBOX & ~WS_THICKFRAME);
+}
+
+bool DialogAmplitudeCalibrationSettings::OnEditControlChanged(void* param) {
+  TNotifyUI* pMsg = reinterpret_cast<TNotifyUI*>(param);
+  if (pMsg == nullptr) {
+    return false;
+  }
+  LOG_F(LG_INFO) << pMsg->pSender->GetName() << " " << pMsg->sType << " "
+                 << pMsg->wParam << " " << pMsg->lParam;
+  if (pMsg->sType != DUI_MSGTYPE_KILLFOCUS &&
+      pMsg->sType != DUI_MSGTYPE_RETURN) {
+    return false;
+  }
+  bool save = false;
+  if (pMsg->pSender == edit_amp_level_one_) {
+    int32_t amp_level_one = 0;
+    if (get_value_from_control(edit_amp_level_one_, &amp_level_one)) {
+      if (amp_level_one >= 1) {
+        deas_->exp_power2amp_map_[20] = amp_level_one;
+        save = true;
+      }
+    }
+    set_value_to_edit(edit_amp_level_one_, deas_->exp_power2amp_map_[20]);
+  } else if (pMsg->pSender == edit_amp_level_two_) {
+    int32_t amp_level_two = 0;
+    if (get_value_from_control(edit_amp_level_two_, &amp_level_two)) {
+      if (amp_level_two >= 1) {
+        deas_->exp_power2amp_map_[40] = amp_level_two;
+        save = true;
+      }
+    }
+    set_value_to_edit(edit_amp_level_two_, deas_->exp_power2amp_map_[40]);
+  } else if (pMsg->pSender == edit_amp_level_third_) {
+    int32_t amp_level_third = 0;
+    if (get_value_from_control(edit_amp_level_third_, &amp_level_third)) {
+      if (amp_level_third >= 1) {
+        deas_->exp_power2amp_map_[60] = amp_level_third;
+        save = true;
+      }
+    }
+    set_value_to_edit(edit_amp_level_third_, deas_->exp_power2amp_map_[60]);
+  } else if (pMsg->pSender == edit_amp_level_fourth_) {
+    int32_t amp_level_fourth = 0;
+    if (get_value_from_control(edit_amp_level_fourth_, &amp_level_fourth)) {
+      if (amp_level_fourth >= 1) {
+        deas_->exp_power2amp_map_[80] = amp_level_fourth;
+        save = true;
+      }
+    }
+    set_value_to_edit(edit_amp_level_fourth_, deas_->exp_power2amp_map_[80]);
+  } else {
+    return false;
+  }
+  if (save) {
+    SaveSettingsToResource();
+  }
+  return true;
 }
 
 void DialogAmplitudeCalibrationSettings::LoadSettingsFromResource() {

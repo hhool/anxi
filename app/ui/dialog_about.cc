@@ -90,9 +90,9 @@ std::map<std::string, std::string> DialogAbout::LoadAboutConfig() {
   std::map<std::string, std::string> about_config;
   std::string app_data_dir = anx::common::GetApplicationDataPath();
 #if defined(_WIN32) || defined(_WIN64)
-  app_data_dir += "\\anxi\\default\\config_about.xm";
+  app_data_dir += "\\anxi\\default\\config_about.xml";
 #else
-  app_data_dir += "/anxi/default/config_about.xm";
+  app_data_dir += "/anxi/default/config_about.xml";
 #endif
   std::string module_path = app_data_dir;
   tinyxml2::XMLDocument doc;

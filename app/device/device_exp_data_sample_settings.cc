@@ -138,7 +138,11 @@ DeviceExpDataSampleSettings::FromXml(const std::string& xml) {
 ////////////////////////////////////////////////////////////////////
 // helper function
 std::string DefaultDeviceExpDataSampleSettingsXmlFilePath() {
+#if defined(_WIN32) || defined(_WIN64)
+  return "default\\device_exp_data_sample_settings.xml";
+#else
   return "default/device_exp_data_sample_settings.xml";
+#endif
 }
 
 std::unique_ptr<DeviceExpDataSampleSettings>

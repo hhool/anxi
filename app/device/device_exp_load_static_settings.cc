@@ -168,7 +168,11 @@ std::unique_ptr<DeviceLoadStaticSettings> DeviceLoadStaticSettings::FromXml(
 ////////////////////////////////////////////////////////////////////////
 // helper function
 std::string DefaultDeviceLoadStaticSettingsXmlFilePath() {
+#if defined(_WIN32) || defined(_WIN64)
+  return "default\\device_exp_load_static_settings.xml";
+#else
   return "default/device_exp_load_static_settings.xml";
+#endif
 }
 
 std::unique_ptr<DeviceLoadStaticSettings>

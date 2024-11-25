@@ -28,7 +28,6 @@ DeviceExpGraph::DeviceExpGraph()
       exp_graph_range_minitues_(0) {}
 
 DeviceExpGraph::DeviceExpGraph(int32_t exp_graph_show_time_type,
-                               bool exp_graph_always_new,
                                int32_t exp_graph_range_minitues)
     : exp_graph_show_time_type_(exp_graph_show_time_type),
       exp_graph_range_minitues_(exp_graph_range_minitues) {}
@@ -71,10 +70,6 @@ std::unique_ptr<DeviceExpGraphSettings> DeviceExpGraphSettings::FromXml(
   if (!exp_graph_show_time_type) {
     return nullptr;
   }
-  auto exp_graph_always_new = root->FirstChildElement("exp_graph_always_new");
-  if (!exp_graph_always_new) {
-    return nullptr;
-  }
   auto exp_graph_range_minitues =
       root->FirstChildElement("exp_graph_range_minitues");
   if (!exp_graph_range_minitues) {
@@ -90,7 +85,11 @@ std::unique_ptr<DeviceExpGraphSettings> DeviceExpGraphSettings::FromXml(
 ////////////////////////////////////////////////////////////////////
 // helper function
 std::string DefaultDeviceExpGraphSettingsXmlFilePath() {
+#if defined(_WIN32) || defined(_WIN64)
+  return "default\\device_exp_graph_settings.xml";
+#else
   return "default/device_exp_graph_settings.xml";
+#endif
 }
 
 std::unique_ptr<DeviceExpGraphSettings>

@@ -21,7 +21,6 @@ class DeviceExpGraph {
  public:
   DeviceExpGraph();
   DeviceExpGraph(int32_t exp_graph_show_time_type,
-                 bool exp_graph_always_new,
                  int32_t exp_graph_range_minitues);
   virtual ~DeviceExpGraph();
 
