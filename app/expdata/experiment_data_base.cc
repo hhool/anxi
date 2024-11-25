@@ -24,6 +24,7 @@ extern "C" {
 #endif
 
 #include "app/common/logger.h"
+#include "app/common/file_utils.h"
 #include "app/common/module_utils.h"
 #include "app/common/string_utils.h"
 #include "app/expdata/LibOb_strptime.h"
@@ -137,6 +138,15 @@ ExperimentFileSummary::~ExperimentFileSummary() {}
 
 namespace {
 
+/// @brief  Traverse the directory and get all the csv files with xml file
+/// @param dir  the directory of files stored
+/// @param summarys  the file summary list
+/// @return int32_t 0 if success, -1 if failed
+/// @note the file name format is start_time_stop_time.csv and the xml file
+/// name is start_time_stop_time.xml represent as
+/// 2024-08-11_12-00-00_2024-08-11_12-00-00.csv and
+/// 2024-08-11_12-00-00_2024-08-11_12-00-00.xml
+/// TODO(hhool): add the xml file check to make sure the csv file is valid
 int32_t TraverseDir(
     const std::string& dir,
     std::vector<anx::expdata::ExperimentFileSummary>* summarys) {
@@ -156,11 +166,33 @@ int32_t TraverseDir(
     // parse file content to get the start_time, end_time.
     // file name format is start_time_stop_time.csv
     // represent as 2024-08-11_12-00-00_2024-08-11_12-00-00.csv
-    std::string file_name = anx::common::WString2String(find_data.cFileName);
-    std::string start_time_str = file_name.substr(0, 19);
-    std::string end_time_str = file_name.substr(20, 19);
+    std::string file_full_name =
+        anx::common::WString2String(find_data.cFileName);
+    std::string file_ext = file_full_name.substr(file_full_name.size() - 4);
+    if (file_ext != ".csv") {
+      continue;
+    }
+    if (file_full_name.size() < 40) {
+      continue;
+    }
+    if (file_ext == ".csv") {
+      // get the file name without extension
+      std::string file_name =
+          file_full_name.substr(0, file_full_name.size() - 4);
+      // check if the file name with .xml extension is exsited
+      std::string xml_file_name = file_name + ".xml";
+      std::string xml_file_full_name = dir + "\\" + xml_file_name;
+      // if the xml file is not exsited then delete the csv file
+      if (anx::common::FileExists(xml_file_full_name) == false) {
+        std::string csv_file_full_name = dir + "\\" + file_full_name;
+        remove(csv_file_full_name.c_str());
+        continue;
+      }
+    }
+    std::string start_time_str = file_full_name.substr(0, 19);
+    std::string end_time_str = file_full_name.substr(20, 19);
     anx::expdata::ExperimentFileSummary file_summary;
-    file_summary.file_name_ = file_name;
+    file_summary.file_name_ = file_full_name;
     file_summary.start_time_ = anx::expdata::StringToTime(start_time_str);
     file_summary.end_time_ = anx::expdata::StringToTime(end_time_str);
     summarys->push_back(file_summary);
