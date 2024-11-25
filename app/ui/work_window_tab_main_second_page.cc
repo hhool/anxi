@@ -169,23 +169,25 @@ void WorkWindowSecondPage::OnTimer(TNotifyUI& msg) {
       if (ultra_device_) {
         cur_freq_ = ultra_device_->GetCurrentFreq();
         cur_power_ = ultra_device_->GetCurrentPower();
-        if (cur_freq_ < 0 || cur_power_ < 0) {
+        if (exp_pause_stop_reason_ == kExpPauseStopReasonNone &&
+            (cur_freq_ < 0 || cur_power_ < 0)) {
           LOG_F(LG_ERROR) << "exp_stop: cur_freq:" << cur_freq_
                           << " cur_power:" << cur_power_;
-          exp_stop();
           exp_pause_stop_reason_ = kExpPauseStopReasonUnkown;
+          exp_stop();
           /// @note msg box with unkown reason
           anx::ui::DialogCommon::ShowDialog(
               *pWorkWindow_, "提示", "设备未知错误,请检查硬件连接",
               anx::ui::DialogCommon::kDialogCommonStyleOk);
           return;
         }
-        if (fabs(cur_freq_ - initial_frequency_) >
-            dus_.exp_frequency_fluctuations_range_) {
+        if (exp_pause_stop_reason_ == kExpPauseStopReasonNone &&
+            (fabs(cur_freq_ - initial_frequency_) >
+             dus_.exp_frequency_fluctuations_range_)) {
           LOG_F(LG_ERROR) << "exp_stop: frequency fluctuation:" << cur_freq_
                           << " initial frequency:" << initial_frequency_;
-          exp_pause();
           exp_pause_stop_reason_ = kExpPauseStopReasonOutFrequecyRange;
+          exp_pause();
           /// @note msg box with frequency fluctuation reason
           anx::ui::DialogCommon::ShowDialog(
               *pWorkWindow_, "提示", "超出频率波动范围",
@@ -422,8 +424,8 @@ void WorkWindowSecondPage::OnValueChanged(TNotifyUI& msg) {
       }
     } else if (msg.pSender->GetName() == _T("args_area_value_amplitude")) {
       if (msg.wParam == PBT_APMQUERYSUSPEND) {
-        exp_stop();
         exp_pause_stop_reason_ = kExpPauseStopReasonSystemStandby;
+        exp_stop();
       } else {
         // TODO(hhool): do nothing
       }
