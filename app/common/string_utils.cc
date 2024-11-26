@@ -191,6 +191,20 @@ std::string UnicodeToUTF8(const std::string& str) {
 }
 #endif
 
+std::string AnsiToUTF8(const std::string& str) {
+  std::string result;
+  std::wstring wstr = String2WString(str);
+  result = UnicodeToUTF8(wstr);
+  return result;
+}
+
+std::string UTF8ToAnsi(const std::string& str) {
+  std::string result;
+  std::wstring wstr = UTF8ToUnicode(str);
+  result = WString2String(wstr);
+  return result;
+}
+
 std::string ByteArrayToHexString(const uint8_t* byte, int32_t size) {
   std::string result;
   for (int32_t i = 0; i < size; ++i) {

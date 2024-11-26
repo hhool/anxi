@@ -37,9 +37,8 @@ bool FileExists(const std::string& file_path) {
   /// transfer db_name to Unicode
 #if defined(WIN32)
   std::wstring w_path = anx::common::String2WString(file_path.c_str());
-  path = anx::common::UnicodeToUTF8(w_path.c_str());
 #endif
-  return _access(path.c_str(), 0) == 0;
+  return _waccess(w_path.c_str(), 0) == 0;
 #else
   return access(file_path.c_str(), F_OK) == 0;
 #endif
@@ -51,9 +50,8 @@ bool DirectoryExists(const std::string& dir_path) {
   /// transfer db_name to Unicode
 #if defined(WIN32)
   std::wstring w_path = anx::common::String2WString(dir_path.c_str());
-  path = anx::common::UnicodeToUTF8(w_path.c_str());
 #endif
-  return _access(path.c_str(), 0) == 0;
+  return _waccess(w_path.c_str(), 0) == 0;
 #else
   return access(dir_path.c_str(), F_OK) == 0;
 #endif
@@ -65,9 +63,8 @@ bool CreateFolder(const std::string& dir_path) {
   /// transfer db_name to Unicode
 #if defined(WIN32)
   std::wstring w_path = anx::common::String2WString(dir_path.c_str());
-  path = anx::common::UnicodeToUTF8(w_path.c_str());
 #endif
-  return _rmdir(path.c_str()) == 0;
+  return _wmkdir(w_path.c_str()) == 0;
 #else
   return mkdir(dir_path.c_str(), 0777) == 0;
 #endif
@@ -79,9 +76,8 @@ bool RemoveFolder(const std::string& dir_path) {
   /// transfer db_name to Unicode
 #if defined(WIN32)
   std::wstring w_path = anx::common::String2WString(dir_path.c_str());
-  path = anx::common::UnicodeToUTF8(w_path.c_str());
 #endif
-  return _rmdir(path.c_str()) == 0;
+  return _wrmdir(w_path.c_str()) == 0;
 #else
   return rmdir(dir_path.c_str()) == 0;
 #endif
@@ -93,9 +89,8 @@ bool RemoveFile(const std::string& file_path) {
   /// transfer db_name to Unicode
 #if defined(WIN32)
   std::wstring w_path = anx::common::String2WString(file_path.c_str());
-  path = anx::common::UnicodeToUTF8(w_path.c_str());
 #endif
-  return remove(path.c_str()) == 0;
+  return _wremove(w_path.c_str()) == 0;
 #else
   return remove(file_path.c_str()) == 0;
 #endif

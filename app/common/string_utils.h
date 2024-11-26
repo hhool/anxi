@@ -82,6 +82,16 @@ std::wstring UTF8ToUnicode(const std::string& str);
 /// @return  the converted string
 std::string UnicodeToUTF8(const std::wstring& str);
 
+/// @brief  Convert from ansii to utf8
+/// @param str  the string to be converted
+/// @return  the converted string
+std::string AnsiToUTF8(const std::string& str);
+
+/// @brief  Convert from utf8 to ansii
+/// @param str  the string to be converted
+/// @return  the converted string
+std::string UTF8ToAnsi(const std::string& str);
+
 /// @brief byte array to hex string
 /// @param byte the bytes to be converted
 std::string ByteArrayToHexString(const uint8_t* byte, int32_t size);
