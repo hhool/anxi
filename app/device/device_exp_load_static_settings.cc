@@ -237,5 +237,26 @@ int32_t SaveDeviceLoadStaticSettingsDefaultResource(
   return SaveDeviceLoadStaticSettingsFile(default_xml, settings);
 }
 
+int32_t ResetDeviceLoadStaticSettingsDefaultResource() {
+  std::string default_xml = DefaultDeviceLoadStaticSettingsXmlFilePath();
+  std::string app_data_dir = anx::common::GetApplicationDataPath();
+#if defined(_WIN32)
+  std::string dst_xml = app_data_dir + "\\anxi\\" + default_xml;
+  std::string origin_xml = anx::common::GetModuleDir() + "\\" + default_xml;
+#else
+  std::string dst_xml = app_data_dir + "/anxi/" + default_xml;
+  std::string origin_xml = anx::common::GetModuleDir() + "/" + default_xml;
+#endif
+  if (!anx::common::FileExists(origin_xml)) {
+    LOG_F(LG_ERROR) << "origin xml file not exists: " << origin_xml;
+    return -1;
+  }
+  if (!anx::common::CCopyFile(origin_xml, dst_xml)) {
+    LOG_F(LG_ERROR) << "copy file failed: " << origin_xml << " to " << dst_xml;
+    return -2;
+  }
+  return 0;
+}
+
 }  // namespace device
 }  // namespace anx

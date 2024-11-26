@@ -72,6 +72,8 @@ void DialogAppSettingsCommon::OnClick(DuiLib::TNotifyUI& msg) {
       return;
     }
     SaveSettingsToResource();
+  } else if (msg.pSender->GetName() == _T("btn_e10c_pilot_params_reset")) {
+    OnBtnThirdAppReset();
   } else {
     // TODO(hhool): do nothing
   }
@@ -119,6 +121,24 @@ void DialogAppSettingsCommon::OnKillFocus(DuiLib::TNotifyUI& msg) {
     DuiLib::CDuiString name = edit_third_app_name->GetText();
     third_app_name_ = anx::common::UnicodeToUTF8(name.GetData());
   }
+}
+
+void DialogAppSettingsCommon::OnBtnThirdAppReset() {
+  int32_t ret = anx::settings::SettingAppThird::ResetThirdApp();
+  if (ret != 0) {
+    LOG_F(LG_ERROR) << "ResetThirdApp failed";
+    return;
+  }
+  third_app_name_ = anx::settings::SettingAppThird::GetThirdAppName();
+  DuiLib::CEditUI* edit_third_app_name = static_cast<DuiLib::CEditUI*>(
+      paint_manager_ui_->FindControl(_T("edit_e10c_pilot_name")));
+  edit_third_app_name->SetText(
+      anx::common::UTF8ToUnicode(third_app_name_).c_str());
+
+  third_app_path_ = anx::settings::SettingAppThird::GetThirdAppPath();
+  DuiLib::CEditUI* edit_third_app = static_cast<DuiLib::CEditUI*>(
+      paint_manager_ui_->FindControl(_T("edit_e10c_pilot_path")));
+  edit_third_app->SetText(anx::common::UTF8ToUnicode(third_app_path_).c_str());
 }
 
 void DialogAppSettingsCommon::Bind() {

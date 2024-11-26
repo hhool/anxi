@@ -257,5 +257,13 @@ bool WriteFile(const std::string& file_path,
   fclose(file);
   return written == size;
 }
+
+bool CCopyFile(const std::string& src, const std::string& dst) {
+#if defined(_WIN32) || defined(_WIN64)
+  return CopyFileA(src.c_str(), dst.c_str(), FALSE) == TRUE;
+#else
+  return false;
+#endif
+}
 }  // namespace common
 }  // namespace anx

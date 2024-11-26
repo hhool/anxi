@@ -64,6 +64,7 @@ class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
   bool OnTimer(void* param);
   bool OnOptDataSampleChange(void* param);
   bool OnEditDataSampleChange(void* param);
+  bool OnBtnDataSampleReset(void* param);
 
  public:
   // implement the base class UIVirtualWndBase virtual function
@@ -134,6 +135,9 @@ class WorkWindowSecondPageData : public DuiLib::CNotifyPump,
   /// @brief exp status
   /// 0 - stop, 1 - start, 2 - pause, <0 - unvalid
   int32_t is_exp_state_ = kExpStateUnvalid;
+
+  /// @brief reset the sample setting
+  DuiLib::CButtonUI* btn_sample_reset_;
 };
 }  // namespace ui
 }  // namespace anx

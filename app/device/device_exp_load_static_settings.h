@@ -85,6 +85,14 @@ LoadDeviceLoadStaticSettingsDefaultResource();
 /// @return  int32_t 0: success, -1: failed
 int32_t SaveDeviceLoadStaticSettingsDefaultResource(
     const DeviceLoadStaticSettings& settings);
+/// @brief ResetDeviceLoadStaticSettingsDefaultResource function reset
+/// reset device load static settings to default resource file
+/// that stored in the application data directory with the file name
+/// device_exp_load_static_settings.xml from origin resource file at application
+/// path
+
+int32_t ResetDeviceLoadStaticSettingsDefaultResource();
+
 }  // namespace device
 }  // namespace anx
 

@@ -74,6 +74,10 @@ void DialogStaticLoadGuaranteedSettings::InitWindow() {
   edit_keep_load_duration_->OnNotify += MakeDelegate(
       this, &DialogStaticLoadGuaranteedSettings::OnEditControlChanged);
 
+  btn_reset_ = static_cast<CButtonUI*>(
+      m_PaintManager.FindControl(_T("btn_load_params_reset")));
+  btn_reset_->OnNotify +=
+      MakeDelegate(this, &DialogStaticLoadGuaranteedSettings::OnBtnResetClick);
   /// load settings from resource or create a new one.
   LoadSettingsFromResource();
 
@@ -220,6 +224,28 @@ bool DialogStaticLoadGuaranteedSettings::OnCtrlMoveChanged(void* param) {
       lss_->direct_ = 2;
     }
   }
+  return true;
+}
+
+bool DialogStaticLoadGuaranteedSettings::OnBtnResetClick(void* param) {
+  TNotifyUI* pMsg = reinterpret_cast<TNotifyUI*>(param);
+  if (pMsg == nullptr) {
+    return false;
+  }
+  if (pMsg->sType != DUI_MSGTYPE_CLICK) {
+    return false;
+  }
+  if (pMsg->pSender != btn_reset_) {
+    return false;
+  }
+  int32_t ret = anx::device::ResetDeviceLoadStaticSettingsDefaultResource();
+  if (ret != 0) {
+    LOG_F(LG_ERROR) << "ResetDeviceLoadStaticSettingsDefaultResource failed";
+    return true;
+  }
+
+  LoadSettingsFromResource();
+  UpdateControlFromSettings();
   return true;
 }
 

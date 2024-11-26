@@ -298,6 +298,27 @@ bool WorkWindowSecondPageData::OnEditDataSampleChange(void* param) {
   return true;
 }
 
+bool WorkWindowSecondPageData::OnBtnDataSampleReset(void* param) {
+  TNotifyUI* pMsg = reinterpret_cast<TNotifyUI*>(param);
+  if (pMsg == nullptr) {
+    return false;
+  }
+  if (pMsg->sType != DUI_MSGTYPE_CLICK) {
+    return false;
+  }
+  if (pMsg->pSender != btn_sample_reset_) {
+    return false;
+  }
+  int32_t ret = anx::device::ResetDeviceExpDataSampleSettingsDefaultResource();
+  if (ret != 0) {
+    LOG_F(LG_ERROR) << "ResetDeviceExpDataSampleSettingsDefaultResource failed";
+    return true;
+  }
+  LoadSettingsFromResource();
+  UpdateControlFromSettings();
+  return true;
+}
+
 bool WorkWindowSecondPageData::OnTimer(void* param) {
   TNotifyUI* pMsg = reinterpret_cast<TNotifyUI*>(param);
   if (pMsg == nullptr) {
@@ -349,6 +370,11 @@ void WorkWindowSecondPageData::Bind() {
   list_data_->SetVirtualItemFormat(
       static_cast<DuiLib::IListVirtalCallbackUI*>(list_data_view_.get()));
   list_data_->SetVirtualItemCount(0);
+
+  btn_sample_reset_ = static_cast<DuiLib::CButtonUI*>(
+      paint_manager_ui_->FindControl(_T("btn_sample_params_reset")));
+  btn_sample_reset_->OnNotify +=
+      ::MakeDelegate(this, &WorkWindowSecondPageData::OnBtnDataSampleReset);
 
   LoadSettingsFromResource();
 
@@ -431,6 +457,7 @@ void WorkWindowSecondPageData::UpdateUIWithExpStatus(int status) {
 
     option_sample_mode_exp_->SetEnabled(true);
     option_sample_mode_linear_->SetEnabled(true);
+    btn_sample_reset_->SetEnabled(true);
   } else if (status == 1) {
     // start
     edit_sample_start_pos_->SetEnabled(false);
@@ -439,6 +466,7 @@ void WorkWindowSecondPageData::UpdateUIWithExpStatus(int status) {
 
     option_sample_mode_exp_->SetEnabled(false);
     option_sample_mode_linear_->SetEnabled(false);
+    btn_sample_reset_->SetEnabled(false);
   } else if (status == 2) {
     // pause
     edit_sample_start_pos_->SetEnabled(false);
@@ -452,6 +480,7 @@ void WorkWindowSecondPageData::UpdateUIWithExpStatus(int status) {
 
     option_sample_mode_exp_->SetEnabled(false);
     option_sample_mode_linear_->SetEnabled(false);
+    btn_sample_reset_->SetEnabled(false);
   }
 }
 

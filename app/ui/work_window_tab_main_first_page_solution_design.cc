@@ -700,6 +700,19 @@ void WorkWindowFirstPageTh3pointBending::OnClick(TNotifyUI& msg) {
         f_amplitude = -1.0f;
       }
       pOwner_->UpdateArgsArea(-1, -1, f_amplitude, f_static_load_MPa);
+    } else if (msg.pSender->GetName() == _T("btn_params_reset")) {
+      // reset all edit
+      int32_t ret = anx::esolution::ResetSolutionDesignDefaultResourceWithType(
+          design_type_);
+      if (ret != 0) {
+        // show error message
+        anx::ui::DialogCommon::ShowDialog(
+            *pOwner_, "Error", "Reset solution design default resource failed",
+            anx::ui::DialogCommon::kDialogCommonStyleOk);
+      } else {
+        // update all edit
+        InitPage();
+      }
     }
   }
 }

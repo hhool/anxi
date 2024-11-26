@@ -55,7 +55,9 @@ class SettingAppThird {
   /// app_settings_third_app.xml
   static int32_t SaveThirdApp(const std::string& name,
                               const std::string& third_app_path);
-
+  /// @brief reset third app to default value
+  /// @return int32_t 0 success, other failed
+  static int32_t ResetThirdApp();
   /// @brief  Get the third app path
   /// @return  std::string the third app path info, failed return empty string
   static std::string GetThirdAppPath();

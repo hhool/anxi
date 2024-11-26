@@ -81,6 +81,7 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   void OnExpStop();
   void OnExpPause();
   void OnExpResume();
+  bool OnBtnResetExpClipSetting(void* param);
 
  protected:
   void CheckDeviceComConnectedStatus();
@@ -273,7 +274,8 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   DuiLib::CEditUI* edit_frequency_fluctuations_range_;
   DuiLib::CTextUI* text_max_cycle_duration_;
 
-  /// @brief exp data sample settings
+  /// @brief btn reset exp clip setting
+  DuiLib::CButtonUI* btn_reset_exp_clip_setting_;
 };
 
 }  // namespace ui

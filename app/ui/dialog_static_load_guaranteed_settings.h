@@ -74,6 +74,7 @@ class DialogStaticLoadGuaranteedSettings : public anx::ui::DialogCommon {
   bool OnEditControlChanged(void* param);
   bool OnCtrlTypeChanged(void* param);
   bool OnCtrlMoveChanged(void* param);
+  bool OnBtnResetClick(void* param);
   void LoadSettingsFromResource();
   void UpdateControlFromSettings();
   void SaveSettingsToResource();
@@ -91,6 +92,7 @@ class DialogStaticLoadGuaranteedSettings : public anx::ui::DialogCommon {
   CEditUI* edit_retention_;
   CEditUI* edit_displacement_;
   CEditUI* edit_keep_load_duration_;
+  CButtonUI* btn_reset_;
 };
 }  // namespace ui
 }  // namespace anx

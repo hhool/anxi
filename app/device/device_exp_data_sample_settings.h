@@ -68,11 +68,15 @@ class DeviceExpDataSampleSettings : public DeviceExpDataSample {
 };
 
 /// helper function
+/// @brief  default device exp data sample settings xml file path
+
 std::unique_ptr<DeviceExpDataSampleSettings>
 LoadDeviceExpDataSampleSettingsDefaultResource();
 
 int32_t SaveDeviceExpDataSampleSettingsDefaultResource(
     const DeviceExpDataSampleSettings& settings);
+
+int32_t ResetDeviceExpDataSampleSettingsDefaultResource();
 
 }  // namespace device
 }  // namespace anx

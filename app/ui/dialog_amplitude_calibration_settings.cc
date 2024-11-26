@@ -58,6 +58,12 @@ void DialogAmplitudeCalibrationSettings::InitWindow() {
       this, &DialogAmplitudeCalibrationSettings::OnEditControlChanged);
   edit_amp_level_fourth_->OnNotify += MakeDelegate(
       this, &DialogAmplitudeCalibrationSettings::OnEditControlChanged);
+
+  btn_reset_ = static_cast<CButtonUI*>(
+      m_PaintManager.FindControl(_T("btn_amp_params_reset")));
+  btn_reset_->OnNotify +=
+      MakeDelegate(this, &DialogAmplitudeCalibrationSettings::OnBtnResetClick);
+
   LoadSettingsFromResource();
 
   UpdateControlFromSettings();
@@ -159,6 +165,27 @@ bool DialogAmplitudeCalibrationSettings::OnEditControlChanged(void* param) {
   if (save) {
     SaveSettingsToResource();
   }
+  return true;
+}
+
+bool DialogAmplitudeCalibrationSettings::OnBtnResetClick(void* param) {
+  TNotifyUI* pMsg = reinterpret_cast<TNotifyUI*>(param);
+  if (pMsg == nullptr) {
+    return false;
+  }
+  if (pMsg->sType != DUI_MSGTYPE_CLICK) {
+    return false;
+  }
+  if (pMsg->pSender != btn_reset_) {
+    return false;
+  }
+  int32_t ret = anx::device::ResetDeviceExpAmplitudeSettingsDefaultResource();
+  if (ret != 0) {
+    // TODO(hhool): notify msg box with error info;
+    return true;
+  }
+  LoadSettingsFromResource();
+  UpdateControlFromSettings();
   return true;
 }
 

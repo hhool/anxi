@@ -633,6 +633,11 @@ void WorkWindowSecondPage::Bind() {
   edit_frequency_fluctuations_range_->OnNotify +=
       ::MakeDelegate(this, &WorkWindowSecondPage::OnExpClipChanged);
 
+  btn_reset_exp_clip_setting_ = static_cast<DuiLib::CButtonUI*>(
+      paint_manager_ui_->FindControl(_T("btn_exp_params_reset")));
+  btn_reset_exp_clip_setting_->OnNotify +=
+      ::MakeDelegate(this, &WorkWindowSecondPage::OnBtnResetExpClipSetting);
+
   /// @brief update the control from the settings file and set the timer
   /// to refresh the control
   UpdateControlFromSettings();
@@ -920,6 +925,26 @@ void WorkWindowSecondPage::OnExpResume() {
   }
   /// @note resume the ultrasound device
   exp_resume();
+}
+
+bool WorkWindowSecondPage::OnBtnResetExpClipSetting(void* params) {
+  if (params == nullptr) {
+    return false;
+  }
+  TNotifyUI* pMsg = reinterpret_cast<TNotifyUI*>(params);
+  if (pMsg == nullptr) {
+    return false;
+  }
+  if (pMsg->sType != DUI_MSGTYPE_CLICK) {
+    return false;
+  }
+  int32_t ret = anx::device::ResetDeviceUltrasoundSettingsDefaultResource();
+  if (ret != 0) {
+    LOG_F(LG_ERROR) << "reset the exp clip setting error";
+    return false;
+  }
+  UpdateControlFromSettings();
+  return false;
 }
 
 void WorkWindowSecondPage::CheckDeviceComConnectedStatus() {
@@ -1273,6 +1298,7 @@ void WorkWindowSecondPage::UpdateUIButton() {
     edit_max_cycle_count_->SetEnabled(true);
     edit_max_cycle_power_->SetEnabled(true);
     edit_frequency_fluctuations_range_->SetEnabled(true);
+    btn_reset_exp_clip_setting_->SetEnabled(true);
   } else if (is_exp_state_ == kExpStateStart) {
     btn_exp_reset_->SetEnabled(false);
     btn_exp_start_->SetEnabled(false);
@@ -1288,6 +1314,7 @@ void WorkWindowSecondPage::UpdateUIButton() {
     edit_max_cycle_count_->SetEnabled(false);
     edit_max_cycle_power_->SetEnabled(false);
     edit_frequency_fluctuations_range_->SetEnabled(false);
+    btn_reset_exp_clip_setting_->SetEnabled(false);
   } else if (is_exp_state_ == kExpStatePause) {
     btn_exp_reset_->SetEnabled(true);
     btn_exp_start_->SetEnabled(false);
@@ -1307,6 +1334,7 @@ void WorkWindowSecondPage::UpdateUIButton() {
     edit_max_cycle_count_->SetEnabled(true);
     edit_max_cycle_power_->SetEnabled(true);
     edit_frequency_fluctuations_range_->SetEnabled(true);
+    btn_reset_exp_clip_setting_->SetEnabled(false);
   } else {
     // TODO(hhool):
   }

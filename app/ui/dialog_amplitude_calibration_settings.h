@@ -68,6 +68,7 @@ class DialogAmplitudeCalibrationSettings : public DuiLib::WindowImplBase {
  protected:
   void OnPrepare(const DuiLib::TNotifyUI& msg);
   bool OnEditControlChanged(void* param);
+  bool OnBtnResetClick(void* param);
   void LoadSettingsFromResource();
   void UpdateControlFromSettings();
   void SaveSettingsToResource();
@@ -82,6 +83,7 @@ class DialogAmplitudeCalibrationSettings : public DuiLib::WindowImplBase {
   CEditUI* edit_amp_level_two_;
   CEditUI* edit_amp_level_third_;
   CEditUI* edit_amp_level_fourth_;
+  CButtonUI* btn_reset_;
 };
 }  // namespace ui
 }  // namespace anx

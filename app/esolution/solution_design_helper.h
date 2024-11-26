@@ -47,6 +47,11 @@ std::unique_ptr<SolutionDesign> LoadSolutionDesignDefaultResourceWithType(
 int32_t SaveSolutionDesignFile(const std::string& file_path,
                                const SolutionDesign& design);
 
+/// @brief Reset the default solution design resource with the solution type
+/// @param solution_type the solution type
+/// @return 0 if success, -1 if failed
+int32_t ResetSolutionDesignDefaultResourceWithType(int32_t solution_type);
+
 }  // namespace esolution
 }  // namespace anx
 

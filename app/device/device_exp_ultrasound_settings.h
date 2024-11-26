@@ -91,6 +91,8 @@ LoadDeviceUltrasoundSettingsDefaultResource();
 
 int32_t SaveDeviceUltrasoundSettingsDefaultResource(
     const DeviceUltrasoundSettings& settings);
+int32_t ResetDeviceUltrasoundSettingsDefaultResource();
+
 }  // namespace device
 }  // namespace anx
 

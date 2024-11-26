@@ -114,5 +114,30 @@ int32_t SaveSolutionDesignFile(const std::string& file_path,
   return 0;
 }
 
+int32_t ResetSolutionDesignDefaultResourceWithType(int32_t solution_type) {
+  std::string default_xml = DefaultSolutionDesignXmlFilePath(solution_type);
+  if (default_xml.length() == 0) {
+    return -1;
+  }
+  // get module path
+  std::string app_data_dir = anx::common::GetApplicationDataPath();
+#ifdef _WIN32
+  std::string dst_xml = app_data_dir + "\\anxi\\" + default_xml;
+  std::string origin_xml = anx::common::GetModuleDir() + "\\" + default_xml;
+#else
+  std::string dst_xml = app_data_dir + "/anxi/" + default_xml;
+  std::string origin_xml = anx::common::GetModuleDir() + "\\" + default_xml;
+#endif
+  if (!anx::common::FileExists(origin_xml)) {
+    LOG_F(LG_ERROR) << "origin file not exists:" << origin_xml;
+    return -1;
+  }
+  if (!anx::common::CCopyFile(origin_xml, dst_xml)) {
+    LOG_F(LG_ERROR) << "CopyFile failed:" << origin_xml << " to " << dst_xml;
+    return -2;
+  }
+  return 0;
+}
+
 }  // namespace esolution
 }  // namespace anx

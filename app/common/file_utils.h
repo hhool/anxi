@@ -81,6 +81,12 @@ bool WriteFile(const std::string& file_path,
                const std::string& content,
                bool binary = false);
 
+/// @brief  copy the file from src to dst path
+/// @param src  the source file path
+/// @param dst  the destination file path
+/// @return  true if copy the file success
+bool CCopyFile(const std::string& src, const std::string& dst);
+
 }  // namespace common
 }  // namespace anx
 

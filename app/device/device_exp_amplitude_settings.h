@@ -21,7 +21,8 @@ namespace device {
 class DeviceExpAmplitude {
  public:
   DeviceExpAmplitude();
-  DeviceExpAmplitude(const std::map<int32_t, int32_t>& exp_power2amp_map);
+  explicit DeviceExpAmplitude(
+      const std::map<int32_t, int32_t>& exp_power2amp_map);
   virtual ~DeviceExpAmplitude();
 
  public:
@@ -46,12 +47,29 @@ class DeviceExpAmplitudeSettings : public DeviceExpAmplitude {
       const std::string& xml);
 };
 
+///////////////////////////////////////////////////////////////////////////////
 /// helper function
+/// @brief LoadDeviceExpAmplitudeSettingsDefaultResource function
+/// load device exp amplitude settings from default resource file
+/// that stored in the application data directory with the file name
+/// device_exp_amplitude_settings.xml
+/// @return std::unique_ptr<DeviceExpAmplitudeSettings>
 std::unique_ptr<DeviceExpAmplitudeSettings>
 LoadDeviceExpAmplitudeSettingsDefaultResource();
 
+/// @brief  SaveDeviceExpAmplitudeSettingsDefaultResource function
+/// save device exp amplitude settings to default resource file
+/// that stored in the application data directory with the file name
+/// device_exp_amplitude_settings.xml
 int32_t SaveDeviceExpAmplitudeSettingsDefaultResource(
     const DeviceExpAmplitudeSettings& settings);
+
+/// @brief  ResetDeviceExpAmplitudeSettingsDefaultResource function
+/// reset device exp amplitude settings to default resource file
+/// that stored in the application data directory with the file name
+/// device_exp_amplitude_settings.xml from origin resource file at application
+/// path
+int32_t ResetDeviceExpAmplitudeSettingsDefaultResource();
 
 }  // namespace device
 }  // namespace anx
