@@ -329,10 +329,10 @@ void WorkWindowSecondWorkWindowSecondPageGraphCtrl::ProcessDataSampleIncoming(
     return;
   if (data_sample_incoming_first_time_ < 0) {
     data_sample_incoming_first_time_ = 1;
-    LOG_F(LG_INFO) << "data_sample_incoming_count_:"
-                   << data_sample_incoming_count_ << "  "
-                   << "data_sample_incoming_value_total_:"
-                   << data_sample_incoming_value_total_;
+    LOG_F(LG_SENSITIVE) << "data_sample_incoming_count_:"
+                        << data_sample_incoming_count_ << "  "
+                        << "data_sample_incoming_value_total_:"
+                        << data_sample_incoming_value_total_;
   }
   /// @note 100 ms is one sample, 120 sample is 12 second, 120 sample is
   /// one data sample, take average of the 120 sample as one data sample
@@ -351,19 +351,18 @@ void WorkWindowSecondWorkWindowSecondPageGraphCtrl::ProcessDataSampleIncoming(
         plot_index_ - plot_graph_x_axis_reserve_count_for_y_axis_;
     if (plot_graph_sample_index <
         (sampling_total_minutes_ * (this->x_grid_step_))) {
-      LOG_F_INFO_TAG(name_) << " " << "plot_index:" << plot_index_;
+      LOG_F_SENSITIVE_TAG(name_) << " " << "plot_index:" << plot_index_;
       spGraphElement_->put_YValue(plot_index_, average);
     }
     plot_index_++;
-    LOG_F_INFO_TAG(name_) << " " << "value:" << average << " "
-                          << "data_sample_incoming_value_total_:"
-                          << data_sample_incoming_value_total_ << " "
-                          << "data_sample_incoming_count_:"
-                          << data_sample_incoming_count_ << " "
-                          << "plot_graph_sample_index:"
-                          << plot_graph_sample_index << " "
-                          << "sampling_total_minutes_*x_grid_step:"
-                          << (sampling_total_minutes_ * (this->x_grid_step_));
+    LOG_F_SENSITIVE_TAG(name_)
+        << " " << "value:" << average << " "
+        << "data_sample_incoming_value_total_:"
+        << data_sample_incoming_value_total_ << " "
+        << "data_sample_incoming_count_:" << data_sample_incoming_count_ << " "
+        << "plot_graph_sample_index:" << plot_graph_sample_index << " "
+        << "sampling_total_minutes_*x_grid_step:"
+        << (sampling_total_minutes_ * (this->x_grid_step_));
 
     if (plot_graph_sample_index > 0 &&
         plot_graph_sample_index %

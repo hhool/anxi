@@ -1887,12 +1887,13 @@ void WorkWindowSecondPage::ProcessDataListModeExponential() {
           }
           int64_t cycle_count = static_cast<int64_t>(
               multiplier * exp_data_list_info_.amp_freq_ / 10.f);
-          LOG_F(LG_INFO) << "exp data list: cycle_count:" << cycle_count
-                         << " cur_total_cycle_count_:" << cur_total_cycle_count_
-                         << " exp_time_interval_num_:" << time_interval_num
-                         << " exp_data_table_no_:"
-                         << exp_data_list_info_.exp_data_table_no_
-                         << " cur_freq_:" << cur_freq_;
+          LOG_F(LG_SENSITIVE)
+              << "exp data list: cycle_count:" << cycle_count
+              << " cur_total_cycle_count_:" << cur_total_cycle_count_
+              << " exp_time_interval_num_:" << time_interval_num
+              << " exp_data_table_no_:"
+              << exp_data_list_info_.exp_data_table_no_
+              << " cur_freq_:" << cur_freq_;
           // 1. save to database
           // format cycle_count, KHz, MPa, um to the sql string and insert to
           // the database
@@ -1921,10 +1922,10 @@ void WorkWindowSecondPage::ProcessDataListModeExponential() {
             exp_data_list_info_.amp_freq_ / 10);
   }
   this->pWorkWindow_->UpdateArgsArea(cur_total_cycle_count_);
-  LOG_F(LG_INFO) << "cur_total_cycle_count_:" << cur_total_cycle_count_
-                 << " pre_total_cycle_count_:" << pre_total_cycle_count_
-                 << " exp_data_list_info_.exp_time_interval_num_:"
-                 << exp_data_list_info_.exp_time_interval_num_;
+  LOG_F(LG_SENSITIVE) << "cur_total_cycle_count_:" << cur_total_cycle_count_
+                      << " pre_total_cycle_count_:" << pre_total_cycle_count_
+                      << " exp_data_list_info_.exp_time_interval_num_:"
+                      << exp_data_list_info_.exp_time_interval_num_;
   exp_data_list_info_.exp_pre_sample_timestamp_ms_ = current_time_ms;
 }
 

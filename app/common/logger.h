@@ -129,8 +129,20 @@ class FileLoggerSink : public LoggerSink {
 #define LOG_F(level) \
   anx::common::LoggerStream(__FILE__, __LINE__, __FUNCTION__, level)
 
+#define LOG_F_SENSITIVE_TAG(TAG)                                            \
+  anx::common::LoggerStream(__FILE__, __LINE__, __FUNCTION__, LG_SENSITIVE) \
+      << TAG << ": "
 #define LOG_F_INFO_TAG(TAG)                                            \
   anx::common::LoggerStream(__FILE__, __LINE__, __FUNCTION__, LG_INFO) \
+      << TAG << ": "
+#define LOG_F_WARN_TAG(TAG)                                            \
+  anx::common::LoggerStream(__FILE__, __LINE__, __FUNCTION__, LG_WARN) \
+      << TAG << ": "
+#define LOG_F_ERROR_TAG(TAG)                                            \
+  anx::common::LoggerStream(__FILE__, __LINE__, __FUNCTION__, LG_ERROR) \
+      << TAG << ": "
+#define LOG_F_FATAL_TAG(TAG)                                            \
+  anx::common::LoggerStream(__FILE__, __LINE__, __FUNCTION__, LG_FATAL) \
       << TAG << ": "
 
 #endif  // APP_COMMON_LOGGER_H_

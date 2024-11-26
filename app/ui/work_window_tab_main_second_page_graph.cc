@@ -326,19 +326,19 @@ bool WorkWindowSecondPageGraph::OnOptGraphTimeRangeChange(void* param) {
   }
   int32_t graphctrl_sample_total_minutes = -1;
   if (pMsg->pSender == opt_graph_time_range_1_minitues_) {
-    LOG_F(LG_INFO) << "opt_graph_time_range_1_minitues_";
+    LOG_F(LG_SENSITIVE) << "opt_graph_time_range_1_minitues_";
     graphctrl_sample_total_minutes = kGraphCtrlSampleTotalMinutesOne;
   } else if (pMsg->pSender == opt_graph_time_range_5_minitues_) {
-    LOG_F(LG_INFO) << "opt_graph_time_range_5_minitues_";
+    LOG_F(LG_SENSITIVE) << "opt_graph_time_range_5_minitues_";
     graphctrl_sample_total_minutes = kGraphCtrlSampleTotalMinutesFive;
   } else if (pMsg->pSender == opt_graph_time_range_10_minitues_) {
-    LOG_F(LG_INFO) << "opt_graph_time_range_10_minitues_";
+    LOG_F(LG_SENSITIVE) << "opt_graph_time_range_10_minitues_";
     graphctrl_sample_total_minutes = kGraphCtrlSampleTotalMinutesTen;
   } else if (pMsg->pSender == opt_graph_time_range_30_minitues_) {
-    LOG_F(LG_INFO) << "opt_graph_time_range_30_minitues_";
+    LOG_F(LG_SENSITIVE) << "opt_graph_time_range_30_minitues_";
     graphctrl_sample_total_minutes = kGraphCtrlSampleTotalMinutesThirty;
   } else if (pMsg->pSender == opt_graph_time_range_60_minitues_) {
-    LOG_F(LG_INFO) << "opt_graph_time_range_30_minitues_";
+    LOG_F(LG_SENSITIVE) << "opt_graph_time_range_30_minitues_";
     graphctrl_sample_total_minutes = kGraphCtrlSampleTotalMinutesSixty;
   } else {
     return false;
@@ -347,7 +347,7 @@ bool WorkWindowSecondPageGraph::OnOptGraphTimeRangeChange(void* param) {
     return true;
   }
   if (page_graph_amplitude_ctrl_ == nullptr) {
-    LOG_F(LG_INFO) << "page_graph_amplitude_ctrl is nullptr";
+    LOG_F(LG_WARN) << "page_graph_amplitude_ctrl is nullptr";
     return false;
   }
   graphctrl_sample_total_minutes_ = graphctrl_sample_total_minutes;
