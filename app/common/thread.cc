@@ -11,6 +11,8 @@
 
 #include "app/common/thread.h"
 
+#include "app/common/logger.h"
+
 namespace anx {
 namespace common {
 
@@ -137,7 +139,7 @@ Runnable::~Runnable() {}
 
 ///////////////////////////////////////////////////////////////////////////////
 // clz Thread
-Thread::Thread() {
+Thread::Thread() : runnable_(nullptr) {
 #if defined(_WIN32)
   thread_ = nullptr;
 #else
@@ -203,6 +205,10 @@ unsigned int __stdcall Thread::thread_func(void* arg) {
 void* Thread::thread_func(void* arg) {
 #endif
   Thread* thread = static_cast<Thread*>(arg);
+  if (thread->runnable_ == nullptr) {
+    LOG_F(LG_ERROR) << "runnable is nullptr";
+    return 0;
+  }
   thread->runnable_->run();
   return 0;
 }

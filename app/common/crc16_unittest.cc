@@ -78,13 +78,13 @@ TEST_F(CRC16Test, CheckCRC16) {
   {
     std::vector<uint8_t> data = {0x01, 0x05, 0x00, 0x01, 0x00, 0x00};
     uint16_t crc = anx::common::crc16(data.data(), data.size());
-    EXPECT_EQ(crc, 0x0A6C);
+    EXPECT_EQ(crc, 0x0A9C);
   }
   // 线圈地址0x03， 开机自动扫描
   {
     std::vector<uint8_t> data = {0x01, 0x05, 0x00, 0x03, 0xFF, 0x00};
     uint16_t crc = anx::common::crc16(data.data(), data.size());
-    EXPECT_EQ(crc, 0x0A6C);
+    EXPECT_EQ(crc, 0x3A7C);
   }
   ///////////////////////////////////////////////////////////////////////
 

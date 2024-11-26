@@ -69,5 +69,6 @@ TEST_F(LoggerTest, Logger2File) {
   LOG_F(LS_FATAL) << "fatal" << "i:" << i << " " << "f:" << f << " "
                   << "d:" << d;
 }
+
 }  // namespace common
 }  // namespace anx
