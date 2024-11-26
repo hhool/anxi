@@ -244,5 +244,18 @@ bool ReadFile(const std::string& file_path, std::string* content, bool binary) {
   content->assign(file_content.get(), file_size);
   return true;
 }
+
+bool WriteFile(const std::string& file_path,
+               const std::string& content,
+               bool binary) {
+  FILE* file = fopen(file_path.c_str(), binary ? "wb" : "w");
+  if (file == nullptr) {
+    return false;
+  }
+  size_t size = content.size();
+  size_t written = fwrite(content.c_str(), 1, size, file);
+  fclose(file);
+  return written == size;
+}
 }  // namespace common
 }  // namespace anx

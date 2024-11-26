@@ -417,17 +417,10 @@ int32_t SaveExperimentReportToXmlWithDefaultPath(
   }
   // write to the file
   std::string xml_content = exp_report.ToXml();
-  FILE* file = fopen(default_xml.c_str(), "wb");
-  if (file == nullptr) {
+  if (!anx::common::WriteFile(default_xml, xml_content, true)) {
+    LOG_F(LG_ERROR) << "write file failed:" << default_xml;
     return -2;
   }
-  size_t size = xml_content.size();
-  size_t written = fwrite(xml_content.c_str(), 1, size, file);
-  if (written != size) {
-    fclose(file);
-    return -3;
-  }
-  fclose(file);
   return 0;
 }
 
@@ -459,19 +452,10 @@ int32_t SaveReportToDocxWithDefaultPath(const ExperimentReport& exp_report,
   std::string xml_file = exp_report_dir + "/summary.xml";
 #endif
   std::string xml_content = exp_report.ToXml();
-  FILE* file = fopen(xml_file.c_str(), "wb");
-  if (file == nullptr) {
-    LOG_F(LG_ERROR) << "open file failed:" << xml_file;
+  if (!anx::common::WriteFile(xml_file, xml_content, true)) {
+    LOG_F(LG_ERROR) << "write file failed:" << xml_file;
     return -2;
   }
-  size_t size = xml_content.size();
-  size_t written = fwrite(xml_content.c_str(), 1, size, file);
-  if (written != size) {
-    fclose(file);
-    LOG_F(LG_ERROR) << "write file failed:" << xml_file;
-    return -3;
-  }
-  fclose(file);
   //// template file is in the app data dir
 #if defined(_WIN32)
   std::string template_file_src =

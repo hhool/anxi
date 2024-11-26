@@ -13,6 +13,8 @@
 
 #include <cassert>
 
+#include "app/common/file_utils.h"
+#include "app/common/logger.h"
 #include "app/common/module_utils.h"
 #include "app/esolution/solution_design.h"
 #include "app/esolution/solution_design_default.h"
@@ -54,23 +56,13 @@ std::string DefaultSolutionDesignXmlFilePath(int32_t solution_type) {
 
 std::unique_ptr<SolutionDesign> LoadSolutionDesignWithFilePath(
     const std::string& file_path) {
-  FILE* file = fopen(file_path.c_str(), "rb");
-  if (file == NULL) {
+  std::string file_content;
+  if (!anx::common::ReadFile(file_path, &file_content, true)) {
+    LOG_F(LG_ERROR) << "Failed to read file: " << file_path;
     return nullptr;
   }
-  fseek(file, 0, SEEK_END);
-  int32_t file_size = static_cast<int32_t>(ftell(file));
-  fseek(file, 0, SEEK_SET);
-  // read file
-  std::unique_ptr<char[]> buffer(new char[file_size]);
-  size_t size = fread(buffer.get(), 1, file_size, file);
-  if (size != file_size) {
-    fclose(file);
-    return nullptr;
-  }
-  fclose(file);
   // parse xml
-  std::string xml(buffer.get(), size);
+  std::string xml = file_content;
   std::unique_ptr<anx::esolution::SolutionDesign> solution_design(
       new anx::esolution::SolutionDesign());
   if (anx::esolution::SolutionDesign::FromXml(xml, solution_design.get()) !=
@@ -111,19 +103,13 @@ int32_t SaveSolutionDesignFile(const std::string& file_path,
                                const SolutionDesign& design) {
   std::string xml = design.ToXml();
   if (xml.length() == 0) {
+    LOG_F(LG_ERROR) << "ToXml failed";
     return -1;
   }
 
-  FILE* file = fopen(file_path.c_str(), "wb");
-  if (file == NULL) {
+  if (!anx::common::WriteFile(file_path, xml, true)) {
+    LOG_F(LG_ERROR) << "write file failed:" << file_path;
     return -2;
-  }
-
-  size_t size = fwrite(xml.c_str(), xml.size(), 1, file);
-  fclose(file);
-
-  if (size != 1) {
-    return -3;
   }
   return 0;
 }

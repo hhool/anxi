@@ -14,6 +14,8 @@
 #include <sstream>
 #include <string>
 
+#include "app/common/file_utils.h"
+#include "app/common/logger.h"
 #include "app/common/module_utils.h"
 #include "app/common/string_utils.h"
 
@@ -104,25 +106,15 @@ std::string DefaultDeviceExpAmplitudeSettingsXmlFilePath() {
 std::unique_ptr<DeviceExpAmplitudeSettings>
 LoadDeviceExpAmplitudeSettingsDefaultWithFilePath(
     const std::string& file_path) {
-  FILE* file = fopen(file_path.c_str(), "rb");
-  if (file == nullptr) {
+  std::string file_content;
+  if (!anx::common::ReadFile(file_path, &file_content, true)) {
+    LOG_F(LG_ERROR) << "Failed to read file: " << file_path;
     return nullptr;
   }
-  fseek(file, 0, SEEK_END);
-  size_t file_size = ftell(file);
-  fseek(file, 0, SEEK_SET);
-  // Read the file content
-  std::unique_ptr<char[]> file_content(new char[file_size]);
-  size_t size = fread(file_content.get(), 1, file_size, file);
-  if (size != file_size) {
-    return nullptr;
-  }
-  fclose(file);
 
   // Parse the file content
-  std::string content(file_content.get(), file_size);
   std::unique_ptr<DeviceExpAmplitudeSettings> settings =
-      DeviceExpAmplitudeSettings::FromXml(content);
+      DeviceExpAmplitudeSettings::FromXml(file_content);
   if (settings.get() == nullptr) {
     return nullptr;
   }
@@ -150,20 +142,14 @@ int32_t SaveDeviceExpAmplitudeSettingsFile(
     const DeviceExpAmplitudeSettings& settings) {
   std::string xml = settings.ToXml();
   if (xml.empty()) {
+    LOG_F(LG_ERROR) << "ToXml failed";
     return -1;
   }
 
-  FILE* file = fopen(file_path.c_str(), "wb");
-  if (file == nullptr) {
-    return -1;
+  if (!anx::common::WriteFile(file_path, xml, true)) {
+    LOG_F(LG_ERROR) << "write file failed:" << file_path;
+    return -2;
   }
-  size_t size = xml.size();
-  size_t written = fwrite(xml.c_str(), 1, size, file);
-  if (written != size) {
-    fclose(file);
-    return -1;
-  }
-  fclose(file);
   return 0;
 }
 

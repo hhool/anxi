@@ -72,6 +72,15 @@ bool ReadFile(const std::string& file_path,
               std::string* content,
               bool binary = false);
 
+/// @brief  write the content to the file
+/// @param file_path  the file path
+/// @param content  the content to write
+/// @param binary  true if write the file in binary mode
+/// @return  true if write the file success
+bool WriteFile(const std::string& file_path,
+               const std::string& content,
+               bool binary = false);
+
 }  // namespace common
 }  // namespace anx
 
