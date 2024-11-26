@@ -82,11 +82,14 @@ class ExperimentReport {
   /// </ExperimentReport>
   std::string ToXml() const;
 
+  static std::unique_ptr<ExperimentReport> FromXml(
+      const std::string& xml_content);
+
  public:
   /// @brief experiment start time
-  uint64_t start_time_ = 0;
+  int64_t start_time_ = 0;
   /// @brief experiment end time
-  uint64_t end_time_ = 0;
+  int64_t end_time_ = 0;
   /// @brief experiment name
   std::string experiment_name_ = "";
   /// @brief unit: GPa
@@ -110,6 +113,13 @@ class ExperimentReport {
   /// @brief exp_mode_ 0 - linear, 1 - exponent
   int32_t exp_mode_ = 0;
 };
+
+/// @brief Load the experiment report from the xml file
+/// @param file_path the file path of the xml file
+/// @param exp_report the experiment report
+/// @return int32_t 0 if success, -1 if failed
+int32_t LoadExperimentReportWithFilePath(const std::string& file_path,
+                                         ExperimentReport* exp_report);
 
 /// @brief Save the ExperimentReport to the xml file
 /// @param exp_report the experiment report

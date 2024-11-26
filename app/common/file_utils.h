@@ -63,6 +63,15 @@ bool GetFilesInFolder(const std::string& dir_path,
 /// @param folder_file_path  the folder path or the file path
 bool OpenFolder(const std::string& folder_file_path);
 
+/// @brief Read the file content
+/// @param file_path  the file path
+/// @param content  the file content
+/// @param binary  true if read the file in binary mode
+/// @return  true if read the file success
+bool ReadFile(const std::string& file_path,
+              std::string* content,
+              bool binary = false);
+
 }  // namespace common
 }  // namespace anx
 

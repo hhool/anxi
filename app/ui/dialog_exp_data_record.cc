@@ -105,6 +105,10 @@ void DialogExpDataRecord::InitWindow() {
       this->m_PaintManager.FindControl(_T("btn_open_folder")));
   exp_data_detail_layout_ = static_cast<DuiLib::CVerticalLayoutUI*>(
       this->m_PaintManager.FindControl(_T("layout_exp_data_detail")));
+  btn_to_report_ = static_cast<DuiLib::CButtonUI*>(
+      this->m_PaintManager.FindControl(_T("btn_to_report")));
+  to_report_layout_ = static_cast<DuiLib::CHorizontalLayoutUI*>(
+      this->m_PaintManager.FindControl(_T("layout_to_report")));
   /// set the start time and end time
   SYSTEMTIME sys_time;
   GetLocalTime(&sys_time);
@@ -116,6 +120,8 @@ void DialogExpDataRecord::InitWindow() {
       ::MakeDelegate(this, &DialogExpDataRecord::OnRefreshButtonClick);
   btn_open_folder_->OnNotify +=
       ::MakeDelegate(this, &DialogExpDataRecord::OnOpenFolderButtonClick);
+  btn_to_report_->OnNotify +=
+      ::MakeDelegate(this, &DialogExpDataRecord::OnToReportButtonClick);
   /// Traverse the directory expdata folder and get all the csv files
   anx::expdata::TraverseExpDataFolder(&exp_data_summary_list_);
   /// revert summarys
@@ -171,11 +177,13 @@ void DialogExpDataRecord::InitWindow() {
 
   /// show the first item detail
   if (exp_data_list_->GetCount() > 0) {
+    to_report_layout_->SetVisible(true);
     exp_data_detail_layout_->SetVisible(true);
     exp_data_list_->SelectItem(0);
     ShowSummaryItemDetail(0);
   } else {
     exp_data_detail_layout_->SetVisible(false);
+    to_report_layout_->SetVisible(false);
   }
   /// bind list item click event
   exp_data_list_->OnNotify +=
@@ -426,6 +434,63 @@ bool DialogExpDataRecord::OnOpenFolderButtonClick(void* msg) {
     folder_file_path += file_name;
   }
   return anx::common::OpenFolder(folder_file_path);
+}
+
+bool DialogExpDataRecord::OnToReportButtonClick(void* msg) {
+  TNotifyUI* pMsg = reinterpret_cast<TNotifyUI*>(msg);
+  if (pMsg == nullptr) {
+    return false;
+  }
+  if (pMsg->pSender != btn_to_report_) {
+    return false;
+  }
+  /// check if click the to report button
+  if (pMsg->sType != kClick) {
+    return false;
+  }
+  /// get the folder path that is absolute path
+  std::string app_data_dir = anx::common::GetApplicationDataPath();
+#ifdef _WIN32
+  app_data_dir += "\\anxi\\expdata\\";
+#else
+  app_data_dir += "/anxi/expdata/";
+#endif
+  std::string folder_file_path = app_data_dir;
+  /// make sure the folder exists
+  if (!anx::common::DirectoryExists(app_data_dir)) {
+    anx::common::MakeSureFolderPathExist(app_data_dir);
+  }
+  /// get current selected item
+  int index = exp_data_list_->GetCurSel();
+  if (index >= 0 && index < static_cast<int>(exp_data_summary_list_.size())) {
+    const auto& summary = exp_data_summary_list_[index];
+    /// get file name
+    std::string file_name = summary.file_name_;
+    folder_file_path += file_name;
+  }
+  /// get the file name without extension
+  std::string file_name_no_ext =
+      folder_file_path.substr(0, folder_file_path.size() - 4);
+  /// get the xml file name
+  std::string xml_file_name = file_name_no_ext + ".xml";
+  /// get the csv file name
+  std::string csv_file_name = file_name_no_ext + ".csv";
+  /// get the docx file name
+  std::string docx_file_name = file_name_no_ext + ".docx";
+  anx::expdata::ExperimentReport exp_report;
+  /// get the experiment report from the xml file
+  if (anx::expdata::LoadExperimentReportWithFilePath(xml_file_name,
+                                                     &exp_report) != 0) {
+    LOG_F(LG_ERROR) << "load experiment report failed";
+    return false;
+  }
+  int32_t ret = anx::expdata::SaveReportToDocxWithDefaultPath(
+      exp_report, csv_file_name, &docx_file_name);
+  if (ret != 0) {
+    LOG_F(LG_ERROR) << "save report to docx failed";
+    return false;
+  }
+  return anx::common::OpenFolder(docx_file_name);
 }
 
 }  // namespace ui

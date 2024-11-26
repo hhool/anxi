@@ -70,6 +70,7 @@ class DialogExpDataRecord : public DuiLib::WindowImplBase {
   bool OnListItemClick(void* msg);       // NOLINT
   bool ShowSummaryItemDetail(int index);
   bool OnOpenFolderButtonClick(void* msg);  // NOLINT
+  bool OnToReportButtonClick(void* msg);    // NOLINT
 
  private:
   DuiLib::CButtonUI* close_button_;
@@ -79,6 +80,8 @@ class DialogExpDataRecord : public DuiLib::WindowImplBase {
   DuiLib::CButtonUI* btn_open_folder_;
   DuiLib::CListUI* exp_data_list_;
   DuiLib::CVerticalLayoutUI* exp_data_detail_layout_;
+  DuiLib::CButtonUI* btn_to_report_;
+  DuiLib::CHorizontalLayoutUI* to_report_layout_;
 
   std::vector<anx::expdata::ExperimentFileSummary> exp_data_summary_list_;
 };

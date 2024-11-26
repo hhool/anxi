@@ -11,6 +11,8 @@
 
 #include "app/common/file_utils.h"
 
+#include <cassert>
+#include <memory>
 #include <string>
 
 #include "app/common/logger.h"
@@ -216,5 +218,31 @@ bool OpenFolder(const std::string& folder_file_path) {
   return true;
 }
 
+bool ReadFile(const std::string& file_path, std::string* content, bool binary) {
+  assert(content != nullptr);
+  if (content == nullptr) {
+    LOG_F(LG_ERROR) << "content is nullptr";
+    return false;
+  }
+  content->clear();
+  FILE* file = fopen(file_path.c_str(), binary ? "rb" : "r");
+  if (file == nullptr) {
+    LOG_F(LG_ERROR) << "open file failed:" << file_path;
+    return false;
+  }
+  fseek(file, 0, SEEK_END);
+  size_t file_size = ftell(file);
+  fseek(file, 0, SEEK_SET);
+  std::unique_ptr<char[]> file_content(new char[file_size]);
+  size_t size = fread(file_content.get(), 1, file_size, file);
+  if (size != file_size) {
+    LOG_F(LG_ERROR) << "read file failed:" << file_path;
+    fclose(file);
+    return false;
+  }
+  fclose(file);
+  content->assign(file_content.get(), file_size);
+  return true;
+}
 }  // namespace common
 }  // namespace anx

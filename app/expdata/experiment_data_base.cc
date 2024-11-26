@@ -29,6 +29,8 @@ extern "C" {
 #include "app/common/string_utils.h"
 #include "app/expdata/LibOb_strptime.h"
 
+#include "third_party/tinyxml2/source/tinyxml2.h"
+
 #if defined(_WIN32)
 #include <direct.h>
 #else
@@ -43,24 +45,19 @@ ExperimentData::~ExperimentData() {}
 ////////////////////////////////////////////////////////////////////////////////
 namespace {
 
+const char kTimeFormat[] = "%Y-%m-%d_%H-%M-%S";
+
 std::string TimeToString(int64_t time) {
   struct tm* timeinfo = localtime(&time);
   char buffer[80];
-  strftime(buffer, 80, "%Y-%m-%d_%H-%M-%S", timeinfo);
+  strftime(buffer, 80, kTimeFormat, timeinfo);
   return std::string(buffer);
 }
 
-std::string TimeToString(int64_t time, const std::string& format) {
-  struct tm* timeinfo = localtime(&time);
-  char buffer[80];
-  strftime(buffer, 80, format.c_str(), timeinfo);
-  return std::string(buffer);
-}
-
-uint64_t StringToTime(const std::string& time_str) {
+int64_t StringToTime(const std::string& time_str) {
   struct tm tm;
   memset(&tm, 0, sizeof(tm));
-  ::strptime(time_str.c_str(), "%Y-%m-%d_%H-%M-%S", &tm);
+  ::strptime(time_str.c_str(), kTimeFormat, &tm);
   return mktime(&tm);
 }
 
@@ -261,8 +258,8 @@ std::string ExperimentReport::ToXml() const {
   std::stringstream ss;
   ss << "<ExperimentReport>\r\n";
   /// format the time to string format e.g. 2024-08-11_12-00-00
-  std::string start_time_str = TimeToString(start_time_, "%m/%d %H-%M-%S");
-  std::string end_time_str = TimeToString(end_time_, "%m/%d %H-%M-%S");
+  std::string start_time_str = TimeToString(start_time_);
+  std::string end_time_str = TimeToString(end_time_);
   ss << "<StartTime>" << start_time_str << "</StartTime>\r\n";
   ss << "<EndTime>" << end_time_str << "</EndTime>\r\n";
   ss << "<ExperimentName>"
@@ -281,6 +278,111 @@ std::string ExperimentReport::ToXml() const {
   ss << "<ExpMode>" << exp_mode_ << "</ExpMode>\r\n";
   ss << "</ExperimentReport>\r\n";
   return ss.str();
+}
+
+std::unique_ptr<ExperimentReport> ExperimentReport::FromXml(
+    const std::string& xml_content) {
+  tinyxml2::XMLDocument doc;
+  if (doc.Parse(xml_content.c_str()) != tinyxml2::XML_SUCCESS) {
+    return nullptr;
+  }
+  tinyxml2::XMLElement* root = doc.RootElement();
+  if (root == nullptr) {
+    return nullptr;
+  }
+  tinyxml2::XMLElement* ele_start_time = root->FirstChildElement("StartTime");
+  if (ele_start_time == nullptr) {
+    return nullptr;
+  }
+  tinyxml2::XMLElement* ele_end_time = root->FirstChildElement("EndTime");
+  if (ele_end_time == nullptr) {
+    return nullptr;
+  }
+  tinyxml2::XMLElement* ele_experiment_name =
+      root->FirstChildElement("ExperimentName");
+  if (ele_experiment_name == nullptr) {
+    return nullptr;
+  }
+  tinyxml2::XMLElement* ele_elastic_modulus =
+      root->FirstChildElement("ElasticModulus");
+  if (ele_elastic_modulus == nullptr) {
+    return nullptr;
+  }
+  tinyxml2::XMLElement* ele_density = root->FirstChildElement("Density");
+  if (ele_density == nullptr) {
+    return nullptr;
+  }
+  tinyxml2::XMLElement* ele_max_stress = root->FirstChildElement("MaxStress");
+  if (ele_max_stress == nullptr) {
+    return nullptr;
+  }
+  tinyxml2::XMLElement* ele_ratio_stress =
+      root->FirstChildElement("RatioOfStress");
+  if (ele_ratio_stress == nullptr) {
+    return nullptr;
+  }
+  tinyxml2::XMLElement* ele_cycle_count = root->FirstChildElement("CycleCount");
+  if (ele_cycle_count == nullptr) {
+    return nullptr;
+  }
+  tinyxml2::XMLElement* ele_amplitude =
+      root->FirstChildElement("BottomAmplitude");
+  if (ele_amplitude == nullptr) {
+    return nullptr;
+  }
+  tinyxml2::XMLElement* ele_exp_type =
+      root->FirstChildElement("IntermittentExp");
+  if (ele_exp_type == nullptr) {
+    return nullptr;
+  }
+  tinyxml2::XMLElement* ele_excitation_time =
+      root->FirstChildElement("ExcitationTime");
+  if (ele_excitation_time == nullptr) {
+    return nullptr;
+  }
+  tinyxml2::XMLElement* ele_interval_time =
+      root->FirstChildElement("IntervalTime");
+  if (ele_interval_time == nullptr) {
+    return nullptr;
+  }
+  tinyxml2::XMLElement* ele_exp_mode = root->FirstChildElement("ExpMode");
+  if (ele_exp_mode == nullptr) {
+    return nullptr;
+  }
+  std::unique_ptr<ExperimentReport> exp_report =
+      std::make_unique<ExperimentReport>();
+  exp_report->start_time_ =
+      anx::expdata::StringToTime(ele_start_time->GetText());
+  exp_report->end_time_ = anx::expdata::StringToTime(ele_end_time->GetText());
+  exp_report->experiment_name_ = ele_experiment_name->GetText();
+  exp_report->elastic_modulus_ = std::stod(ele_elastic_modulus->GetText());
+  exp_report->density_ = std::stod(ele_density->GetText());
+  exp_report->max_stress_ = std::stod(ele_max_stress->GetText());
+  exp_report->ratio_stress_ = std::stod(ele_ratio_stress->GetText());
+  exp_report->cycle_count_ = std::stol(ele_cycle_count->GetText());
+  exp_report->amplitude_ = std::stod(ele_amplitude->GetText());
+  exp_report->exp_type_ = std::stoi(ele_exp_type->GetText());
+  exp_report->excitation_time_ = std::stol(ele_excitation_time->GetText());
+  exp_report->interval_time_ = std::stol(ele_interval_time->GetText());
+  exp_report->exp_mode_ = std::stoi(ele_exp_mode->GetText());
+  return exp_report;
+}
+
+int32_t LoadExperimentReportWithFilePath(const std::string& file_path,
+                                         ExperimentReport* exp_report) {
+  std::string xml_content;
+  if (!anx::common::ReadFile(file_path, &xml_content, true)) {
+    LOG_F(LG_ERROR) << "read file failed:" << file_path;
+    return -1;
+  }
+  std::unique_ptr<ExperimentReport> report =
+      ExperimentReport::FromXml(xml_content);
+  if (report == nullptr) {
+    LOG_F(LG_ERROR) << "parse xml failed:" << file_path;
+    return -2;
+  }
+  *exp_report = *report;
+  return 0;
 }
 
 int32_t SaveExperimentReportToXmlWithDefaultPath(
