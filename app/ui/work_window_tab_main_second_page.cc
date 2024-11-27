@@ -654,6 +654,10 @@ void WorkWindowSecondPage::Bind() {
 
   // disable the exp start button
   UpdateUIButton();
+
+  UpdateExpClipTimeFromControl();
+
+  RefreshExpClipTimeControl(true);
 }
 
 void WorkWindowSecondPage::Unbind() {
@@ -965,11 +969,11 @@ void WorkWindowSecondPage::CheckDeviceComConnectedStatus() {
   }
 }
 
-void WorkWindowSecondPage::RefreshExpClipTimeControl() {
+void WorkWindowSecondPage::RefreshExpClipTimeControl(bool forced) {
   if (!edit_exp_clip_time_duration_->GetText().IsEmpty()) {
     int64_t exp_clip_time_duration =
         get_value_from_control<int64_t>(edit_exp_clip_time_duration_);
-    if (dus_.exp_clip_time_duration_ != exp_clip_time_duration) {
+    if (dus_.exp_clip_time_duration_ != exp_clip_time_duration || forced) {
       bool is_changed = false;
       if (exp_clip_time_duration >= 1 &&
           exp_clip_time_duration <= kExpClipMaxCount) {
@@ -989,7 +993,7 @@ void WorkWindowSecondPage::RefreshExpClipTimeControl() {
     if (!edit_exp_clip_time_paused_->GetText().IsEmpty()) {
       int64_t exp_clip_time_paused =
           get_value_from_control<int64_t>(edit_exp_clip_time_paused_);
-      if (dus_.exp_clip_time_paused_ != exp_clip_time_paused) {
+      if (dus_.exp_clip_time_paused_ != exp_clip_time_paused || forced) {
         if (exp_clip_time_paused >= 1 &&
             exp_clip_time_paused <= kExpClipMaxCount) {
           dus_.exp_clip_time_paused_ = exp_clip_time_paused;
@@ -1009,7 +1013,7 @@ void WorkWindowSecondPage::RefreshExpClipTimeControl() {
         !edit_max_cycle_power_->GetText().IsEmpty()) {
       double exp_max_cycle_count =
           get_value_from_control<double>(edit_max_cycle_count_);
-      if (dus_.exp_max_cycle_count_ != exp_max_cycle_count) {
+      if (dus_.exp_max_cycle_count_ != exp_max_cycle_count || forced) {
         if (exp_max_cycle_count >= 1) {
           // check the max cycle count with the max cycle power is valid
           int64_t exp_max_cycle_power =
@@ -1060,7 +1064,7 @@ void WorkWindowSecondPage::RefreshExpClipTimeControl() {
         !edit_max_cycle_count_->GetText().IsEmpty()) {
       int32_t exp_max_cycle_power =
           get_value_from_control<int32_t>(edit_max_cycle_power_);
-      if (dus_.exp_max_cycle_power_ != exp_max_cycle_power) {
+      if (dus_.exp_max_cycle_power_ != exp_max_cycle_power || forced) {
         if (exp_max_cycle_power >= 1 && exp_max_cycle_power <= 18) {
           // check the max cycle count with the max cycle power is valid
           double exp_max_cycle_count =

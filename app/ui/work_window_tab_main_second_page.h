@@ -85,7 +85,7 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
 
  protected:
   void CheckDeviceComConnectedStatus();
-  void RefreshExpClipTimeControl();
+  void RefreshExpClipTimeControl(bool forced = false);
   void UpdateControlFromSettings();
   void SaveExpClipSettingsFromControl();
   void UpdateExpClipTimeFromControl();
