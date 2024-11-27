@@ -56,6 +56,10 @@ $ cmake --build out\package --config Release --target package
 
 open explorer and go to `anxi\out\package` folder, you will see `anxi-x.x.x-win32.exe` file.
 
-## install
+## use
 
- [how to install](package/README.install.help.en.md)
+[anxi software usage](./package/README.install.help.en.md)
+
+## license
+
+[MIT](./package/LICENSE)
