@@ -362,6 +362,9 @@ void WorkWindow::Notify(DuiLib::TNotifyUI& msg) {
     dialog_exp_data_record->CenterWindow();
     dialog_exp_data_record->ShowModal();
   } else if (msg.sType == DUI_MSGTYPE_KILLFOCUS) {
+    if (is_exp_state_ != kExpStateStop) {
+      return;
+    }
     DuiLib::CDuiString name = msg.pSender->GetName();
     std::string name_str = anx::common::WString2String(name.GetData());
     // compare name_str partion compare with

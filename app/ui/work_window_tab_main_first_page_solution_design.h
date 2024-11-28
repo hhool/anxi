@@ -70,6 +70,7 @@ class WorkWindowFirstPageAxiallySymmetrical : public DuiLib::CNotifyPump,
   WorkWindow* pOwner_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
   std::string t_prefix_;
+  bool exp_running_ = false;
 };
 
 class WorkWindownFirstPageStressAjustable : public DuiLib::CNotifyPump,
@@ -105,6 +106,7 @@ class WorkWindownFirstPageStressAjustable : public DuiLib::CNotifyPump,
   WorkWindow* pOwner_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
   std::string t_prefix_;
+  bool exp_running_ = false;
 };
 
 class WorkWindowFirstPageTh3pointBending : public DuiLib::CNotifyPump,
@@ -139,6 +141,7 @@ class WorkWindowFirstPageTh3pointBending : public DuiLib::CNotifyPump,
   WorkWindow* pOwner_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
   std::string t_prefix_;
+  bool exp_running_ = false;
 };
 
 class WorkWindowFirstPageVibrationBending : public DuiLib::CNotifyPump,
@@ -174,6 +177,7 @@ class WorkWindowFirstPageVibrationBending : public DuiLib::CNotifyPump,
   WorkWindow* pOwner_;
   DuiLib::CPaintManagerUI* paint_manager_ui_;
   std::string t_prefix_;
+  bool exp_running_ = false;
 };
 
 }  // namespace ui

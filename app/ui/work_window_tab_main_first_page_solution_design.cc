@@ -70,6 +70,20 @@ void set_value_to_edit_with_prefix(const std::string& ctrl_name,
       paint_manager_ui->FindControl(dui_str_name));
   set_value_to_edit(edit, value);
 }
+
+void set_enable_to_control_with_prefix(
+    const std::string& ctrl_name,
+    const std::string& prefix,
+    DuiLib::CPaintManagerUI* paint_manager_ui,
+    bool enable) {
+  std::string ctrl_name_with_prefix = ctrl_name + prefix;
+  DuiLib::CDuiString dui_str_name;
+  dui_str_name.Append(
+      anx::common::String2WString(ctrl_name_with_prefix.c_str()).c_str());
+  DuiLib::CControlUI* control = paint_manager_ui->FindControl(dui_str_name);
+  control->SetEnabled(enable);
+}
+
 }  // namespace
 
 PageSolutionDesignBase::PageSolutionDesignBase(
@@ -319,12 +333,55 @@ WorkWindowFirstPageAxiallySymmetrical::
   paint_manager_ui_->RemoveNotifier(this);
 }
 
-void WorkWindowFirstPageAxiallySymmetrical::Notify(TNotifyUI& msg) {}
+void WorkWindowFirstPageAxiallySymmetrical::Notify(TNotifyUI& msg) {
+  if (msg.pSender == nullptr) {
+    return;
+  }
+  DuiLib::CDuiString name = msg.pSender->GetName();
+  if (name.IsEmpty()) {
+    return;
+  }
+  if (msg.sType == DUI_MSGTYPE_KILLFOCUS) {
+    /// TODO(hhool):
+  } else if (msg.sType == DUI_MSGTYPE_CLICK) {
+    if (msg.pSender->GetName() == _T("btn_exp_start")) {
+      exp_running_ = true;
+      set_enable_to_control_with_prefix("btn_params_reset", t_prefix_,
+                                        paint_manager_ui_, false);
+      set_enable_to_control_with_prefix("btn_solution_design_refresh",
+                                        t_prefix_, paint_manager_ui_, false);
+    } else if (msg.pSender->GetName() == _T("btn_exp_stop")) {
+      set_enable_to_control_with_prefix("btn_params_reset", t_prefix_,
+                                        paint_manager_ui_, true);
+      set_enable_to_control_with_prefix("btn_solution_design_refresh",
+                                        t_prefix_, paint_manager_ui_, true);
+      exp_running_ = false;
+    } else {
+      // do nothing
+    }
+  }
+}
 
 void WorkWindowFirstPageAxiallySymmetrical::OnClick(TNotifyUI& msg) {
   if (msg.sType == kClick) {
-    if (msg.pSender->GetName() == _T("solution_design_refresh")) {
+    if (msg.pSender->GetName() == _T("btn_solution_design_refresh_axially")) {
       // TODO(hhool):
+    }
+  } else if (msg.sType == DUI_MSGTYPE_CLICK) {
+    if (msg.pSender->GetName() == _T("btn_exp_start")) {
+      exp_running_ = true;
+      set_enable_to_control_with_prefix("btn_params_reset", t_prefix_,
+                                        paint_manager_ui_, false);
+      set_enable_to_control_with_prefix("btn_solution_design_refresh",
+                                        t_prefix_, paint_manager_ui_, false);
+    } else if (msg.pSender->GetName() == _T("btn_exp_stop")) {
+      set_enable_to_control_with_prefix("btn_params_reset", t_prefix_,
+                                        paint_manager_ui_, true);
+      set_enable_to_control_with_prefix("btn_solution_design_refresh",
+                                        t_prefix_, paint_manager_ui_, true);
+      exp_running_ = false;
+    } else {
+      // do nothing
     }
   }
 }
@@ -432,12 +489,52 @@ WorkWindownFirstPageStressAjustable::WorkWindownFirstPageStressAjustable(
 
 WorkWindownFirstPageStressAjustable::~WorkWindownFirstPageStressAjustable() {}
 
-void WorkWindownFirstPageStressAjustable::Notify(TNotifyUI& msg) {}
+void WorkWindownFirstPageStressAjustable::Notify(TNotifyUI& msg) {
+  if (msg.pSender == nullptr) {
+    return;
+  }
+  DuiLib::CDuiString name = msg.pSender->GetName();
+  if (name.IsEmpty()) {
+    return;
+  }
+  if (msg.sType == DUI_MSGTYPE_KILLFOCUS) {
+    /// TODO(hhool):
+  } else if (msg.sType == DUI_MSGTYPE_CLICK) {
+    if (msg.pSender->GetName() == _T("btn_exp_start")) {
+      exp_running_ = true;
+      set_enable_to_control_with_prefix("btn_params_reset", t_prefix_,
+                                        paint_manager_ui_, false);
+      set_enable_to_control_with_prefix("btn_solution_design_refresh",
+                                        t_prefix_, paint_manager_ui_, false);
+    } else if (msg.pSender->GetName() == _T("btn_exp_stop")) {
+      set_enable_to_control_with_prefix("btn_params_reset", t_prefix_,
+                                        paint_manager_ui_, true);
+      set_enable_to_control_with_prefix("btn_solution_design_refresh",
+                                        t_prefix_, paint_manager_ui_, true);
+      exp_running_ = false;
+    } else {
+      // do nothing
+    }
+  }
+}
 
 void WorkWindownFirstPageStressAjustable::OnClick(TNotifyUI& msg) {
   if (msg.sType == kClick) {
-    if (msg.pSender->GetName() == _T("solution_design_refresh")) {
+    if (msg.pSender->GetName() == _T("btn_solution_design_refresh_stresses")) {
       // TODO(hhool):
+    } else if (msg.pSender->GetName() == _T("btn_params_reset_stresses")) {
+      // reset all edit
+      int32_t ret = anx::esolution::ResetSolutionDesignDefaultResourceWithType(
+          design_type_);
+      if (ret != 0) {
+        // show error message
+        anx::ui::DialogCommon::ShowDialog(
+            *pOwner_, "Error", "Reset solution design default resource failed",
+            anx::ui::DialogCommon::kDialogCommonStyleOk);
+      } else {
+        // update all edit
+        InitPage();
+      }
     }
   }
 }
@@ -565,10 +662,12 @@ void WorkWindowFirstPageTh3pointBending::Notify(TNotifyUI& msg) {
   if (name.IsEmpty()) {
     return;
   }
-  std::string ctrl_name = anx::common::WString2String(name.GetData());
-  // check ctrl_name contain tm_page_first_left_elastic
-  if (ctrl_name.find("tm_page_first_left_elastic") != std::string::npos) {
-    if (msg.sType == DUI_MSGTYPE_KILLFOCUS) {
+  if (msg.sType == DUI_MSGTYPE_KILLFOCUS) {
+    if (exp_running_)
+      return;
+    std::string ctrl_name = anx::common::WString2String(name.GetData());
+    // check ctrl_name contain tm_page_first_left_elastic
+    if (ctrl_name.find("tm_page_first_left_elastic") != std::string::npos) {
       // check the value of edit_elastic_
       double f_elastic_modulus_GPa = get_value_from_edit_with_prefix<double>(
           "tm_page_first_left_elastic", t_prefix_, paint_manager_ui_);
@@ -580,50 +679,62 @@ void WorkWindowFirstPageTh3pointBending::Notify(TNotifyUI& msg) {
       }
     } else if (ctrl_name.find("tm_page_first_left_density") !=
                std::string::npos) {
-      if (msg.sType == DUI_MSGTYPE_KILLFOCUS) {
-        // check the value of edit_density_
-        double f_density_kg_m3 = get_value_from_edit_with_prefix<double>(
-            "tm_page_first_left_density", t_prefix_, paint_manager_ui_);
-        if (f_density_kg_m3 <= 0.0f) {
-          // TODO(hhool): show error message, show with tips
-          anx::ui::DialogCommon::ShowDialog(
-              *pOwner_, "Error", "Density must be greater than 0.0",
-              anx::ui::DialogCommon::kDialogCommonStyleOk);
-        }
+      // check the value of edit_density_
+      double f_density_kg_m3 = get_value_from_edit_with_prefix<double>(
+          "tm_page_first_left_density", t_prefix_, paint_manager_ui_);
+      if (f_density_kg_m3 <= 0.0f) {
+        // TODO(hhool): show error message, show with tips
+        anx::ui::DialogCommon::ShowDialog(
+            *pOwner_, "Error", "Density must be greater than 0.0",
+            anx::ui::DialogCommon::kDialogCommonStyleOk);
       }
     } else if (ctrl_name.find("tm_page_first_left_max_stress") !=
                std::string::npos) {
-      if (msg.sType == DUI_MSGTYPE_KILLFOCUS) {
-        // check the value of edit_max_stress_
-        double f_max_stress_MPa = get_value_from_edit_with_prefix<double>(
-            "tm_page_first_left_max_stress", t_prefix_, paint_manager_ui_);
-        if (f_max_stress_MPa <= 0.0f) {
-          // TODO(hhool): show error message, show with tips
-          anx::ui::DialogCommon::ShowDialog(
-              *pOwner_, "Error", "Max stress must be greater than 0.0",
-              anx::ui::DialogCommon::kDialogCommonStyleOk);
-        }
+      // check the value of edit_max_stress_
+      double f_max_stress_MPa = get_value_from_edit_with_prefix<double>(
+          "tm_page_first_left_max_stress", t_prefix_, paint_manager_ui_);
+      if (f_max_stress_MPa <= 0.0f) {
+        // TODO(hhool): show error message, show with tips
+        anx::ui::DialogCommon::ShowDialog(
+            *pOwner_, "Error", "Max stress must be greater than 0.0",
+            anx::ui::DialogCommon::kDialogCommonStyleOk);
       }
     } else if (ctrl_name.find("tm_page_first_left_ratio_stress") !=
                std::string::npos) {
-      if (msg.sType == DUI_MSGTYPE_KILLFOCUS) {
-        // check the value of edit_stress_ratio_
-        double f_stress_ratio = get_value_from_edit_with_prefix<double>(
-            "tm_page_first_left_ratio_stress", t_prefix_, paint_manager_ui_);
-        if (f_stress_ratio <= 0.0f) {
-          // TODO(hhool): show error message, show with tips
-          anx::ui::DialogCommon::ShowDialog(
-              *pOwner_, "Error", "Stress ratio must be greater than 0.0",
-              anx::ui::DialogCommon::kDialogCommonStyleOk);
-        }
+      // check the value of edit_stress_ratio_
+      double f_stress_ratio = get_value_from_edit_with_prefix<double>(
+          "tm_page_first_left_ratio_stress", t_prefix_, paint_manager_ui_);
+      if (f_stress_ratio <= 0.0f) {
+        // TODO(hhool): show error message, show with tips
+        anx::ui::DialogCommon::ShowDialog(
+            *pOwner_, "Error", "Stress ratio must be greater than 0.0",
+            anx::ui::DialogCommon::kDialogCommonStyleOk);
       }
+    }
+  } else if (msg.sType == DUI_MSGTYPE_CLICK) {
+    if (msg.pSender->GetName() == _T("btn_exp_start")) {
+      exp_running_ = true;
+      set_enable_to_control_with_prefix("btn_params_reset", t_prefix_,
+                                        paint_manager_ui_, false);
+      set_enable_to_control_with_prefix("btn_solution_design_refresh",
+                                        t_prefix_, paint_manager_ui_, false);
+    } else if (msg.pSender->GetName() == _T("btn_exp_stop")) {
+      set_enable_to_control_with_prefix("btn_params_reset", t_prefix_,
+                                        paint_manager_ui_, true);
+      set_enable_to_control_with_prefix("btn_solution_design_refresh",
+                                        t_prefix_, paint_manager_ui_, true);
+      exp_running_ = false;
+    } else if (msg.pSender->GetName() == _T("btn_exp_pause")) {
+      // do nothing
+    } else if (msg.pSender->GetName() == _T("btn_exp_resume")) {
+      // do nothing
     }
   }
 }
 
 void WorkWindowFirstPageTh3pointBending::OnClick(TNotifyUI& msg) {
   if (msg.sType == kClick) {
-    if (msg.pSender->GetName() == _T("solution_design_refresh")) {
+    if (msg.pSender->GetName() == _T("btn_solution_design_refresh_th3point")) {
       double f_elastic_modulus_GPa = get_value_from_edit_with_prefix<double>(
           "tm_page_first_left_elastic", t_prefix_, paint_manager_ui_);
       double f_density_kg_m3 = get_value_from_edit_with_prefix<double>(
@@ -700,7 +811,7 @@ void WorkWindowFirstPageTh3pointBending::OnClick(TNotifyUI& msg) {
         f_amplitude = -1.0f;
       }
       pOwner_->UpdateArgsArea(-1, -1, f_amplitude, f_static_load_MPa);
-    } else if (msg.pSender->GetName() == _T("btn_params_reset")) {
+    } else if (msg.pSender->GetName() == _T("btn_params_reset_th3point")) {
       // reset all edit
       int32_t ret = anx::esolution::ResetSolutionDesignDefaultResourceWithType(
           design_type_);
@@ -832,12 +943,52 @@ WorkWindowFirstPageVibrationBending::~WorkWindowFirstPageVibrationBending() {
   paint_manager_ui_->RemoveNotifier(this);
 }
 
-void WorkWindowFirstPageVibrationBending::Notify(TNotifyUI& msg) {}
+void WorkWindowFirstPageVibrationBending::Notify(TNotifyUI& msg) {
+  if (msg.pSender == nullptr) {
+    return;
+  }
+  DuiLib::CDuiString name = msg.pSender->GetName();
+  if (name.IsEmpty()) {
+    return;
+  }
+  if (msg.sType == DUI_MSGTYPE_KILLFOCUS) {
+    /// TODO(hhool):
+  } else if (msg.sType == DUI_MSGTYPE_CLICK) {
+    if (msg.pSender->GetName() == _T("btn_exp_start")) {
+      exp_running_ = true;
+      set_enable_to_control_with_prefix("btn_params_reset", t_prefix_,
+                                        paint_manager_ui_, false);
+      set_enable_to_control_with_prefix("btn_solution_design_refresh",
+                                        t_prefix_, paint_manager_ui_, false);
+    } else if (msg.pSender->GetName() == _T("btn_exp_stop")) {
+      set_enable_to_control_with_prefix("btn_params_reset", t_prefix_,
+                                        paint_manager_ui_, true);
+      set_enable_to_control_with_prefix("btn_solution_design_refresh",
+                                        t_prefix_, paint_manager_ui_, true);
+      exp_running_ = false;
+    } else {
+      // do nothing
+    }
+  }
+}
 
 void WorkWindowFirstPageVibrationBending::OnClick(TNotifyUI& msg) {
   if (msg.sType == kClick) {
-    if (msg.pSender->GetName() == _T("solution_design_refresh")) {
+    if (msg.pSender->GetName() == _T("btn_solution_design_refresh_vibration")) {
       // TODO(hhool):
+    } else if (msg.pSender->GetName() == _T("btn_params_reset_vibration")) {
+      // reset all edit
+      int32_t ret = anx::esolution::ResetSolutionDesignDefaultResourceWithType(
+          design_type_);
+      if (ret != 0) {
+        // show error message
+        anx::ui::DialogCommon::ShowDialog(
+            *pOwner_, "Error", "Reset solution design default resource failed",
+            anx::ui::DialogCommon::kDialogCommonStyleOk);
+      } else {
+        // update all edit
+        InitPage();
+      }
     }
   }
 }

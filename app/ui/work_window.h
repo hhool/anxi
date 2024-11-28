@@ -144,7 +144,8 @@ class WorkWindow : public DuiLib::WindowImplBase,
   int32_t OpenDeviceCom(int32_t device_type);
   /// @brief Close all device com interface
   void CloseDeviceCom(int32_t device_type);
-
+  /// @brief exp_state get
+  int32_t ExpState() const { return is_exp_state_; }
  protected:
   // impliment anx::device::DeviceComListener;
   void OnDataReceived(anx::device::DeviceComInterface* device,
