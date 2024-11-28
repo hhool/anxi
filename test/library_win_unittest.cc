@@ -12,16 +12,18 @@
 #include <gtest/gtest.h>
 
 #include <windows.h>
+#include <string>
+
+#include "app/common/file_utils.h"
 #include "app/common/module_utils.h"
 #include "app/common/string_utils.h"
 
 TEST(Library_win, test_LoadLibrary) {
   std::string module_dir = anx::common::GetModuleDir();
-#if defined(_WIN32) || defined(_WIN64)
-  std::string module_path = module_dir + "\\pilot\\CTRL.dll";
-#else
-  std::string module_path = module_dir + "\\pilot\\CTRL.dll";
-#endif
+  module_dir += anx::common::kPathSeparator;
+  module_dir += "pilot";
+  module_dir += anx::common::kPathSeparator;
+  std::string module_path = module_dir + "CTRL.dll";
 #if defined(UNICODE) || defined(_UNICODE)
   HMODULE hModule =
       LoadLibrary(anx::common::String2WString(module_path.c_str()).c_str());
@@ -36,11 +38,10 @@ TEST(Library_win, test_LoadLibrary) {
 
 TEST(Library_win, test_LoadLibrary_find_api) {
   std::string module_dir = anx::common::GetModuleDir();
-#if defined(_WIN32) || defined(_WIN64)
-  std::string module_path = module_dir + "\\pilot\\CTRL.dll";
-#else
-  std::string module_path = module_dir + "\\pilot\\CTRL.dll";
-#endif
+  module_dir += anx::common::kPathSeparator;
+  module_dir += "pilot";
+  module_dir += anx::common::kPathSeparator;
+  std::string module_path = module_dir + "CTRL.dll";
 #if defined(UNICODE) || defined(_UNICODE)
   HMODULE hModule =
       LoadLibrary(anx::common::String2WString(module_path.c_str()).c_str());

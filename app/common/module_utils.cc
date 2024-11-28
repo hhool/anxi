@@ -30,7 +30,7 @@ std::string GetAppPath() {
   char path[MAX_PATH];
   GetModuleFileNameA(NULL, path, MAX_PATH);
   std::string app_path(path);
-  return app_path.substr(0, app_path.find_last_of("\\"));
+  return app_path.substr(0, app_path.find_last_of(anx::common::kPathSeparator));
 #else
   char path[1024];
   int count = readlink("/proc/self/exe", path, 1024);
@@ -39,7 +39,7 @@ std::string GetAppPath() {
   }
   path[count] = '\0';
   std::string app_path(path);
-  return app_path.substr(0, app_path.find_last_of("/"));
+  return app_path.substr(0, app_path.find_last_of(anx::common::kPathSeparator));
 #endif
   return path;
 }
@@ -53,7 +53,8 @@ std::string GetModuleName() {
   char path[MAX_PATH];
   GetModuleFileNameA(NULL, path, MAX_PATH);
   std::string app_path(path);
-  return app_path.substr(app_path.find_last_of("\\") + 1);
+  return app_path.substr(app_path.find_last_of(anx::common::kPathSeparator) +
+                         1);
 #else
   char path[1024];
   int count = readlink("/proc/self/exe", path, 1024);
@@ -62,7 +63,8 @@ std::string GetModuleName() {
   }
   path[count] = '\0';
   std::string app_path(path);
-  return app_path.substr(app_path.find_last_of("/") + 1);
+  return app_path.substr(app_path.find_last_of(anx::common::kPathSeparator) +
+                         1);
 #endif
   return path;
 }
@@ -76,6 +78,16 @@ std::string GetApplicationDataPath() {
 #else
   return "";
 #endif
+}
+
+std::string GetApplicationDataPath(const std::string& app_name) {
+  std::string app_data_path = GetApplicationDataPath();
+  if (app_data_path.empty()) {
+    return "";
+  }
+  app_data_path += anx::common::kPathSeparator;
+  app_data_path += app_name;
+  return app_data_path;
 }
 
 bool FolderPathExist(const std::string& dir) {
@@ -115,8 +127,10 @@ int32_t CopyFolder(const std::string& src, const std::string& dest) {
     if (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
       continue;
     }
-    std::string src_file = src + "\\" + find_data.cFileName;
-    std::string dest_file = dest + "\\" + find_data.cFileName;
+    std::string src_file =
+        src + anx::common::kPathSeparator + find_data.cFileName;
+    std::string dest_file =
+        dest + anx::common::kPathSeparator + find_data.cFileName;
     if (!CopyFileA(src_file.c_str(), dest_file.c_str(), FALSE)) {
       FindClose(hFind);
       return -4;

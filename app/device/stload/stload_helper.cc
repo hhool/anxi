@@ -14,6 +14,7 @@
 #include <memory>
 #include <string>
 
+#include "app/common/file_utils.h"
 #include "app/common/logger.h"
 #include "app/common/module_utils.h"
 #include "app/common/string_utils.h"
@@ -39,13 +40,17 @@ typedef struct Config_t {
      <simulation>1</simulation>
  * </stload>
  */
+static std::string DefaultConfigXmlPath() {
+  std::string default_config_xml_path = "default";
+  default_config_xml_path += anx::common::kPathSeparator;
+  default_config_xml_path += "config_stload.xml";
+  return default_config_xml_path;
+}
+
 static bool LoadConfig(ConfigStLoad* config) {
-  std::string app_data_dir = anx::common::GetApplicationDataPath();
-#if defined(_WIN32) || defined(_WIN64)
-  std::string config_file = app_data_dir + "\\anxi\\default\\config_stload.xml";
-#else
-  std::string config_file = app_data_dir + "/anxi/default/config_stload.xml";
-#endif
+  std::string app_data_dir = anx::common::GetApplicationDataPath("anxi");
+  std::string config_file =
+      app_data_dir + anx::common::kPathSeparator + DefaultConfigXmlPath();
   tinyxml2::XMLDocument doc;
   if (doc.LoadFile(config_file.c_str()) != tinyxml2::XML_SUCCESS) {
     LOG_F(LG_ERROR) << "Load config file failed: " << config_file;

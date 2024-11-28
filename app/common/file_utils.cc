@@ -31,6 +31,11 @@
 namespace anx {
 namespace common {
 
+#if defined(_WIN32) || defined(_WIN64)
+const char kPathSeparator[] = {"\\"};
+#else
+const char kPathSeparator[] = {"/"};
+#endif
 bool FileExists(const std::string& file_path) {
 #if defined(_WIN32) || defined(_WIN64)
   std::string path = file_path;
@@ -178,7 +183,7 @@ bool OpenFolder(const std::string& folder_file_path) {
   bool is_folder = false;
   std::string folder_path = folder_file_path;
   if (FileExists(folder_file_path)) {
-    size_t pos = folder_file_path.find_last_of("\\");
+    size_t pos = folder_file_path.find_last_of(anx::common::kPathSeparator);
     if (pos == std::string::npos) {
       return false;
     }

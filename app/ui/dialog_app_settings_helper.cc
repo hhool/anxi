@@ -23,19 +23,31 @@
 namespace anx {
 namespace settings {
 
+static std::string DefaultStlodXmlPath() {
+#if defined(WIN32) || defined(_WIN64)
+  return "default\\app_settings_stload.xml";
+#else
+  return "default/app_settings_stload.xml";
+#endif
+}
+
+static std::string DefaultThirdAppXmlPath() {
+#if defined(WIN32) || defined(_WIN64)
+  return "default\\app_settings_third_app.xml";
+#else
+  return "default/app_settings_third_app.xml";
+#endif
+}
+
 int32_t SettingSTLoad::LoadStloadList(
     std::vector<SettingSTLoad::STLoadItem>* stload_list) {
-  std::string app_data_dir = anx::common::GetApplicationDataPath();
+  std::string app_data_dir = anx::common::GetApplicationDataPath("anxi");
   if (app_data_dir.empty()) {
     return -1;
   }
-#if defined(WIN32)
-  app_data_dir += "\\anxi\\";
-  std::string file_pathname = app_data_dir + "default\\app_settings_stload.xml";
-#else
-  app_data_dir += "/anxi/";
-  std::string file_pathname = app_data_dir + "default/app_settings_stload.xml";
-#endif
+  std::string file_pathname =
+      app_data_dir + anx::common::kPathSeparator + DefaultStlodXmlPath();
+
   tinyxml2::XMLDocument doc;
   if (doc.LoadFile(file_pathname.c_str()) != tinyxml2::XML_SUCCESS) {
     return -2;
@@ -82,17 +94,13 @@ int32_t SettingSTLoad::LoadStloadList(
 
 int32_t SettingSTLoad::SaveStloadList(
     const std::vector<SettingSTLoad::STLoadItem>& stload_list) {
-  std::string app_data_dir = anx::common::GetApplicationDataPath();
+  std::string app_data_dir = anx::common::GetApplicationDataPath("anxi");
   if (app_data_dir.empty()) {
     return -1;
   }
-#if defined(WIN32)
-  app_data_dir += "\\anxi\\";
-  std::string file_pathname = app_data_dir + "default\\app_settings_stload.xml";
-#else
-  app_data_dir += "/anxi/";
-  std::string file_pathname = app_data_dir + "default/app_settings_stload.xml";
-#endif
+  std::string file_pathname =
+      app_data_dir + anx::common::kPathSeparator + DefaultStlodXmlPath();
+
   tinyxml2::XMLDocument doc;
   tinyxml2::XMLElement* root = doc.NewElement("root");
   doc.InsertFirstChild(root);
@@ -138,20 +146,16 @@ int32_t SettingSTLoad::GetEnableStloadVersion() {
 //////////////////////////////////////////////////////////////////////////
 /// SettingAppThird
 std::vector<std::string> SettingAppThird::LoadThirdApp() {
-  std::string app_data_dir = anx::common::GetApplicationDataPath();
+  std::string app_data_dir = anx::common::GetApplicationDataPath("anxi");
   if (app_data_dir.empty()) {
     return std::vector<std::string>();
   }
-#if defined(WIN32)
-  app_data_dir += "\\anxi\\";
-  app_data_dir += "default\\app_settings_third_app.xml";
-#else
-  app_data_dir += "/anxi/";
-  app_data_dir += "default/app_settings_third_app.xml";
-#endif
+  std::string file_pathname =
+      app_data_dir + anx::common::kPathSeparator + DefaultThirdAppXmlPath();
+
   std::vector<std::string> third_app_list;
   tinyxml2::XMLDocument doc;
-  if (doc.LoadFile(app_data_dir.c_str()) != tinyxml2::XML_SUCCESS) {
+  if (doc.LoadFile(file_pathname.c_str()) != tinyxml2::XML_SUCCESS) {
     return std::vector<std::string>();
   }
   tinyxml2::XMLElement* root = doc.RootElement();
@@ -182,17 +186,13 @@ std::vector<std::string> SettingAppThird::LoadThirdApp() {
 
 int32_t SettingAppThird::SaveThirdApp(const std::string& name,
                                       const std::string& third_app_path) {
-  std::string app_data_dir = anx::common::GetApplicationDataPath();
+  std::string app_data_dir = anx::common::GetApplicationDataPath("anxi");
   if (app_data_dir.empty()) {
     return -1;
   }
-#if defined(WIN32)
-  app_data_dir += "\\anxi\\";
-  app_data_dir += "default\\app_settings_third_app.xml";
-#else
-  app_data_dir += "/anxi/";
-  app_data_dir += "default/app_settings_third_app.xml";
-#endif
+  std::string file_pathname =
+      app_data_dir + anx::common::kPathSeparator + DefaultThirdAppXmlPath();
+
   tinyxml2::XMLDocument doc;
   tinyxml2::XMLElement* root = doc.NewElement("root");
   doc.InsertFirstChild(root);
@@ -204,7 +204,7 @@ int32_t SettingAppThird::SaveThirdApp(const std::string& name,
   tinyxml2::XMLElement* ele_path = doc.NewElement("path");
   ele_path->SetText(third_app_path.c_str());
   ele_item->InsertEndChild(ele_path);
-  auto err = doc.SaveFile(app_data_dir.c_str());
+  auto err = doc.SaveFile(file_pathname.c_str());
   if (err != tinyxml2::XML_SUCCESS) {
     return -2;
   }
@@ -212,21 +212,15 @@ int32_t SettingAppThird::SaveThirdApp(const std::string& name,
 }
 
 int32_t SettingAppThird::ResetThirdApp() {
-  std::string app_data_dir = anx::common::GetApplicationDataPath();
+  std::string app_data_dir = anx::common::GetApplicationDataPath("anxi");
   if (app_data_dir.empty()) {
     return -1;
   }
-#if defined(WIN32)
-  std::string default_xml = "default\\app_settings_third_app.xml";
-  app_data_dir += "\\anxi\\";
-  std::string dst_xml = app_data_dir + default_xml;
-  std::string origin_xml = anx::common::GetModuleDir() + "\\" + default_xml;
-#else
-  std::string default_xml = "default/app_settings_third_app.xml";
-  app_data_dir += "/anxi/";
-  std::string dst_xml = app_data_dir + default_xml;
-  std::string origin_xml = anx::common::GetModuleDir() + "/" + default_xml;
-#endif
+  std::string dst_xml =
+      app_data_dir + anx::common::kPathSeparator + DefaultThirdAppXmlPath();
+  std::string origin_xml = anx::common::GetModuleDir() +
+                           anx::common::kPathSeparator +
+                           DefaultThirdAppXmlPath();
   if (!anx::common::FileExists(origin_xml)) {
     LOG_F(LG_ERROR) << "origin xml file not exists: " << origin_xml;
     return -1;

@@ -28,17 +28,13 @@ AppConfig::AppConfig() {}
 AppConfig::~AppConfig() {}
 
 int32_t AppConfig::PrepareAppConfig() {
-  std::string app_data_dir = anx::common::GetApplicationDataPath();
+  std::string app_data_dir = anx::common::GetApplicationDataPath("anxi");
   if (app_data_dir.empty()) {
     LOG_F(LG_ERROR) << "GetApplicationDataPath failed";
     return -1;
   }
 
-#if defined(_WIN32) || defined(_WIN64)
-  std::string app_config_dir = app_data_dir + "\\anxi";
-#else
-  std::string app_config_dir = app_data_dir + "/.anxi";
-#endif
+  std::string app_config_dir = app_data_dir;
   // check the folder exist, if exist, return
   if (anx::common::DirectoryExists(app_config_dir)) {
     return 0;
@@ -55,8 +51,10 @@ int32_t AppConfig::PrepareAppConfig() {
     return -3;
   }
 
-  std::string app_resource_default = app_module_dir + "/default";
-  std::string app_resource_target = app_config_dir + "/default";
+  std::string app_resource_default =
+      app_module_dir + anx::common::kPathSeparator + "default";
+  std::string app_resource_target =
+      app_config_dir + anx::common::kPathSeparator + "default";
   if (!anx::common::MakeSureFolderPathExist(app_resource_target)) {
     LOG_F(LG_ERROR) << "MakeSureFolderPathExist failed:" << app_resource_target;
     return -4;
@@ -70,17 +68,33 @@ int32_t AppConfig::PrepareAppConfig() {
     return -5;
   }
 
+  std::string app_resource_expdata =
+      app_config_dir + anx::common::kPathSeparator + "expdata";
+  if (!anx::common::MakeSureFolderPathExist(app_resource_expdata)) {
+    LOG_F(LG_ERROR) << "MakeSureFolderPathExist failed:"
+                    << app_resource_expdata;
+    return -6;
+  }
+
+  std::string app_resource_expreport =
+      app_config_dir + anx::common::kPathSeparator + "expreport";
+  if (!anx::common::MakeSureFolderPathExist(app_resource_expreport)) {
+    LOG_F(LG_ERROR) << "MakeSureFolderPathExist failed:"
+                    << app_resource_expreport;
+    return -7;
+  }
+
   return 0;
 }
 
 int32_t AppConfig::ResetAppConfig() {
-  std::string app_data_dir = anx::common::GetApplicationDataPath();
+  std::string app_data_dir = anx::common::GetApplicationDataPath("anxi");
   if (app_data_dir.empty()) {
     LOG_F(LG_ERROR) << "GetApplicationDataPath failed";
     return -1;
   }
   // remove the anxi folder
-  std::string app_config_dir = app_data_dir + "/anxi";
+  std::string app_config_dir = app_data_dir;
   if (!anx::common::DirectoryExists(app_config_dir)) {
     return 0;
   }
@@ -89,19 +103,6 @@ int32_t AppConfig::ResetAppConfig() {
     return -2;
   }
   return 0;
-}
-
-std::string AppConfig::GetAppDataPathWithFolderName(
-    const std::string& folder_name) {
-  std::string app_data_dir = anx::common::GetApplicationDataPath();
-  if (app_data_dir.empty()) {
-    return "";
-  }
-#if defined(_WIN32) || defined(_WIN64)
-  return app_data_dir + "\\" + folder_name;
-#else
-  return app_data_dir + "/" + folder_name;
-#endif
 }
 
 }  // namespace ui

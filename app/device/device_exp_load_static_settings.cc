@@ -170,11 +170,10 @@ std::unique_ptr<DeviceLoadStaticSettings> DeviceLoadStaticSettings::FromXml(
 ////////////////////////////////////////////////////////////////////////
 // helper function
 std::string DefaultDeviceLoadStaticSettingsXmlFilePath() {
-#if defined(_WIN32) || defined(_WIN64)
-  return "default\\device_exp_load_static_settings.xml";
-#else
-  return "default/device_exp_load_static_settings.xml";
-#endif
+  std::string default_xml = "default";
+  default_xml += anx::common::kPathSeparator;
+  default_xml += "device_exp_load_static_settings.xml";
+  return default_xml;
 }
 
 std::unique_ptr<DeviceLoadStaticSettings>
@@ -197,12 +196,9 @@ LoadDeviceLoadStaticSettingsWithFilePath(const std::string& file_path) {
 std::unique_ptr<DeviceLoadStaticSettings>
 LoadDeviceLoadStaticSettingsDefaultResource() {
   std::string default_xml = DefaultDeviceLoadStaticSettingsXmlFilePath();
-  std::string app_data_dir = anx::common::GetApplicationDataPath();
-#if defined(_WIN32)
-  default_xml = app_data_dir + "\\anxi\\" + default_xml;
-#else
-  default_xml = app_data_dir + "/" + default_xml;
-#endif
+  std::string app_data_dir = anx::common::GetApplicationDataPath("anxi");
+  app_data_dir += anx::common::kPathSeparator;
+  default_xml = app_data_dir + default_xml;
 
   std::unique_ptr<DeviceLoadStaticSettings> settings =
       LoadDeviceLoadStaticSettingsWithFilePath(default_xml);
@@ -228,25 +224,19 @@ int32_t SaveDeviceLoadStaticSettingsFile(
 int32_t SaveDeviceLoadStaticSettingsDefaultResource(
     const DeviceLoadStaticSettings& settings) {
   std::string default_xml = DefaultDeviceLoadStaticSettingsXmlFilePath();
-  std::string app_data_dir = anx::common::GetApplicationDataPath();
-#if defined(_WIN32)
-  default_xml = app_data_dir + "\\anxi\\" + default_xml;
-#else
-  default_xml = app_data_dir + "/" + default_xml;
-#endif
+  std::string app_data_dir = anx::common::GetApplicationDataPath("anxi");
+  default_xml = app_data_dir + anx::common::kPathSeparator + default_xml;
   return SaveDeviceLoadStaticSettingsFile(default_xml, settings);
 }
 
 int32_t ResetDeviceLoadStaticSettingsDefaultResource() {
   std::string default_xml = DefaultDeviceLoadStaticSettingsXmlFilePath();
-  std::string app_data_dir = anx::common::GetApplicationDataPath();
-#if defined(_WIN32)
-  std::string dst_xml = app_data_dir + "\\anxi\\" + default_xml;
-  std::string origin_xml = anx::common::GetModuleDir() + "\\" + default_xml;
-#else
-  std::string dst_xml = app_data_dir + "/anxi/" + default_xml;
-  std::string origin_xml = anx::common::GetModuleDir() + "/" + default_xml;
-#endif
+  std::string app_data_dir = anx::common::GetApplicationDataPath("anxi");
+
+  std::string dst_xml =
+      app_data_dir + anx::common::kPathSeparator + default_xml;
+  std::string origin_xml =
+      anx::common::GetModuleDir() + anx::common::kPathSeparator + default_xml;
   if (!anx::common::FileExists(origin_xml)) {
     LOG_F(LG_ERROR) << "origin xml file not exists: " << origin_xml;
     return -1;

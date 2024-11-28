@@ -26,12 +26,17 @@ namespace anx {
 namespace device {
 
 std::string DefaultDeviceComSettingsXmlFilePath(int32_t device_com_type) {
+  std::string default_xml = "default";
+  default_xml += anx::common::kPathSeparator;
   if (device_com_type == kDeviceCom_Ultrasound) {
-    return "default/com_settings_ua.xml";
+    default_xml += "com_settings_ua.xml";
+    return default_xml;
   } else if (device_com_type == kDeviceCom_StaticLoad) {
-    return "default/com_settings_sl.xml";
+    default_xml += "com_settings_sl.xml";
+    return default_xml;
   } else if (device_com_type == kDeviceLan_StaticLoad) {
-    return "default/com_settings_sl2.xml";
+    default_xml += "com_settings_sl2.xml";
+    return default_xml;
   }
   return "";
 }
@@ -59,12 +64,8 @@ std::unique_ptr<ComSettings> LoadDeviceComSettingsDefaultResourceWithType(
       DefaultDeviceComSettingsXmlFilePath(device_com_type);
   // get app data path
   std::string app_data_dir =
-      anx::ui::AppConfig::GetAppDataPathWithFolderName("anxi");
-#ifdef _WIN32
-  default_xml = app_data_dir + "\\" + default_xml;
-#else
-  default_xml = app_data_dir + "/" + default_xml;
-#endif
+      anx::common::GetApplicationDataPath("anxi");
+  default_xml = app_data_dir + anx::common::kPathSeparator + default_xml;
 
   std::unique_ptr<ComSettings> com_setting =
       LoadDeviceComSettingsWithFilePath(default_xml);
@@ -90,12 +91,9 @@ int32_t SaveDeviceComSettingsFileDefaultPath(const ComSettings& settings) {
   std::string default_xml =
       DefaultDeviceComSettingsXmlFilePath(settings.GetDeviceComType());
   // get app data path
-  std::string app_data_dir = anx::common::GetApplicationDataPath();
-#ifdef _WIN32
-  default_xml = app_data_dir + "\\anxi\\" + default_xml;
-#else
-  default_xml = app_data_dir + "/anxi/" + default_xml;
-#endif
+  std::string app_data_dir = anx::common::GetApplicationDataPath("anxi");
+  default_xml = app_data_dir + anx::common::kPathSeparator + default_xml;
+
   return SaveDeviceComSettingsFile(default_xml, settings);
 }
 

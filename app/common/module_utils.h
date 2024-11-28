@@ -32,6 +32,11 @@ std::string GetModuleName();
 /// @return the AppData path
 std::string GetApplicationDataPath();
 
+/// @brief Get the AppData path
+/// @param app_name the application name
+/// @return the AppData path
+std::string GetApplicationDataPath(const std::string& app_name);
+
 /// @brief Copy the folder
 /// @param src the source folder
 /// @param dst the destination folder

@@ -36,12 +36,6 @@ class AppConfig {
   /// @breif reset the app config
   /// @return int32_t 0 if success, -1 if failed
   static int32_t ResetAppConfig();
-
-  /// @brief get the app data path with folder name
-  /// @param folder_name the folder name
-  /// @return the app data path
-  static std::string GetAppDataPathWithFolderName(
-      const std::string& folder_name);
 };
 
 }  // namespace ui

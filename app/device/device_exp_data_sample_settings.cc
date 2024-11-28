@@ -140,11 +140,10 @@ DeviceExpDataSampleSettings::FromXml(const std::string& xml) {
 ////////////////////////////////////////////////////////////////////
 // helper function
 std::string DefaultDeviceExpDataSampleSettingsXmlFilePath() {
-#if defined(_WIN32) || defined(_WIN64)
-  return "default\\device_exp_data_sample_settings.xml";
-#else
-  return "default/device_exp_data_sample_settings.xml";
-#endif
+  std::string default_xml = "default";
+  default_xml += anx::common::kPathSeparator;
+  default_xml += "device_exp_data_sample_settings.xml";
+  return default_xml;
 }
 
 std::unique_ptr<DeviceExpDataSampleSettings>
@@ -169,12 +168,8 @@ std::unique_ptr<DeviceExpDataSampleSettings>
 LoadDeviceExpDataSampleSettingsDefaultResource() {
   std::string default_xml = DefaultDeviceExpDataSampleSettingsXmlFilePath();
   // get app data path
-  std::string app_data_dir = anx::common::GetApplicationDataPath();
-#ifdef _WIN32
-  default_xml = app_data_dir + "\\anxi\\" + default_xml;
-#else
-  default_xml = app_data_dir + "/anxi/" + default_xml;
-#endif
+  std::string app_data_dir = anx::common::GetApplicationDataPath("anxi");
+  default_xml = app_data_dir + anx::common::kPathSeparator + default_xml;
 
   std::unique_ptr<DeviceExpDataSampleSettings> settings =
       LoadDeviceExpDataSampleSettingsDefaultWithFilePath(default_xml);
@@ -201,26 +196,21 @@ int32_t SaveDeviceExpDataSampleSettingsDefaultResource(
     const DeviceExpDataSampleSettings& settings) {
   std::string default_xml = DefaultDeviceExpDataSampleSettingsXmlFilePath();
   // get app data path
-  std::string app_data_dir = anx::common::GetApplicationDataPath();
-#ifdef _WIN32
-  default_xml = app_data_dir + "\\anxi\\" + default_xml;
-#else
-  default_xml = app_data_dir + "/anxi/" + default_xml;
-#endif
+  std::string app_data_dir = anx::common::GetApplicationDataPath("anxi");
+  default_xml = app_data_dir + anx::common::kPathSeparator + default_xml;
+
   return SaveDeviceExpDataSampleSettingsFile(default_xml, settings);
 }
 
 int32_t ResetDeviceExpDataSampleSettingsDefaultResource() {
   std::string default_xml = DefaultDeviceExpDataSampleSettingsXmlFilePath();
-  // get app data path
-  std::string app_data_dir = anx::common::GetApplicationDataPath();
-#ifdef _WIN32
-  std::string dst_xml = app_data_dir + "\\anxi\\" + default_xml;
-  std::string origin_xml = anx::common::GetModuleDir() + "\\" + default_xml;
-#else
-  std::string dst_xml = app_data_dir + "/anxi/" + default_xml;
-  std::string origin_xml = anx::common::GetModuleDir() + "/" + default_xml;
-#endif
+  // get app data path"
+  std::string app_data_dir = anx::common::GetApplicationDataPath("anxi");
+  std::string dst_xml =
+      app_data_dir + anx::common::kPathSeparator + default_xml;
+  std::string origin_xml =
+      anx::common::GetModuleDir() + anx::common::kPathSeparator + default_xml;
+
   if (!anx::common::FileExists(origin_xml)) {
     LOG_F(LG_ERROR) << "origin file not exists: " << origin_xml;
     return -1;

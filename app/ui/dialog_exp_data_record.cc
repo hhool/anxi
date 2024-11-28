@@ -377,8 +377,7 @@ bool DialogExpDataRecord::ShowSummaryItemDetail(int index) {
                  << " duration time: " << duration_time;
   pLabelUI = static_cast<DuiLib::CTextUI*>(
       this->m_PaintManager.FindControl(_T("start_time")));
-  pLabelUI->SetText(
-      anx::common::UTF8ToUnicode(start_time_str.c_str()).c_str());
+  pLabelUI->SetText(anx::common::UTF8ToUnicode(start_time_str.c_str()).c_str());
   pLabelUI = static_cast<DuiLib::CTextUI*>(
       this->m_PaintManager.FindControl(_T("end_time")));
   pLabelUI->SetText(anx::common::UTF8ToUnicode(end_time_str.c_str()).c_str());
@@ -414,12 +413,10 @@ bool DialogExpDataRecord::OnOpenFolderButtonClick(void* msg) {
     return false;
   }
   /// get the folder path that is absolute path
-  std::string app_data_dir = anx::common::GetApplicationDataPath();
-#ifdef _WIN32
-  app_data_dir += "\\anxi\\expdata\\";
-#else
-  app_data_dir += "/anxi/expdata/";
-#endif
+  std::string app_data_dir = anx::common::GetApplicationDataPath("anxi");
+  app_data_dir += anx::common::kPathSeparator;
+  app_data_dir += "expdata";
+  app_data_dir += anx::common::kPathSeparator;
   std::string folder_file_path = app_data_dir;
   /// make sure the folder exists
   if (!anx::common::DirectoryExists(app_data_dir)) {
@@ -449,12 +446,10 @@ bool DialogExpDataRecord::OnToReportButtonClick(void* msg) {
     return false;
   }
   /// get the folder path that is absolute path
-  std::string app_data_dir = anx::common::GetApplicationDataPath();
-#ifdef _WIN32
-  app_data_dir += "\\anxi\\expdata\\";
-#else
-  app_data_dir += "/anxi/expdata/";
-#endif
+  std::string app_data_dir = anx::common::GetApplicationDataPath("anxi");
+  app_data_dir += anx::common::kPathSeparator;
+  app_data_dir += "expdata";
+  app_data_dir += anx::common::kPathSeparator;
   std::string folder_file_path = app_data_dir;
   /// make sure the folder exists
   if (!anx::common::DirectoryExists(app_data_dir)) {

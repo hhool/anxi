@@ -180,11 +180,10 @@ std::unique_ptr<DeviceUltrasoundSettings> DeviceUltrasoundSettings::FromXml(
 // helper function
 
 std::string DefaultDeviceUltrasoundSettingsXmlFilePath() {
-#if defined(_WIN32) || defined(_WIN64)
-  return "default\\device_exp_ultrasound_settings.xml";
-#else
-  return "default/device_exp_ultrasound_settings.xml";
-#endif
+  std::string default_xml = "default";
+  default_xml += anx::common::kPathSeparator;
+  default_xml += "device_exp_ultrasound_settings.xml";
+  return default_xml;
 }
 
 std::unique_ptr<DeviceUltrasoundSettings>
@@ -208,12 +207,8 @@ std::unique_ptr<DeviceUltrasoundSettings>
 LoadDeviceUltrasoundSettingsDefaultResource() {
   std::string default_xml = DefaultDeviceUltrasoundSettingsXmlFilePath();
   // get app data path
-  std::string app_data_dir = anx::common::GetApplicationDataPath();
-#ifdef _WIN32
-  default_xml = app_data_dir + "\\anxi\\" + default_xml;
-#else
-  default_xml = app_data_dir + "/anxi/" + default_xml;
-#endif
+  std::string app_data_dir = anx::common::GetApplicationDataPath("anxi");
+  default_xml = app_data_dir + anx::common::kPathSeparator + default_xml;
 
   std::unique_ptr<DeviceUltrasoundSettings> ultrasound_settings =
       LoadDeviceUltrasoundSettingsWithFilePath(default_xml);
@@ -240,27 +235,20 @@ int32_t SaveDeviceUltrasoundSettingsDefaultResource(
     const DeviceUltrasoundSettings& settings) {
   std::string default_xml = DefaultDeviceUltrasoundSettingsXmlFilePath();
   // get app data path
-  std::string app_data_dir = anx::common::GetApplicationDataPath();
-#ifdef _WIN32
-  default_xml = app_data_dir + "\\anxi\\" + default_xml;
-#else
-  default_xml = app_data_dir + "/anxi/" + default_xml;
-#endif
+  std::string app_data_dir = anx::common::GetApplicationDataPath("anxi");
+  default_xml = app_data_dir + anx::common::kPathSeparator + default_xml;
 
   return SaveDeviceUltrasoundSettingsFile(default_xml, settings);
 }
 
 int32_t ResetDeviceUltrasoundSettingsDefaultResource() {
   std::string default_xml = DefaultDeviceUltrasoundSettingsXmlFilePath();
-  // get app data path
-  std::string app_data_dir = anx::common::GetApplicationDataPath();
-#ifdef _WIN32
-  std::string dst_xml = app_data_dir + "\\anxi\\" + default_xml;
-  std::string origin_xml = anx::common::GetModuleDir() + "\\" + default_xml;
-#else
-  std::string dst_xml = app_data_dir + "/anxi/" + default_xml;
-  std::string origin_xml = anx::common::GetModuleDir() + "/" + default_xml;
-#endif
+  // get app data path"
+  std::string app_data_dir = anx::common::GetApplicationDataPath("anxi");
+  std::string dst_xml =
+      app_data_dir + anx::common::kPathSeparator + default_xml;
+  std::string origin_xml =
+      anx::common::GetModuleDir() + anx::common::kPathSeparator + default_xml;
   if (!anx::common::FileExists(origin_xml)) {
     LOG_F(LG_ERROR) << "origin file not exists:" << origin_xml;
     return -1;

@@ -18,6 +18,7 @@
 namespace anx {
 namespace common {
 
+extern const char kPathSeparator[];
 /// @brief  check the file exists or not in the system
 /// @param file_path
 /// @return  true if the file exists

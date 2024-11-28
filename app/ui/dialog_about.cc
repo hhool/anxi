@@ -14,6 +14,7 @@
 #include <map>
 #include <string>
 
+#include "app/common/file_utils.h"
 #include "app/common/logger.h"
 #include "app/common/module_utils.h"
 #include "app/common/string_utils.h"
@@ -86,14 +87,18 @@ void DialogAbout::OnPrepare(const DuiLib::TNotifyUI& msg) {
       ::GetWindowLong(m_hWnd, GWL_STYLE) & ~WS_MAXIMIZEBOX & ~WS_THICKFRAME);
 }
 
+static std::string DefaultAboutFilePath() {
+  std::string about_file_path = "default";
+  about_file_path += anx::common::kPathSeparator;
+  about_file_path += "config_about.xml";
+  return about_file_path;
+}
+
 std::map<std::string, std::string> DialogAbout::LoadAboutConfig() {
   std::map<std::string, std::string> about_config;
-  std::string app_data_dir = anx::common::GetApplicationDataPath();
-#if defined(_WIN32) || defined(_WIN64)
-  app_data_dir += "\\anxi\\default\\config_about.xml";
-#else
-  app_data_dir += "/anxi/default/config_about.xml";
-#endif
+  std::string app_data_dir = anx::common::GetApplicationDataPath("anxi");
+  app_data_dir += anx::common::kPathSeparator;
+  app_data_dir += DefaultAboutFilePath();
   std::string module_path = app_data_dir;
   tinyxml2::XMLDocument doc;
   if (doc.LoadFile(module_path.c_str()) != tinyxml2::XML_SUCCESS) {

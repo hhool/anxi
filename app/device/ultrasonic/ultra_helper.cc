@@ -14,6 +14,10 @@
 #include <memory>
 #include <string>
 
+#include "app/common/file_utils.h"
+#include "app/common/logger.h"
+#include "app/common/module_utils.h"
+
 #include "third_party/tinyxml2/source/tinyxml2.h"
 
 namespace anx {
@@ -33,15 +37,19 @@ typedef struct Config_t {
  * </ultrasound>
  */
 
+static std::string DefaultConfigXmlPath() {
+#ifdef _WIN32
+  return "default\\config_ultrasound.xml";
+#else
+  return "default/config_ultrasound.xml";
+#endif
+}
+
 static bool LoadConfig(ConfigStLoad* config) {
   // get app data path
-  std::string app_data_dir = anx::common::GetApplicationDataPath();
-  std::string default_xml = "\\default\\config_ultrasound.xml";
-#ifdef _WIN32
-  default_xml = app_data_dir + "\\anxi\\" + default_xml;
-#else
-  default_xml = app_data_dir + "/anxi/" + default_xml;
-#endif
+  std::string app_data_dir = anx::common::GetApplicationDataPath("anxi");
+  std::string default_xml = DefaultConfigXmlPath();
+  default_xml = app_data_dir + anx::common::kPathSeparator + default_xml;
   tinyxml2::XMLDocument doc;
   if (doc.LoadFile(default_xml.c_str()) != tinyxml2::XML_SUCCESS) {
     LOG_F(LG_ERROR) << "Load config file failed: " << default_xml;
@@ -62,7 +70,6 @@ static bool LoadConfig(ConfigStLoad* config) {
 }
 
 bool UltrasonicHelper::InitUltrasonic() {
-  std::string module_dir = anx::common::GetApplicationDataPath();
   ConfigStLoad config_stload;
   LoadConfig(&config_stload);
   if (config_stload.use_stload_simulation) {

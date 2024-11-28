@@ -26,8 +26,7 @@ namespace device {
 ////////////////////////////////////////////////////////////////////
 // clz DeviceExpGraph
 DeviceExpGraph::DeviceExpGraph()
-    : exp_graph_show_time_type_(0),
-      exp_graph_range_minitues_(0) {}
+    : exp_graph_show_time_type_(0), exp_graph_range_minitues_(0) {}
 
 DeviceExpGraph::DeviceExpGraph(int32_t exp_graph_show_time_type,
                                int32_t exp_graph_range_minitues)
@@ -87,11 +86,10 @@ std::unique_ptr<DeviceExpGraphSettings> DeviceExpGraphSettings::FromXml(
 ////////////////////////////////////////////////////////////////////
 // helper function
 std::string DefaultDeviceExpGraphSettingsXmlFilePath() {
-#if defined(_WIN32) || defined(_WIN64)
-  return "default\\device_exp_graph_settings.xml";
-#else
-  return "default/device_exp_graph_settings.xml";
-#endif
+  std::string default_xml = "default";
+  default_xml += anx::common::kPathSeparator;
+  default_xml += "device_exp_graph_settings.xml";
+  return default_xml;
 }
 
 std::unique_ptr<DeviceExpGraphSettings>
@@ -115,12 +113,8 @@ std::unique_ptr<DeviceExpGraphSettings>
 LoadDeviceExpGraphSettingsDefaultResource() {
   std::string default_xml = DefaultDeviceExpGraphSettingsXmlFilePath();
   // get app data path
-  std::string app_data_dir = anx::common::GetApplicationDataPath();
-#ifdef _WIN32
-  default_xml = app_data_dir + "\\anxi\\" + default_xml;
-#else
-  default_xml = app_data_dir + "/anxi/" + default_xml;
-#endif
+  std::string app_data_dir = anx::common::GetApplicationDataPath("anxi");
+  default_xml = app_data_dir + anx::common::kPathSeparator + default_xml;
 
   std::unique_ptr<DeviceExpGraphSettings> settings =
       LoadDeviceExpGraphSettingsDefaultWithFilePath(default_xml);
@@ -146,12 +140,8 @@ int32_t SaveDeviceExpGraphSettingsDefaultResource(
     const DeviceExpGraphSettings& settings) {
   std::string default_xml = DefaultDeviceExpGraphSettingsXmlFilePath();
   // get app data path
-  std::string app_data_dir = anx::common::GetApplicationDataPath();
-#ifdef _WIN32
-  default_xml = app_data_dir + "\\anxi\\" + default_xml;
-#else
-  default_xml = app_data_dir + "/anxi/" + default_xml;
-#endif
+  std::string app_data_dir = anx::common::GetApplicationDataPath("anxi");
+  default_xml = app_data_dir + anx::common::kPathSeparator + default_xml;
   return SaveDeviceExpGraphSettingsFile(default_xml, settings);
 }
 

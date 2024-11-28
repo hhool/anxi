@@ -229,11 +229,9 @@ void MainWindow::OnBtnAppSettings() {
   }
 }
 
-
 std::map<std::string, std::string> MainWindow::LoadAppConfig() {
   std::map<std::string, std::string> app_config;
-  std::string app_data_dir =
-      anx::ui::AppConfig::GetAppDataPathWithFolderName("anxi");
+  std::string app_data_dir = anx::common::GetApplicationDataPath("anxi");
   std::string config_pathname = app_data_dir + "\\default\\config_app.xml";
   tinyxml2::XMLDocument doc;
   if (doc.LoadFile(config_pathname.c_str()) != tinyxml2::XML_SUCCESS) {

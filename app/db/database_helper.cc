@@ -123,31 +123,25 @@ const char* kQueryTableSendNotifySqlByTimeFormat =
 int32_t DefaultDatabasePathname(std::string* db_filepathname) {
   assert(db_filepathname);
   if (db_filepathname) {
-    std::string app_data_dir = anx::common::GetApplicationDataPath();
+    std::string app_data_dir = anx::common::GetApplicationDataPath("anxi");
     if (app_data_dir.empty()) {
       LOG_F(LG_ERROR) << "Failed to get application data path";
       return -1;
     }
-#if defined(_WIN32) || defined(_WIN64)
-    *db_filepathname = app_data_dir + "\\anxi\\" + kDefaultDatabasePathname;
-#else
-    *db_filepathname = app_data_dir + "/anxi/" + kDefaultDatabasePathname;
-#endif
+    *db_filepathname =
+        app_data_dir + anx::common::kPathSeparator + kDefaultDatabasePathname;
     return 0;
   }
   return -1;
 }
 
 void ClearDatabaseFile(const std::string& db_name) {
-  std::string app_data_dir = anx::common::GetApplicationDataPath();
+  std::string app_data_dir = anx::common::GetApplicationDataPath("anxi");
   if (app_data_dir.empty()) {
     return;
   }
-#if defined(_WIN32) || defined(_WIN64)
-  std::string db_filepathname = app_data_dir + "\\anxi\\" + db_name;
-#else
-  std::string db_filepathname = app_data_dir + "/anxi/" + db_name;
-#endif
+  std::string db_filepathname =
+      app_data_dir + anx::common::kPathSeparator + db_name;
   if (anx::common::FileExists(db_filepathname)) {
     if (!anx::common::RemoveFile(db_filepathname)) {
       LOG_F(LG_ERROR) << "Failed to remove file: " << db_filepathname;
