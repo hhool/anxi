@@ -1442,8 +1442,12 @@ int32_t WorkWindowSecondPage::exp_start() {
   DuiLib::TNotifyUI msg;
   msg.pSender = btn_exp_start_;
   msg.sType = kClick;
-  work_window_second_page_data_notify_pump_->NotifyPump(msg);
-  work_window_second_page_graph_notify_pump_->NotifyPump(msg);
+  if (work_window_second_page_data_notify_pump_.get() != nullptr) {
+    work_window_second_page_data_notify_pump_->NotifyPump(msg);
+  }
+  if (work_window_second_page_graph_notify_pump_.get() != nullptr) {
+    work_window_second_page_graph_notify_pump_->NotifyPump(msg);
+  }
 
   is_exp_state_ = kExpStateStart;
   LOG_F(LG_INFO);
@@ -1473,8 +1477,12 @@ void WorkWindowSecondPage::exp_pause() {
   DuiLib::TNotifyUI msg;
   msg.pSender = btn_exp_pause_;
   msg.sType = kClick;
-  work_window_second_page_data_notify_pump_->NotifyPump(msg);
-  work_window_second_page_graph_notify_pump_->NotifyPump(msg);
+  if (work_window_second_page_data_notify_pump_.get() != nullptr) {
+    work_window_second_page_data_notify_pump_->NotifyPump(msg);
+  }
+  if (work_window_second_page_graph_notify_pump_.get() != nullptr) {
+    work_window_second_page_graph_notify_pump_->NotifyPump(msg);
+  }
 }
 
 void WorkWindowSecondPage::exp_resume() {
@@ -1516,8 +1524,12 @@ void WorkWindowSecondPage::exp_resume() {
   DuiLib::TNotifyUI msg;
   msg.pSender = btn_exp_resume_;
   msg.sType = kClick;
-  work_window_second_page_data_notify_pump_->NotifyPump(msg);
-  work_window_second_page_graph_notify_pump_->NotifyPump(msg);
+  if (work_window_second_page_data_notify_pump_.get() != nullptr) {
+    work_window_second_page_data_notify_pump_->NotifyPump(msg);
+  }
+  if (work_window_second_page_graph_notify_pump_.get() != nullptr) {
+    work_window_second_page_graph_notify_pump_->NotifyPump(msg);
+  }
 }
 
 void WorkWindowSecondPage::exp_stop() {
@@ -1534,8 +1546,12 @@ void WorkWindowSecondPage::exp_stop() {
   DuiLib::TNotifyUI msg;
   msg.pSender = btn_exp_stop_;
   msg.sType = kClick;
-  work_window_second_page_data_notify_pump_->NotifyPump(msg);
-  work_window_second_page_graph_notify_pump_->NotifyPump(msg);
+  if (work_window_second_page_data_notify_pump_.get() != nullptr) {
+    work_window_second_page_data_notify_pump_->NotifyPump(msg);
+  }
+  if (work_window_second_page_graph_notify_pump_.get() != nullptr) {
+    work_window_second_page_graph_notify_pump_->NotifyPump(msg);
+  }
 
   // stop the timer
   paint_manager_ui_->KillTimer(btn_exp_start_, kTimerIdSampling);
