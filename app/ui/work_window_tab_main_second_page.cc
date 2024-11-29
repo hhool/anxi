@@ -312,40 +312,55 @@ void WorkWindowSecondPage::OnValueChanged(TNotifyUI& msg) {
         if (st_load_event_from_ == kSTLoadEventFromButtonUpDown) {
           return;
         }
+        LOG_F(LG_INFO) << "st_result->status_:" << st_result->status_ << " "
+                       << "st_result->load_:" << st_result->load_ << " "
+                       << "st_result->position_:" << st_result->pos_ << " "
+                       << "lss_->retention_:" << lss_->retention_ << " "
+                       << "lss_->direct_:" << lss_->direct_ << " "
+                       << "lss_->speed_:" << lss_->speed_;
         if ((st_result->status_ & DSP_CMDEND) == DSP_CMDEND) {
           LOG_F(LG_INFO) << "static load aircraft achieve the target load:"
                          << st_result->load_;
-          /// record first time achieve the target load time point in ms
-          /// value -1 is not achieve the target load, value > 0 is achieve
-          /// the target load first time point
-          if (st_load_achieve_target_time_ < 0) {
-            st_load_achieve_target_time_ = anx::common::GetCurrentTimeMillis();
-          }
-          /// ctrl_type is CTRL_LOAD is next action is to keep load action
-          if (lss_->ctrl_type_ == CTRL_LOAD) {
-            /// value 1 is next action is to keep load action
-            st_load_keep_load_ = 1;
+          if (st_posi_reach_first_time_ == 0) {
+            st_posi_reach_first_time_ = anx::common::GetCurrentTimeMillis();
           } else {
-            if (st_posi_reach_first_time_ == 0) {
-              st_posi_reach_first_time_ = anx::common::GetCurrentTimeMillis();
-            } else {
-              int64_t current_time = anx::common::GetCurrentTimeMillis();
-              int64_t cur_duration = current_time - st_posi_reach_first_time_;
-              if (cur_duration > 1000) {
-                LOG_F(LG_INFO)
-                    << "static load aircraft reach the target position"
-                    << " for 1000 ms, stop";
-                st_posi_reach_first_time_ = 0;
-                /// ctrl_type is CTRL_POSI, then stop the action
-                OnButtonStaticAircraftStop();
-              } else {
-                // do nothing
+            bool need_stop = true;
+            int64_t current_time = anx::common::GetCurrentTimeMillis();
+            int64_t cur_duration = current_time - st_posi_reach_first_time_;
+            if (cur_duration > 1000) {
+              /// @note static load aircraft reach the target value for 1000 ms
+              /// then stop the action.
+              LOG_F(LG_INFO) << "static load aircraft reach the target position"
+                             << " for 1000 ms, stop";
+              st_posi_reach_first_time_ = 0;
+              /// @note static load aircraft stop action for delay stop of
+              /// st_load_achieve_target_keep_duration_ms_. will be remove
+              /// keep load logic. @related st_load_keep_load_ etc variables.
+              if (lss_->ctrl_type_ == CTRL_LOAD) {
+                if (st_load_achieve_target_keep_duration_ms_ > 0) {
+                  st_load_keep_load_ = 1;
+                  need_stop = false;
+                  /// record first time achieve the target load time point in ms
+                  /// value -1 is not achieve the target load, value > 0 is
+                  /// achieve the target load first time point
+                  if (st_load_achieve_target_time_ < 0) {
+                    st_load_achieve_target_time_ =
+                        anx::common::GetCurrentTimeMillis();
+                  }
+                }
               }
+              /// ctrl_type is CTRL_POSI, then stop the action
+              need_stop ? OnButtonStaticAircraftStop() : 0;
+            } else {
+              // do nothing
             }
           }
         } else {
           st_posi_reach_first_time_ = 0;
         }
+        /// @note static load aircraft keep the target load value for
+        /// st_load_achieve_target_keep_duration_ms_ ms. will be remove keep
+        /// load logic. @related st_load_keep_load_ etc variables.
         if (st_load_keep_load_ == 1) {
           int64_t current_time = anx::common::GetCurrentTimeMillis();
           int64_t cur_duration = current_time - st_load_achieve_target_time_;
@@ -1532,10 +1547,9 @@ void WorkWindowSecondPage::exp_stop() {
 bool WorkWindowSecondPage::StaticAircraftDoMoveUp() {
   assert(lss_ != nullptr);
   assert(st_load_event_from_ != kSTLoadEventNone);
-  float speed = 2.0f / 60.0f;
   st_load_achieve_target_keep_duration_ms_ = lss_->keep_load_duration_ * 1000;
   anx::device::stload::STLoadHelper::st_load_loader_.st_api_.set_test_dir(1);
-  speed = lss_->speed_ / 60.0f;
+  float speed = lss_->speed_ * 1.0f;
   /// RUN the static load, the direction is up and the speed is 2.0f / 60.0f
   int32_t ctrl_type = CTRL_LOAD;
   int32_t endtype = END_LOAD;
@@ -1555,14 +1569,26 @@ bool WorkWindowSecondPage::StaticAircraftDoMoveUp() {
   }
   if (anx::device::stload::STLoadHelper::STLoadVersion() == 2) {
     if (st_load_event_from_ == kSTLoadEventFromButtonUpDown) {
+      LOG_F(LG_INFO) << "carry_pid ctrl_type:" << ctrl_type
+                     << " endtype:" << endtype << " speed:" << speed
+                     << " end_value:" << end_value << " version:"
+                     << anx::device::stload::STLoadHelper::STLoadVersion()
+                     << " "
+                     << "st_load_event_from_:" << st_load_event_from_;
       bool bSuccess =
           anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
-              CH_POSI, 100, 1, 3);
+              ctrl_type, 100, 1, 3);
       if (!bSuccess) {
         LOG_F(LG_ERROR) << "carry_pid failed";
         return false;
       }
     } else {
+      LOG_F(LG_INFO) << "carry_pid ctrl_type:" << ctrl_type
+                     << " endtype:" << endtype << " speed:" << speed
+                     << " end_value:" << end_value << " version:"
+                     << anx::device::stload::STLoadHelper::STLoadVersion()
+                     << " "
+                     << "st_load_event_from_:" << st_load_event_from_;
       bool bSuccess =
           anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
               ctrl_type, 100, 1, 3);
@@ -1572,6 +1598,8 @@ bool WorkWindowSecondPage::StaticAircraftDoMoveUp() {
       }
     }
   }
+  LOG_F(LG_INFO) << "carry_200:" << ctrl_type << " " << endtype << " " << speed
+                 << " " << end_value;
   bool bSuccess =
       anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_200(
           ctrl_type, endtype, speed, end_value, 0, true, DIR_NO, 0, 1, 0)
@@ -1587,10 +1615,9 @@ bool WorkWindowSecondPage::StaticAircraftDoMoveUp() {
 bool WorkWindowSecondPage::StaticAircraftDoMoveDown() {
   assert(lss_ != nullptr);
   assert(st_load_event_from_ != kSTLoadEventNone);
-  float speed = 2.0f / 60.0f;
   st_load_achieve_target_keep_duration_ms_ = lss_->keep_load_duration_ * 1000;
   anx::device::stload::STLoadHelper::st_load_loader_.st_api_.set_test_dir(0);
-  speed = lss_->speed_ / 60.0f;
+  float speed = lss_->speed_ * 1.0f;
   int32_t ctrl_type = CTRL_LOAD;
   int32_t endtype = END_LOAD;
   float end_value = lss_->retention_ * 1.0f;
@@ -1609,14 +1636,26 @@ bool WorkWindowSecondPage::StaticAircraftDoMoveDown() {
   }
   if (anx::device::stload::STLoadHelper::STLoadVersion() == 2) {
     if (st_load_event_from_ == kSTLoadEventFromButtonUpDown) {
+      LOG_F(LG_INFO) << "carry_pid ctrl_type:" << ctrl_type
+                     << " endtype:" << endtype << " speed:" << speed
+                     << " end_value:" << end_value << " version:"
+                     << anx::device::stload::STLoadHelper::STLoadVersion()
+                     << " "
+                     << "st_load_event_from_:" << st_load_event_from_;
       bool bSuccess =
           anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
-              CH_POSI, 100, 1, 3);
+              ctrl_type, 100, 1, 3);
       if (!bSuccess) {
         LOG_F(LG_ERROR) << "carry_pid failed";
         return false;
       }
     } else {
+      LOG_F(LG_INFO) << "carry_pid ctrl_type:" << ctrl_type
+                     << " endtype:" << endtype << " speed:" << speed
+                     << " end_value:" << end_value << " version:"
+                     << anx::device::stload::STLoadHelper::STLoadVersion()
+                     << " "
+                     << "st_load_event_from_:" << st_load_event_from_;
       bool bSuccess =
           anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
               ctrl_type, 100, 1, 3);
@@ -1626,8 +1665,9 @@ bool WorkWindowSecondPage::StaticAircraftDoMoveDown() {
       }
     }
   }
-  /// RUN the static load, the direction is down and the speed is 2.0f
-  /// / 60.0f
+
+  LOG_F(LG_INFO) << "carry_200:" << ctrl_type << " " << endtype << " " << speed
+                 << " " << end_value;
   bool bSuccess =
       anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_200(
           ctrl_type, endtype, speed, end_value, 0, true, DIR_NO, 0, 1, 0)
@@ -1847,12 +1887,12 @@ void WorkWindowSecondPage::ProcessDataListModeLinear() {
             exp_data_list_info_.amp_freq_ / 10);
   }
   this->pWorkWindow_->UpdateArgsArea(cur_total_cycle_count_);
-  LOG_F(LG_INFO) << "cur_total_cycle_count_:" << cur_total_cycle_count_
-                 << " pre_total_cycle_count_:" << pre_total_cycle_count_
-                 << " exp_data_list_info_.exp_time_interval_num_:"
-                 << exp_data_list_info_.exp_time_interval_num_
-                 << " need_store_count:" << need_store_count
-                 << " need_store_count_left:" << need_store_count_left;
+  LOG_F(LG_SENSITIVE) << "cur_total_cycle_count_:" << cur_total_cycle_count_
+                      << " pre_total_cycle_count_:" << pre_total_cycle_count_
+                      << " exp_data_list_info_.exp_time_interval_num_:"
+                      << exp_data_list_info_.exp_time_interval_num_
+                      << " need_store_count:" << need_store_count
+                      << " need_store_count_left:" << need_store_count_left;
   exp_data_list_info_.exp_pre_sample_timestamp_ms_ = current_time_ms;
 }
 
