@@ -95,17 +95,87 @@ std::string Join(const std::vector<std::string>& vec,
   return result;
 }
 
-std::wstring ToWstring(const std::string& str) {
-  std::wstring result;
-  result.assign(str.begin(), str.end());
-  return result;
+namespace {
+bool isUTF8(const std::string& str) {
+  size_t i = 0;
+  int nBytes = 0;
+  unsigned char chr;
+  bool bAllAscii = true;
+  for (i = 0; i < str.length(); i++) {
+    chr = str[i];
+    if ((chr & 0x80) != 0) {
+      bAllAscii = false;
+    }
+    if (nBytes == 0) {
+      if (chr >= 0x80) {
+        if (chr >= 0xFC && chr <= 0xFD) {
+          nBytes = 6;
+        } else if (chr >= 0xF8) {
+          nBytes = 5;
+        } else if (chr >= 0xF0) {
+          nBytes = 4;
+        } else if (chr >= 0xE0) {
+          nBytes = 3;
+        } else if (chr >= 0xC0) {
+          nBytes = 2;
+        } else {
+          return false;
+        }
+        nBytes--;
+      }
+    } else {
+      if ((chr & 0xC0) != 0x80) {
+        return false;
+      }
+      nBytes--;
+    }
+  }
+  if (nBytes > 0) {
+    return false;
+  }
+  if (bAllAscii) {
+    return false;
+  }
+  return true;
 }
 
-std::string ToString(const std::wstring& wstr) {
-  std::string result;
-  result.assign(wstr.begin(), wstr.end());
-  return result;
+bool isUnicode(const std::string& str) {
+  int nBytes = 0;
+  for (size_t i = 0; i < str.length(); i++) {
+    if (nBytes == 0) {
+      if ((str[i] & 0x80) != 0) {
+        if ((str[i] & 0x80) == 0xC0 || (str[i] & 0x80) == 0xC1) {
+          return false;
+        }
+        if ((str[i] & 0xF0) == 0xF0) {
+          nBytes = 4;
+        } else if ((str[i] & 0xE0) == 0xE0) {
+          nBytes = 3;
+        } else if ((str[i] & 0xC0) == 0xC0) {
+          nBytes = 2;
+        } else {
+          return false;
+        }
+        nBytes--;
+      }
+    } else {
+      if ((str[i] & 0xC0) != 0x80) {
+        return false;
+      }
+      nBytes--;
+    }
+  }
+  if (nBytes > 0) {
+    return false;
+  }
+  return true;
 }
+
+bool isAnsi(const std::string& str) {
+  return isUTF8(str) || isUnicode(str);
+}
+}  // namespace
+
 #if defined(_WIN32) || defined(_WIN64)
 std::wstring String2WString(const std::string& str) {
   std::wstring result;
@@ -202,6 +272,17 @@ std::string UTF8ToAnsi(const std::string& str) {
   std::string result;
   std::wstring wstr = UTF8ToUnicode(str);
   result = WString2String(wstr);
+  return result;
+}
+
+std::string ToUTF8(const std::string& str) {
+  /// check if the string is utf8
+  if (isUTF8(str)) {
+    return str;
+  }
+  std::string result;
+  std::wstring wstr = String2WString(str);
+  result = UnicodeToUTF8(wstr);
   return result;
 }
 

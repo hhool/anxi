@@ -14,6 +14,7 @@
 
 #include <sqlite3.h>
 
+#include "app/common/file_utils.h"
 #include "app/common/logger.h"
 #include "app/common/module_utils.h"
 #include "app/common/string_utils.h"

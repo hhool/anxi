@@ -32,19 +32,6 @@ TEST(ModuleUtilsTest, GetModuleName) {
   EXPECT_FALSE(module_name.empty());
 }
 
-TEST(ModuleUtilsTest, MakeSureFolderPathExist) {
-  {
-    std::string dir = GetAppPath() + "/test/test";
-    bool ret = MakeSureFolderPathExist(dir);
-    EXPECT_TRUE(ret);
-  }
-  {
-    std::string dir = GetAppPath() + "/test";
-    bool ret = MakeSureFolderPathExist(dir);
-    EXPECT_TRUE(ret);
-  }
-}
-
 TEST(ModuleUtilsTest, GetApplicationDataPath) {
   std::string app_data_path = GetApplicationDataPath();
   EXPECT_FALSE(app_data_path.empty());

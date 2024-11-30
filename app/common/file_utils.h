@@ -88,6 +88,25 @@ bool WriteFile(const std::string& file_path,
 /// @return  true if copy the file success
 bool CCopyFile(const std::string& src, const std::string& dst);
 
+
+/// @brief Copy the folder
+/// @param src the source folder
+/// @param dst the destination folder
+/// @return 0 if success, <0 if failed
+int32_t CopyFolder(const std::string& src, const std::string& dest);
+
+/// @brief Make sure the directory exists
+/// @param dir the directory
+/// @return true if success, otherwise false
+/// @note if the directory does not exist, it will create the directory
+/// @note if the directory exists, it will return true
+/// @note if the directory exists but not a directory, it will return false
+/// @note if the directory exists but not writable, it will return false
+/// @note if the directory exists but not readable, it will return false
+/// @note e.g. MakeSureFolderPathExist("C:/test") will return true if the
+/// directory exists, otherwise it will create the directory and return true
+bool MakeSureFolderPathExist(const std::string& dir);
+
 }  // namespace common
 }  // namespace anx
 
