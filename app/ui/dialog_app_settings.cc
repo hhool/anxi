@@ -316,7 +316,6 @@ void DialogAppSettings::Notify(DuiLib::TNotifyUI& msg) {
   } else if (msg.sType == kClick) {
     OnClick(msg);
   }
-  __super::Notify(msg);
 }
 
 void DialogAppSettings::OnFinalMessage(HWND hWnd) {
