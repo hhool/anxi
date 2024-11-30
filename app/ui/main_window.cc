@@ -204,13 +204,21 @@ void MainWindow::Switch_Vibration_Bending() {
 
 void MainWindow::Switch_ThirdApp() {
   std::string filepath = anx::settings::SettingAppThird::GetThirdAppPath();
-  // check the path is valid and exists
-  if (filepath.empty() || !anx::common::FileExists(filepath)) {
+  if (filepath.empty()) {
     return;
   }
+  // check the path is valid and exists;
+  if (!anx::common::FileExists(filepath)) {
+    return;
+  }
+#if defined(WIN32)
+  std::string utf8_string = anx::common::ToUTF8(filepath);
   ShellExecute(NULL, _T("open"),
-               anx::common::String2WString(filepath.c_str()).c_str(), NULL,
+               anx::common::UTF8ToUnicode(utf8_string.c_str()).c_str(), NULL,
                NULL, SW_SHOW);
+#else
+  /// TODO(hhool)
+#endif
 }
 
 void MainWindow::OnBtnAppSettings() {

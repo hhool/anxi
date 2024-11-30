@@ -38,11 +38,8 @@ const char kPathSeparator[] = {"/"};
 #endif
 bool FileExists(const std::string& file_path) {
 #if defined(_WIN32) || defined(_WIN64)
-  std::string path = file_path;
-  /// transfer db_name to Unicode
-#if defined(WIN32)
-  std::wstring w_path = anx::common::String2WString(file_path.c_str());
-#endif
+  std::string utf8_string = anx::common::ToUTF8(file_path);
+  std::wstring w_path = anx::common::UTF8ToUnicode(utf8_string.c_str());
   return _waccess(w_path.c_str(), 0) == 0;
 #else
   return access(file_path.c_str(), F_OK) == 0;
@@ -51,11 +48,8 @@ bool FileExists(const std::string& file_path) {
 
 bool DirectoryExists(const std::string& dir_path) {
 #if defined(_WIN32) || defined(_WIN64)
-  std::string path = dir_path;
-  /// transfer db_name to Unicode
-#if defined(WIN32)
-  std::wstring w_path = anx::common::String2WString(dir_path.c_str());
-#endif
+  std::string utf8_string = anx::common::ToUTF8(dir_path);
+  std::wstring w_path = anx::common::UTF8ToUnicode(utf8_string.c_str());
   return _waccess(w_path.c_str(), 0) == 0;
 #else
   return access(dir_path.c_str(), F_OK) == 0;
@@ -64,11 +58,8 @@ bool DirectoryExists(const std::string& dir_path) {
 
 bool CreateFolder(const std::string& dir_path) {
 #if defined(_WIN32) || defined(_WIN64)
-  std::string path = dir_path;
-  /// transfer db_name to Unicode
-#if defined(WIN32)
-  std::wstring w_path = anx::common::String2WString(dir_path.c_str());
-#endif
+  std::string utf8_string = anx::common::ToUTF8(dir_path);
+  std::wstring w_path = anx::common::UTF8ToUnicode(utf8_string.c_str());
   return _wmkdir(w_path.c_str()) == 0;
 #else
   return mkdir(dir_path.c_str(), 0777) == 0;
@@ -77,11 +68,8 @@ bool CreateFolder(const std::string& dir_path) {
 
 bool RemoveFolder(const std::string& dir_path) {
 #if defined(_WIN32) || defined(_WIN64)
-  std::string path = dir_path;
-  /// transfer db_name to Unicode
-#if defined(WIN32)
-  std::wstring w_path = anx::common::String2WString(dir_path.c_str());
-#endif
+  std::string utf8_string = anx::common::ToUTF8(dir_path);
+  std::wstring w_path = anx::common::UTF8ToUnicode(utf8_string.c_str());
   return _wrmdir(w_path.c_str()) == 0;
 #else
   return rmdir(dir_path.c_str()) == 0;
@@ -90,11 +78,8 @@ bool RemoveFolder(const std::string& dir_path) {
 
 bool RemoveFile(const std::string& file_path) {
 #if defined(_WIN32) || defined(_WIN64)
-  std::string path = file_path;
-  /// transfer db_name to Unicode
-#if defined(WIN32)
-  std::wstring w_path = anx::common::String2WString(file_path.c_str());
-#endif
+  std::string utf8_string = anx::common::ToUTF8(file_path);
+  std::wstring w_path = anx::common::UTF8ToUnicode(utf8_string.c_str());
   return _wremove(w_path.c_str()) == 0;
 #else
   return remove(file_path.c_str()) == 0;
@@ -264,6 +249,109 @@ bool CCopyFile(const std::string& src, const std::string& dst) {
 #else
   return false;
 #endif
+}
+
+
+bool FolderPathExist(const std::string& dir) {
+#if defined(_WIN32) || defined(_WIN64)
+  DWORD dwAttr = GetFileAttributes(String2WString(dir).c_str());
+  if (dwAttr == 0xffffffff || !(dwAttr & FILE_ATTRIBUTE_DIRECTORY)) {
+    return false;
+  }
+  return true;
+#else
+  if (access(dir.c_str(), 0) != 0) {
+    return false;
+  }
+  return true;
+#endif
+}
+
+int32_t CopyFolder(const std::string& src, const std::string& dest) {
+  // check if the source folder exists
+  if (!DirectoryExists(src)) {
+    return -1;
+  }
+  // check if the destination folder exists
+  if (!MakeSureFolderPathExist(dest)) {
+    return -2;
+  }
+  // copy the folder
+#if defined(_WIN32) || defined(_WIN64)
+  // enumerate the source folder
+  std::string src_folder = src + "\\*";
+  WIN32_FIND_DATAA find_data;
+  HANDLE hFind = FindFirstFileA(src_folder.c_str(), &find_data);
+  if (hFind == INVALID_HANDLE_VALUE) {
+    return -3;
+  }
+  do {
+    if (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+      continue;
+    }
+    std::string src_file =
+        src + anx::common::kPathSeparator + find_data.cFileName;
+    std::string dest_file =
+        dest + anx::common::kPathSeparator + find_data.cFileName;
+    if (!CopyFileA(src_file.c_str(), dest_file.c_str(), FALSE)) {
+      FindClose(hFind);
+      return -4;
+    }
+  } while (FindNextFileA(hFind, &find_data) != 0);
+  FindClose(hFind);
+#else
+  // TODO(hhool): implement the copy folder for linux
+  return -5;
+#endif
+  return 0;
+}
+
+bool MakeSureFolderPathExist(const std::string& path) {
+  std::string dir = path;
+  if (dir.empty()) {
+    return false;
+  }
+  /// check if the directory exists
+  if (FolderPathExist(dir)) {
+    return true;
+  }
+  /// check last word of the path is not a directory, then remove the last word.
+  /// get the last word of the path
+  std::string::size_type last_pos = dir.find_last_of("\\/");
+  if (last_pos == std::string::npos) {
+    return false;
+  }
+  std::string last_word = dir.substr(last_pos + 1);
+  if (last_word.empty()) {
+    return false;
+  }
+  /// check last word with file extension
+  if (last_word.find(".") != std::string::npos) {
+    dir = dir.substr(0, last_pos);
+  }
+  /// create the directory. loop to create the directory
+  std::string::size_type pos = 0;
+  bool reached_end = false;
+  while (!reached_end) {
+    pos = dir.find_first_of("\\/", pos + 1);
+    if (pos == std::string::npos) {
+      pos = dir.size();
+      reached_end = true;
+    }
+    std::string sub_dir = dir.substr(0, pos);
+    if (!FolderPathExist(sub_dir)) {
+#if defined(_WIN32) || defined(_WIN64)
+      if (!CreateDirectory(anx::common::UTF8ToUnicode(sub_dir).c_str(), NULL)) {
+        return false;
+      }
+#else
+      if (mkdir(sub_dir.c_str(), 0777) != 0) {
+        return false;
+      }
+#endif
+    }
+  }
+  return true;
 }
 }  // namespace common
 }  // namespace anx
