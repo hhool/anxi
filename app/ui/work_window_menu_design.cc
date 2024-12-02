@@ -178,6 +178,10 @@ LRESULT CMenuDesignWnd::OnCreate(UINT uMsg,
     if (pControl != NULL) {
       pControl->SetEnabled(true);
     }
+    pControl = m_pm.FindControl(_T("label_design_item_reset_solution"));
+    if (pControl != NULL) {
+      pControl->SetEnabled(true);
+    }
   } else {
     CControlUI* pControl =
         m_pm.FindControl(_T("menu_design_item_read_solution"));
@@ -185,6 +189,10 @@ LRESULT CMenuDesignWnd::OnCreate(UINT uMsg,
       pControl->SetEnabled(false);
     }
     pControl = m_pm.FindControl(_T("label_design_item_read_solution"));
+    if (pControl != NULL) {
+      pControl->SetEnabled(false);
+    }
+    pControl = m_pm.FindControl(_T("label_design_item_reset_solution"));
     if (pControl != NULL) {
       pControl->SetEnabled(false);
     }

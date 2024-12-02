@@ -183,6 +183,8 @@ const TCHAR* const kMenu_Design_Read_Solution =
     _T("menu_design_item_read_solution");
 const TCHAR* const kMenu_Design_Save_Solution =
     _T("menu_design_item_save_solution");
+const TCHAR* const kMenu_Design_Reset_Solution =
+    _T("menu_design_item_reset_solution");
 const TCHAR* const kMenu_Design_Exit = _T("menu_design_item_exit");
 
 /////////////////////////////////////////////////////////////////////////////////////

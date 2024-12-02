@@ -355,6 +355,17 @@ void WorkWindow::Notify(DuiLib::TNotifyUI& msg) {
     } else {
       // do nothing
     }
+  } else if (msg.sType == kMenu_Design_Reset_Solution) {
+    int32_t ret = anx::esolution::ResetSolutionDesignDefaultResourceWithType(
+        solution_type_);
+    if (ret < 0) {
+      anx::ui::DialogCommon::ShowDialog(
+          *this, "提示", "重置失败,试件设计文件重置错误",
+          anx::ui::DialogCommon::kDialogCommonStyleOk);
+      return;
+    } else {
+      solution_design_base_->InitPage();
+    }
   } else if (msg.sType == kMenu_Store_ExpRecord) {
     DialogExpDataRecord* dialog_exp_data_record = new DialogExpDataRecord();
     dialog_exp_data_record->Create(*this, _T("dialog_exp_data_record"),

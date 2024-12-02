@@ -346,13 +346,9 @@ void WorkWindowFirstPageAxiallySymmetrical::Notify(TNotifyUI& msg) {
   } else if (msg.sType == DUI_MSGTYPE_CLICK) {
     if (msg.pSender->GetName() == _T("btn_exp_start")) {
       exp_running_ = true;
-      set_enable_to_control_with_prefix("btn_params_reset", t_prefix_,
-                                        paint_manager_ui_, false);
       set_enable_to_control_with_prefix("btn_solution_design_refresh",
                                         t_prefix_, paint_manager_ui_, false);
     } else if (msg.pSender->GetName() == _T("btn_exp_stop")) {
-      set_enable_to_control_with_prefix("btn_params_reset", t_prefix_,
-                                        paint_manager_ui_, true);
       set_enable_to_control_with_prefix("btn_solution_design_refresh",
                                         t_prefix_, paint_manager_ui_, true);
       exp_running_ = false;
@@ -370,13 +366,9 @@ void WorkWindowFirstPageAxiallySymmetrical::OnClick(TNotifyUI& msg) {
   } else if (msg.sType == DUI_MSGTYPE_CLICK) {
     if (msg.pSender->GetName() == _T("btn_exp_start")) {
       exp_running_ = true;
-      set_enable_to_control_with_prefix("btn_params_reset", t_prefix_,
-                                        paint_manager_ui_, false);
       set_enable_to_control_with_prefix("btn_solution_design_refresh",
                                         t_prefix_, paint_manager_ui_, false);
     } else if (msg.pSender->GetName() == _T("btn_exp_stop")) {
-      set_enable_to_control_with_prefix("btn_params_reset", t_prefix_,
-                                        paint_manager_ui_, true);
       set_enable_to_control_with_prefix("btn_solution_design_refresh",
                                         t_prefix_, paint_manager_ui_, true);
       exp_running_ = false;
@@ -502,13 +494,9 @@ void WorkWindownFirstPageStressAjustable::Notify(TNotifyUI& msg) {
   } else if (msg.sType == DUI_MSGTYPE_CLICK) {
     if (msg.pSender->GetName() == _T("btn_exp_start")) {
       exp_running_ = true;
-      set_enable_to_control_with_prefix("btn_params_reset", t_prefix_,
-                                        paint_manager_ui_, false);
       set_enable_to_control_with_prefix("btn_solution_design_refresh",
                                         t_prefix_, paint_manager_ui_, false);
     } else if (msg.pSender->GetName() == _T("btn_exp_stop")) {
-      set_enable_to_control_with_prefix("btn_params_reset", t_prefix_,
-                                        paint_manager_ui_, true);
       set_enable_to_control_with_prefix("btn_solution_design_refresh",
                                         t_prefix_, paint_manager_ui_, true);
       exp_running_ = false;
@@ -522,19 +510,6 @@ void WorkWindownFirstPageStressAjustable::OnClick(TNotifyUI& msg) {
   if (msg.sType == kClick) {
     if (msg.pSender->GetName() == _T("btn_solution_design_refresh_stresses")) {
       // TODO(hhool):
-    } else if (msg.pSender->GetName() == _T("btn_params_reset_stresses")) {
-      // reset all edit
-      int32_t ret = anx::esolution::ResetSolutionDesignDefaultResourceWithType(
-          design_type_);
-      if (ret != 0) {
-        // show error message
-        anx::ui::DialogCommon::ShowDialog(
-            *pOwner_, "Error", "Reset solution design default resource failed",
-            anx::ui::DialogCommon::kDialogCommonStyleOk);
-      } else {
-        // update all edit
-        InitPage();
-      }
     }
   }
 }
@@ -714,13 +689,9 @@ void WorkWindowFirstPageTh3pointBending::Notify(TNotifyUI& msg) {
   } else if (msg.sType == DUI_MSGTYPE_CLICK) {
     if (msg.pSender->GetName() == _T("btn_exp_start")) {
       exp_running_ = true;
-      set_enable_to_control_with_prefix("btn_params_reset", t_prefix_,
-                                        paint_manager_ui_, false);
       set_enable_to_control_with_prefix("btn_solution_design_refresh",
                                         t_prefix_, paint_manager_ui_, false);
     } else if (msg.pSender->GetName() == _T("btn_exp_stop")) {
-      set_enable_to_control_with_prefix("btn_params_reset", t_prefix_,
-                                        paint_manager_ui_, true);
       set_enable_to_control_with_prefix("btn_solution_design_refresh",
                                         t_prefix_, paint_manager_ui_, true);
       exp_running_ = false;
@@ -812,19 +783,6 @@ void WorkWindowFirstPageTh3pointBending::OnClick(TNotifyUI& msg) {
       }
       pOwner_->UpdateArgsArea(-1, -1, f_amplitude, f_static_load_MPa,
                               f_max_stress_MPa, f_stress_ratio);
-    } else if (msg.pSender->GetName() == _T("btn_params_reset_th3point")) {
-      // reset all edit
-      int32_t ret = anx::esolution::ResetSolutionDesignDefaultResourceWithType(
-          design_type_);
-      if (ret != 0) {
-        // show error message
-        anx::ui::DialogCommon::ShowDialog(
-            *pOwner_, "Error", "Reset solution design default resource failed",
-            anx::ui::DialogCommon::kDialogCommonStyleOk);
-      } else {
-        // update all edit
-        InitPage();
-      }
     }
   }
 }
@@ -957,13 +915,9 @@ void WorkWindowFirstPageVibrationBending::Notify(TNotifyUI& msg) {
   } else if (msg.sType == DUI_MSGTYPE_CLICK) {
     if (msg.pSender->GetName() == _T("btn_exp_start")) {
       exp_running_ = true;
-      set_enable_to_control_with_prefix("btn_params_reset", t_prefix_,
-                                        paint_manager_ui_, false);
       set_enable_to_control_with_prefix("btn_solution_design_refresh",
                                         t_prefix_, paint_manager_ui_, false);
     } else if (msg.pSender->GetName() == _T("btn_exp_stop")) {
-      set_enable_to_control_with_prefix("btn_params_reset", t_prefix_,
-                                        paint_manager_ui_, true);
       set_enable_to_control_with_prefix("btn_solution_design_refresh",
                                         t_prefix_, paint_manager_ui_, true);
       exp_running_ = false;
@@ -977,19 +931,6 @@ void WorkWindowFirstPageVibrationBending::OnClick(TNotifyUI& msg) {
   if (msg.sType == kClick) {
     if (msg.pSender->GetName() == _T("btn_solution_design_refresh_vibration")) {
       // TODO(hhool):
-    } else if (msg.pSender->GetName() == _T("btn_params_reset_vibration")) {
-      // reset all edit
-      int32_t ret = anx::esolution::ResetSolutionDesignDefaultResourceWithType(
-          design_type_);
-      if (ret != 0) {
-        // show error message
-        anx::ui::DialogCommon::ShowDialog(
-            *pOwner_, "Error", "Reset solution design default resource failed",
-            anx::ui::DialogCommon::kDialogCommonStyleOk);
-      } else {
-        // update all edit
-        InitPage();
-      }
     }
   }
 }
