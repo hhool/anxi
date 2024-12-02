@@ -14,6 +14,7 @@
 
 #include <string>
 #include <vector>
+#include <iomanip>
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
@@ -21,7 +22,7 @@
 
 namespace anx {
 namespace common {
-/// @brief Trim the string
+    /// @brief Trim the string
 /// @param str the string to be trimmed
 /// @return the trimmed string
 std::string Trim(const std::string& str);

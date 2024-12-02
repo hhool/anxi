@@ -20,14 +20,6 @@
 namespace anx {
 namespace ui {
 
-template <typename T>
-std::string to_string_with_precision(const T a_value, const int n = 2) {
-  int nn = n;
-  std::ostringstream out;
-  out << std::fixed << std::setprecision(nn) << a_value;
-  return out.str();
-}
-
 template <typename R>
 R get_value_from_control(DuiLib::CControlUI* edit) {
   if (edit == nullptr) {

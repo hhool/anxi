@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "app/common/file_utils.h"
+#include "app/common/num_string_convert.hpp"
 #include "app/common/string_utils.h"
 #include "app/common/time_utils.h"
 #include "app/db/database_helper.h"
@@ -615,7 +616,8 @@ LRESULT WorkWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
       if (target_load_n > 0) {
         /// append target load to str_value
         str_value.append(" ");
-        str_value.append(to_string_with_precision(target_load_n, 1));
+        str_value.append(
+            anx::common::to_string_with_precision(target_load_n, 1));
       }
       btn_args_area_name_static_load_n_->SetText(
           anx::common::UTF8ToUnicode(str_value.c_str()).c_str());
@@ -624,12 +626,12 @@ LRESULT WorkWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
         if (lss->direct_ == 1) {
           str_value = "↑ ";
           /// load with .1f to string
-          str_value.append(to_string_with_precision(load, 3));
+          str_value.append(anx::common::to_string_with_precision(load, 3));
         } else if (lss->direct_ == 2) {
           str_value = "↓ ";
-          str_value.append(to_string_with_precision(load, 3));
+          str_value.append(anx::common::to_string_with_precision(load, 3));
         } else {
-          str_value = to_string_with_precision(load, 3);
+          str_value = anx::common::to_string_with_precision(load, 3);
         }
         btn_args_area_value_static_load_n_->SetText(
             anx::common::UTF8ToUnicode(str_value.c_str()).c_str());
@@ -639,7 +641,8 @@ LRESULT WorkWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
       if (target_load_pos > 0) {
         /// append target load to str_value
         str_value.append(" ");
-        str_value.append(to_string_with_precision(target_load_pos, 1));
+        str_value.append(
+            anx::common::to_string_with_precision(target_load_pos, 1));
       }
       btn_args_area_name_static_shift_mm_->SetText(
           anx::common::UTF8ToUnicode(str_value.c_str()).c_str());
@@ -647,12 +650,12 @@ LRESULT WorkWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
         /// move up
         if (lss->direct_ == 1) {
           str_value = "↑ ";
-          str_value.append(to_string_with_precision(pos, 4));
+          str_value.append(anx::common::to_string_with_precision(pos, 4));
         } else if (lss->direct_ == 2) {
           str_value = "↓ ";
-          str_value.append(to_string_with_precision(pos, 4));
+          str_value.append(anx::common::to_string_with_precision(pos, 4));
         } else {
-          str_value = to_string_with_precision(pos, 4);
+          str_value = anx::common::to_string_with_precision(pos, 4);
         }
         btn_args_area_value_static_shift_mm_->SetText(
             anx::common::UTF8ToUnicode(str_value.c_str()).c_str());
@@ -1098,13 +1101,6 @@ void WorkWindow::OnExpStart() {
   exp_report_->experiment_name_.assign(
       design->header_->name_,
       design->header_->name_ + strlen((const char*)(design->header_->name_)));
-  std::unique_ptr<anx::device::DeviceUltrasoundSettings> dus =
-      anx::device::LoadDeviceUltrasoundSettingsDefaultResource();
-  if (dus != nullptr) {
-    exp_report_->exp_type_ = dus->exp_clipping_enable_;
-    exp_report_->excitation_time_ = dus->exp_clip_time_duration_;
-    exp_report_->interval_time_ = dus->exp_clip_time_paused_;
-  }
   DuiLib::TNotifyUI msg;
   msg.pSender = this->h_layout_args_area_;
   msg.sType = kValueChanged;

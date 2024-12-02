@@ -18,6 +18,7 @@
 #include <utility>
 
 #include "app/common/logger.h"
+#include "app/common/num_string_convert.hpp"
 #include "app/common/string_utils.h"
 #include "app/db/database_helper.h"
 #include "app/device/device_com_factory.h"
@@ -277,12 +278,13 @@ void WorkWindowThirdPage::OnValueChanged(TNotifyUI& msg) {
         // update the label_displacement_ with random value
         double pos = st_result->pos_;
         // format the number keep 1 decimal
-        std::string num_pos_str = to_string_with_precision(pos, 1);
+        std::string num_pos_str = anx::common::to_string_with_precision(pos, 1);
         label_displacement_->SetText(
             anx::common::String2WString(num_pos_str).c_str());
         // update the label_strength_ with random value
         double load = st_result->load_;
-        std::string num_load_str = to_string_with_precision(load, 1);
+        std::string num_load_str =
+            anx::common::to_string_with_precision(load, 1);
         label_strength_->SetText(
             anx::common::String2WString(num_load_str).c_str());
       } else if (enmsg->type_ == enmsg_type_exp_stress_amp) {

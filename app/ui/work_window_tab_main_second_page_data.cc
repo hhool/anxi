@@ -17,12 +17,14 @@
 #include <utility>
 
 #include "app/common/logger.h"
+#include "app/common/num_string_convert.hpp"
 #include "app/common/string_utils.h"
 #include "app/common/time_utils.h"
 #include "app/db/database_helper.h"
 #include "app/device/device_com_factory.h"
 #include "app/device/device_com_settings.h"
 #include "app/device/device_exp_data_sample_settings.h"
+#include "app/device/device_exp_ultrasound_settings.h"
 #include "app/esolution/solution_design.h"
 #include "app/esolution/solution_design_default.h"
 #include "app/ui/ui_constants.h"
@@ -126,22 +128,22 @@ class WorkWindowSecondPageData::ListVirtalDataView
           pHBox->GetItemAt(1)->GetInterface(DUI_CTR_LABEL));
       pText->SetText(dui_string);
 
-      double kHz = std::stod(result[0]["kHz"].c_str()) / 1000.f;
-      std::string str_kHz = to_string_with_precision(kHz, 3);
+      double kHz = std::stod(result[0]["kHz"].c_str());
+      std::string str_kHz = anx::common::to_string_with_precision(kHz, 3);
       dui_string = anx::common::UTF8ToUnicode(str_kHz).c_str();
       pText = static_cast<DuiLib::CLabelUI*>(
           pHBox->GetItemAt(2)->GetInterface(DUI_CTR_LABEL));
       pText->SetText(dui_string);
 
       double Mpa = std::stod(result[0]["MPa"].c_str());
-      std::string str_Mpa = to_string_with_precision(Mpa, 6);
+      std::string str_Mpa = anx::common::to_string_with_precision(Mpa, 6);
       dui_string = anx::common::UTF8ToUnicode(str_Mpa).c_str();
       pText = static_cast<DuiLib::CLabelUI*>(
           pHBox->GetItemAt(3)->GetInterface(DUI_CTR_LABEL));
       pText->SetText(dui_string);
 
       double um = std::stod(result[0]["um"].c_str());
-      std::string str_um = to_string_with_precision(um, 2);
+      std::string str_um = anx::common::to_string_with_precision(um, 2);
       dui_string = anx::common::UTF8ToUnicode(str_um).c_str();
       pText = static_cast<DuiLib::CLabelUI*>(
           pHBox->GetItemAt(4)->GetInterface(DUI_CTR_LABEL));
@@ -494,7 +496,7 @@ void WorkWindowSecondPageData::RefreshSampleTimeControl(bool force) {
           dedss_->sampling_interval_ = sample_time_interval;
           double f_value = static_cast<double>(sample_time_interval);
           f_value /= 10.0f;
-          value += to_string_with_precision(f_value, 1);
+          value += anx::common::to_string_with_precision(f_value, 1);
           value += "S";
           text_sample_interval_->SetText(
               anx::common::String2WString(value).c_str());
@@ -591,6 +593,13 @@ int32_t WorkWindowSecondPageData::ExportExpResult() {
     return -2;
   }
   anx::expdata::ExperimentReport report = *(pWorkWindow_->exp_report_.get());
+  std::unique_ptr<anx::device::DeviceUltrasoundSettings> dus =
+      anx::device::LoadDeviceUltrasoundSettingsDefaultResource();
+  if (dus != nullptr) {
+    report.exp_type_ = dus->exp_clipping_enable_;
+    report.excitation_time_ = dus->exp_clip_time_duration_;
+    report.interval_time_ = dus->exp_clip_time_paused_;
+  }
   std::string file_pathname_xml;
   int32_t ret = anx::expdata::SaveExperimentReportToXmlWithDefaultPath(
       report, &file_pathname_xml);

@@ -26,6 +26,7 @@ extern "C" {
 #include "app/common/file_utils.h"
 #include "app/common/logger.h"
 #include "app/common/module_utils.h"
+#include "app/common/num_string_convert.hpp"
 #include "app/common/string_utils.h"
 #include "app/expdata/LibOb_strptime.h"
 
@@ -87,8 +88,9 @@ int32_t SaveExperimentDataFile(
   for (const auto& data : exp_data) {
     std::string line =
         std::to_string(data.id_) + "," + std::to_string(data.cycle_count_) +
-        "," + std::to_string(data.KHz_) + "," + std::to_string(data.MPa_) +
-        "," + std::to_string(data.um_) + "\n";
+        "," + anx::common::to_string_with_precision(data.KHz_, 3) + "," +
+        anx::common::to_string_with_precision(data.MPa_, 6) + "," +
+        anx::common::to_string_with_precision(data.um_, 2) + "\n";
     size_t size = line.size();
     size_t written = fwrite(line.c_str(), 1, size, file);
     if (written != size) {
@@ -268,8 +270,8 @@ std::string ExperimentReport::ToXml() const {
   ss << "<CycleCount>" << cycle_count_ << "</CycleCount>\r\n";
   ss << "<BottomAmplitude>" << amplitude_ << "</BottomAmplitude>\r\n";
   ss << "<IntermittentExp>" << exp_type_ << "</IntermittentExp>\r\n";
-  ss << "<ExcitationTime>" << excitation_time_ * 100 << "</ExcitationTime>\r\n";
-  ss << "<IntervalTime>" << interval_time_ * 100 << "</IntervalTime>\r\n";
+  ss << "<ExcitationTime>" << excitation_time_ << "</ExcitationTime>\r\n";
+  ss << "<IntervalTime>" << interval_time_ << "</IntervalTime>\r\n";
   ss << "<ExpMode>" << exp_mode_ << "</ExpMode>\r\n";
   ss << "</ExperimentReport>\r\n";
   return ss.str();

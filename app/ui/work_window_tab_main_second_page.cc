@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "app/common/logger.h"
+#include "app/common/num_string_convert.hpp"
 #include "app/common/string_utils.h"
 #include "app/common/time_utils.h"
 #include "app/db/database_helper.h"
@@ -996,7 +997,7 @@ void WorkWindowSecondPage::RefreshExpClipTimeControl(bool forced) {
         std::string value = ("=");
         double f_value = static_cast<double>(exp_clip_time_duration);
         f_value /= 10.0f;
-        value += to_string_with_precision(f_value, 1);
+        value += anx::common::to_string_with_precision(f_value, 1);
         value += "S";
         text_exp_clip_time_duration_->SetText(
             anx::common::String2WString(value).c_str());
@@ -1015,7 +1016,7 @@ void WorkWindowSecondPage::RefreshExpClipTimeControl(bool forced) {
           std::string value = ("=");
           double f_value = static_cast<double>(exp_clip_time_paused);
           f_value /= 10.0f;
-          value += to_string_with_precision(f_value, 1);
+          value += anx::common::to_string_with_precision(f_value, 1);
           value += ("S");
           text_exp_clip_time_paused_->SetText(
               anx::common::String2WString(value).c_str());
@@ -1050,7 +1051,7 @@ void WorkWindowSecondPage::RefreshExpClipTimeControl(bool forced) {
             double f_part_integer_value = static_cast<double>(part_integer);
             double f_part_decimal_value = static_cast<double>(f_part_decimal);
             double f_value = f_part_integer_value + f_part_decimal_value;
-            value += to_string_with_precision(f_value, 3);
+            value += anx::common::to_string_with_precision(f_value, 3);
             value += "H";
             text_max_cycle_duration_->SetText(
                 anx::common::String2WString(value).c_str());
@@ -1101,7 +1102,7 @@ void WorkWindowSecondPage::RefreshExpClipTimeControl(bool forced) {
             double f_part_integer_value = static_cast<double>(part_integer);
             double f_part_decimal_value = static_cast<double>(f_part_decimal);
             double f_value = f_part_integer_value + f_part_decimal_value;
-            value += to_string_with_precision(f_value, 3);
+            value += anx::common::to_string_with_precision(f_value, 3);
             value += "H";
             text_max_cycle_duration_->SetText(
                 anx::common::String2WString(value).c_str());
@@ -1191,7 +1192,7 @@ void WorkWindowSecondPage::UpdateExpClipTimeFromControl() {
   std::string value = ("=");
   double f_value = static_cast<double>(exp_clip_time_duration);
   f_value /= 10.0f;
-  value += to_string_with_precision(f_value, 1);
+  value += anx::common::to_string_with_precision(f_value, 1);
   value += "S";
   text_exp_clip_time_duration_->SetText(
       anx::common::String2WString(value).c_str());
@@ -1199,7 +1200,7 @@ void WorkWindowSecondPage::UpdateExpClipTimeFromControl() {
   value = ("=");
   f_value = static_cast<double>(exp_clip_time_paused);
   f_value /= 10.0f;
-  value += to_string_with_precision(f_value, 1);
+  value += anx::common::to_string_with_precision(f_value, 1);
   value += "S";
   text_exp_clip_time_paused_->SetText(
       anx::common::String2WString(value).c_str());
@@ -1581,6 +1582,7 @@ bool WorkWindowSecondPage::StaticAircraftDoMoveUp() {
       ctrl_type = CTRL_POSI;
       endtype = END_POSI;
       end_value = lss_->displacement_ * 1.0f;
+      speed = speed / 60.0f;
     }
   }
   if (anx::device::stload::STLoadHelper::STLoadVersion() == 2) {
@@ -1648,6 +1650,7 @@ bool WorkWindowSecondPage::StaticAircraftDoMoveDown() {
       ctrl_type = CTRL_POSI;
       endtype = END_POSI;
       end_value = lss_->displacement_ * 1.0f;
+      speed = speed / 60.0f;
     }
   }
   if (anx::device::stload::STLoadHelper::STLoadVersion() == 2) {
@@ -1767,15 +1770,15 @@ void WorkWindowSecondPage::OnDataReceived(
     }
     /////////////////////////////////////////////////////////////////////////
     /// process the exp data
-    double KHz = cur_freq_ * 1.0f;
+    double f_cur_freq = cur_freq_ * 1.0f;
     double um = exp_amplitude_;
     double MPa = std::fabsl(exp_statc_load_mpa_);
     double date = anx::common::GetCurrrentSystimeAsVarTime();
-    exp_data_graph_info_.amp_freq_ = KHz;
+    exp_data_graph_info_.amp_freq_ = f_cur_freq;
     exp_data_graph_info_.amp_um_ = um;
     exp_data_graph_info_.stress_value_ = MPa;
 
-    exp_data_list_info_.amp_freq_ = KHz;
+    exp_data_list_info_.amp_freq_ = f_cur_freq;
     exp_data_list_info_.amp_um_ = um;
     exp_data_list_info_.stress_value_ = exp_max_stress_MPa_;
 
@@ -2023,7 +2026,8 @@ void WorkWindowSecondPage::StoreDataListItem(int64_t cycle_count, double date) {
   sql_str.append((" (cycle, KHz, MPa, um, date) VALUES ("));
   sql_str.append(std::to_string(cycle_count));
   sql_str.append(", ");
-  sql_str.append(to_string_with_precision(exp_data_list_info_.amp_freq_, 0));
+  sql_str.append(anx::common::to_string_with_precision(
+      exp_data_list_info_.amp_freq_ * 0.001, 3));
   sql_str.append(", ");
   sql_str.append(std::to_string(exp_data_list_info_.stress_value_));
   sql_str.append(", ");

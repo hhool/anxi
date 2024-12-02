@@ -40,6 +40,7 @@ set(COMMON_FILES
     common/logger.h
     common/module_utils.cc
     common/module_utils.h
+    common/num_string_convert.hpp
     common/string_utils.cc
     common/string_utils.h
     common/thread.cc
