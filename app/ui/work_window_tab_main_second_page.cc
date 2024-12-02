@@ -1029,50 +1029,49 @@ void WorkWindowSecondPage::RefreshExpClipTimeControl(bool forced) {
         !edit_max_cycle_power_->GetText().IsEmpty()) {
       double exp_max_cycle_count =
           get_value_from_control<double>(edit_max_cycle_count_);
-        if (exp_max_cycle_count >= 1) {
-          // check the max cycle count with the max cycle power is valid
-          int64_t exp_max_cycle_power =
-              get_value_from_control<int64_t>(edit_max_cycle_power_);
-          double max_cycle_count = exp_max_cycle_count;
-          for (int32_t i = 0; i < exp_max_cycle_power; i++) {
-            max_cycle_count *= 10;
-          }
-          if (max_cycle_count >= 1) {
-            dus_.exp_max_cycle_count_ = exp_max_cycle_count;
+      if (exp_max_cycle_count >= 1) {
+        // check the max cycle count with the max cycle power is valid
+        int64_t exp_max_cycle_power =
+            get_value_from_control<int64_t>(edit_max_cycle_power_);
+        double max_cycle_count = exp_max_cycle_count;
+        for (int32_t i = 0; i < exp_max_cycle_power; i++) {
+          max_cycle_count *= 10;
+        }
+        if (max_cycle_count >= 1) {
+          dus_.exp_max_cycle_count_ = exp_max_cycle_count;
 
-            int64_t max_cycle_count_for_text =
-                static_cast<int64_t>(max_cycle_count);
-            max_cycle_count_for_text /= 20000;
-            std::string value = ("≈");
-            int64_t part_integer = max_cycle_count_for_text / 3600;
-            int64_t part_decimal = max_cycle_count_for_text % 3600;
-            double f_part_decimal = static_cast<double>(part_decimal) / 3600;
-            double f_part_integer_value = static_cast<double>(part_integer);
-            double f_part_decimal_value = static_cast<double>(f_part_decimal);
-            double f_value = f_part_integer_value + f_part_decimal_value;
-            value += anx::common::to_string_with_precision(f_value, 3);
-            value += "H";
-            text_max_cycle_duration_->SetText(
-                anx::common::UTF8ToUnicode(value).c_str());
-          }
-
-          // check the max cycle count with the max cycle power is valid
-          int64_t max_cycle_count_for_btn =
+          int64_t max_cycle_count_for_text =
               static_cast<int64_t>(max_cycle_count);
-          if (cur_total_cycle_count_ >= max_cycle_count_for_btn) {
-            if (is_exp_state_ == kExpStatePause) {
-              btn_exp_resume_->SetEnabled(false);
-            } else if (is_exp_state_ == kExpStateStop) {
-              btn_exp_start_->SetEnabled(false);
-            }
-          } else {
-            if (is_exp_state_ == kExpStatePause) {
-              btn_exp_resume_->SetEnabled(true);
-            } else if (is_exp_state_ == kExpStateStop) {
-              btn_exp_start_->SetEnabled(true);
-            }
+          max_cycle_count_for_text /= 20000;
+          std::string value = ("≈");
+          int64_t part_integer = max_cycle_count_for_text / 3600;
+          int64_t part_decimal = max_cycle_count_for_text % 3600;
+          double f_part_decimal = static_cast<double>(part_decimal) / 3600;
+          double f_part_integer_value = static_cast<double>(part_integer);
+          double f_part_decimal_value = static_cast<double>(f_part_decimal);
+          double f_value = f_part_integer_value + f_part_decimal_value;
+          value += anx::common::to_string_with_precision(f_value, 3);
+          value += "H";
+          text_max_cycle_duration_->SetText(
+              anx::common::UTF8ToUnicode(value).c_str());
+        }
+
+        // check the max cycle count with the max cycle power is valid
+        int64_t max_cycle_count_for_btn = static_cast<int64_t>(max_cycle_count);
+        if (cur_total_cycle_count_ >= max_cycle_count_for_btn) {
+          if (is_exp_state_ == kExpStatePause) {
+            btn_exp_resume_->SetEnabled(false);
+          } else if (is_exp_state_ == kExpStateStop) {
+            btn_exp_start_->SetEnabled(false);
+          }
+        } else {
+          if (is_exp_state_ == kExpStatePause) {
+            btn_exp_resume_->SetEnabled(true);
+          } else if (is_exp_state_ == kExpStateStop) {
+            btn_exp_start_->SetEnabled(true);
           }
         }
+      }
     }
     if (!edit_max_cycle_power_->GetText().IsEmpty() &&
         !edit_max_cycle_count_->GetText().IsEmpty()) {
@@ -1154,7 +1153,8 @@ void WorkWindowSecondPage::UpdateControlFromSettings() {
                       dus->exp_frequency_fluctuations_range_);
 
     if (dus->exp_clipping_enable_ == 1) {
-      chk_exp_clip_set_->Selected(true);
+      /// @note not apply according to customer opinions
+      chk_exp_clip_set_->Selected(false);
     } else {
       chk_exp_clip_set_->Selected(false);
     }

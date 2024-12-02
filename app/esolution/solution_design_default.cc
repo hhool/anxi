@@ -23,7 +23,7 @@ const char kSolutionDesign_Axially_Symmetrical_DefaultXml[] = R"(
 <header>
   <solution_type>0</solution_type>
   <version>0</version>
-  <name>式样名称</name>
+  <name>名称</name>
   <date>0</date>
   <copy_right>axially symmetrical copy right</copy_right>
 </header>
@@ -51,7 +51,7 @@ const char kSolutionDesign_Stresses_Adjustable_DefaultXml[] = R"(
 <header>
   <solution_type>1</solution_type>
   <version>0</version>
-  <name>式样名称</name>
+  <name>名称</name>
   <date>0</date>
   <copy_right>stresses adjustable copy right</copy_right>
 </header>
@@ -80,7 +80,7 @@ const char kSolutionDesign_Th3point_Bending_DefaultXml[] = R"(
 <header>
   <solution_type>2</solution_type>
   <version>0</version>
-  <name>式样名称</name>
+  <name>名称</name>
   <date>0</date>
   <copy_right>th3point bending copy right</copy_right>
 </header>
@@ -107,7 +107,7 @@ const char kSolutionDesign_Vibration_Bending_DefaultXml[] = R"(
 <header>
   <solution_type>3</solution_type>
   <version>0</version>
-  <name>式样名称</name>
+  <name>名称</name>
   <date>0</date>
   <copy_right>vibration bending copy right</copy_right>
 </header>

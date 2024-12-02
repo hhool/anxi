@@ -48,10 +48,10 @@ namespace {
 
 const char kTimeFormat[] = "%Y-%m-%d_%H-%M-%S";
 
-std::string TimeToString(int64_t time) {
+std::string TimeToString(int64_t time, const char* format = kTimeFormat) {
   struct tm* timeinfo = localtime(&time);
   char buffer[80];
-  strftime(buffer, 80, kTimeFormat, timeinfo);
+  strftime(buffer, 80, format, timeinfo);
   return std::string(buffer);
 }
 
@@ -245,6 +245,28 @@ int32_t win_system(const std::string& cmd, const std::string& par) {
     return -2;
   }
   return ReturnValue;
+}
+
+void MakeFolderPathByDate(const std::string& root,
+                          struct tm tm,
+                          std::string* folder_pathname) {
+  std::string folders[4] = {
+      root,
+      root + anx::common::kPathSeparator + std::to_string(tm.tm_year + 1900),
+      root + anx::common::kPathSeparator + std::to_string(tm.tm_year + 1900) +
+          anx::common::kPathSeparator + std::to_string(tm.tm_mon + 1),
+      root + anx::common::kPathSeparator + std::to_string(tm.tm_year + 1900) +
+          anx::common::kPathSeparator + std::to_string(tm.tm_mon + 1) +
+          anx::common::kPathSeparator + std::to_string(tm.tm_mday)};
+  for (int i = 0; i < 4; i++) {
+    if (anx::common::DirectoryExists(folders[i])) {
+      continue;
+    }
+    if (anx::common::MakeSureFolderPathExist(folders[i])) {
+      continue;
+    }
+  }
+  *folder_pathname = folders[3];
 }
 }  // namespace
 
@@ -443,12 +465,38 @@ int32_t SaveReportToDocxWithDefaultPath(const ExperimentReport& exp_report,
   std::string template_file_src =
       anx::common::GetModuleDir() + anx::common::kPathSeparator + "template" +
       anx::common::kPathSeparator + "3th_report_template.docx";
-  std::string template_file_to =
-      exp_report_dir + anx::common::kPathSeparator + "3th_report_template.docx";
-  //// copy the template file to the expreport dir force overwrite
-  if (!CopyFileA(template_file_src.c_str(), template_file_to.c_str(), FALSE)) {
-    LOG_F(LG_ERROR) << "copy file failed:" << template_file_to;
+  struct tm tm;
+  /// @note convert start time to tm struct
+  time_t start_time = exp_report.start_time_;
+#ifdef _WIN32
+  if (localtime_s(&tm, &start_time) != 0)
+#else
+  if (!localtime_r(&start_time, &tm))
+#endif
+  {
+    LOG_F(LG_ERROR) << "localtime failed";
+    return -4;
+  }
+  std::string root_folder_path;
+  MakeFolderPathByDate(exp_report_dir, tm, &root_folder_path);
+  if (root_folder_path.empty()) {
+    LOG_F(LG_ERROR) << "make folder path by date failed";
     return -5;
+  }
+  //// to file path name
+  /// format file name as start_time H-M-S+experiment_name.docx
+  std::string to_file_name = TimeToString(exp_report.start_time_, "%H-%M-%S") +
+                             "+" + exp_report.experiment_name_ + ".docx";
+  std::string template_file_to =
+      root_folder_path + anx::common::kPathSeparator + to_file_name;
+
+  //// copy the template file to the expreport dir force overwrite
+  std::string src = template_file_src;
+  std::string to =
+      anx::common::WString2String(anx::common::UTF8ToUnicode(template_file_to));
+  if (!anx::common::CCopyFile(src.c_str(), to.c_str())) {
+    LOG_F(LG_ERROR) << "copy file failed:" << template_file_to;
+    return -6;
   }
 
   /// @note start todocx program with args
@@ -456,7 +504,7 @@ int32_t SaveReportToDocxWithDefaultPath(const ExperimentReport& exp_report,
   std::string todocx =
       anx::common::GetModuleDir() + anx::common::kPathSeparator + "todocx.exe";
   std::string args =
-      "-s " + xml_file + " -i " + cvs_file_pathname + " -t " + template_file_to;
+      "-s " + xml_file + " -i " + cvs_file_pathname + " -t " + to;
   std::string cmd = todocx + " " + args;
   /// @note call the todocx program that is console program, hide the console
   /// window wait for the program to finish, get result from the program and
@@ -469,12 +517,12 @@ int32_t SaveReportToDocxWithDefaultPath(const ExperimentReport& exp_report,
 #endif
   if (ret != 0) {
     LOG_F(LG_ERROR) << "call todocx failed:" << ret << " " << cmd;
-    return -6;  // NOLINT
+    return -7;  // NOLINT
   }
   // remove the temp xml and csv file
   remove(xml_file.c_str());
   if (file_pathname != nullptr) {
-    *file_pathname = template_file_to;
+    *file_pathname = to;
   }
   return 0;
 }

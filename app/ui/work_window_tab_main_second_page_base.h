@@ -167,4 +167,4 @@ inline const std::string ExpPauseStopReasonToString(
 }  // namespace ui
 }  // namespace anx
 
-#endif  // APP_UI_WORK_WINDOW_TAB_MAIN_SECOND_PAGE_H_
+#endif  // APP_UI_WORK_WINDOW_TAB_MAIN_SECOND_PAGE_BASE_H_
