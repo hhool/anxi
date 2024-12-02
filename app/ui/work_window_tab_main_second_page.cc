@@ -1029,7 +1029,6 @@ void WorkWindowSecondPage::RefreshExpClipTimeControl(bool forced) {
         !edit_max_cycle_power_->GetText().IsEmpty()) {
       double exp_max_cycle_count =
           get_value_from_control<double>(edit_max_cycle_count_);
-      if (dus_.exp_max_cycle_count_ != exp_max_cycle_count || forced) {
         if (exp_max_cycle_count >= 1) {
           // check the max cycle count with the max cycle power is valid
           int64_t exp_max_cycle_power =
@@ -1044,7 +1043,7 @@ void WorkWindowSecondPage::RefreshExpClipTimeControl(bool forced) {
             int64_t max_cycle_count_for_text =
                 static_cast<int64_t>(max_cycle_count);
             max_cycle_count_for_text /= 20000;
-            std::string value = ("=");
+            std::string value = ("≈");
             int64_t part_integer = max_cycle_count_for_text / 3600;
             int64_t part_decimal = max_cycle_count_for_text % 3600;
             double f_part_decimal = static_cast<double>(part_decimal) / 3600;
@@ -1054,7 +1053,7 @@ void WorkWindowSecondPage::RefreshExpClipTimeControl(bool forced) {
             value += anx::common::to_string_with_precision(f_value, 3);
             value += "H";
             text_max_cycle_duration_->SetText(
-                anx::common::String2WString(value).c_str());
+                anx::common::UTF8ToUnicode(value).c_str());
           }
 
           // check the max cycle count with the max cycle power is valid
@@ -1074,7 +1073,6 @@ void WorkWindowSecondPage::RefreshExpClipTimeControl(bool forced) {
             }
           }
         }
-      }
     }
     if (!edit_max_cycle_power_->GetText().IsEmpty() &&
         !edit_max_cycle_count_->GetText().IsEmpty()) {
@@ -1095,7 +1093,7 @@ void WorkWindowSecondPage::RefreshExpClipTimeControl(bool forced) {
             int64_t max_cycle_count_for_text =
                 static_cast<int64_t>(max_cycle_count);
             max_cycle_count_for_text /= 20000;
-            std::string value = ("=");
+            std::string value = ("≈");
             int64_t part_integer = max_cycle_count_for_text / 3600;
             int64_t part_decimal = max_cycle_count_for_text % 3600;
             double f_part_decimal = static_cast<double>(part_decimal) / 3600;
@@ -1105,7 +1103,7 @@ void WorkWindowSecondPage::RefreshExpClipTimeControl(bool forced) {
             value += anx::common::to_string_with_precision(f_value, 3);
             value += "H";
             text_max_cycle_duration_->SetText(
-                anx::common::String2WString(value).c_str());
+                anx::common::UTF8ToUnicode(value).c_str());
           }
           // check the max cycle count with the max cycle power is valid
           int64_t max_cycle_count_for_btn =

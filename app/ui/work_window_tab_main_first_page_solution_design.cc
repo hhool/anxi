@@ -810,7 +810,8 @@ void WorkWindowFirstPageTh3pointBending::OnClick(TNotifyUI& msg) {
       } else {
         f_amplitude = -1.0f;
       }
-      pOwner_->UpdateArgsArea(-1, -1, f_amplitude, f_static_load_MPa);
+      pOwner_->UpdateArgsArea(-1, -1, f_amplitude, f_static_load_MPa,
+                              f_max_stress_MPa, f_stress_ratio);
     } else if (msg.pSender->GetName() == _T("btn_params_reset_th3point")) {
       // reset all edit
       int32_t ret = anx::esolution::ResetSolutionDesignDefaultResourceWithType(

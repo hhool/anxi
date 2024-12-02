@@ -180,7 +180,9 @@ class WorkWindow : public DuiLib::WindowImplBase,
   void UpdateArgsArea(int64_t cycle_count,
                       double freq = -1.0f,
                       double amplitude = -1.0f,
-                      double static_load = -1.0);
+                      double static_load = -1.0f,
+                      double max_stress = -1.0f,
+                      double ratio_stress = -1.0f);
 
  private:
   DuiLib::WindowImplBase* pOwner_;

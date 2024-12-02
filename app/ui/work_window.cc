@@ -1127,7 +1127,9 @@ void WorkWindow::ClearArgsFreqNum() {
 void WorkWindow::UpdateArgsArea(int64_t cycle_count,
                                 double freq,
                                 double amplitude,
-                                double static_load) {
+                                double static_load,
+                                double max_stress,
+                                double ratio_stress) {
   DuiLib::CDuiString value;
   // update cycle count
   if (cycle_count >= 0) {
@@ -1147,6 +1149,12 @@ void WorkWindow::UpdateArgsArea(int64_t cycle_count,
   // update static load
   if (static_load >= 0) {
     set_value_to_button(btn_args_area_value_static_load_, static_load, 2);
+  }
+  if (max_stress >= 0) {
+    set_value_to_button(btn_args_area_value_max_stress_, max_stress);
+  }
+  if (ratio_stress >= 0) {
+    set_value_to_button(btn_args_area_value_stress_ratio_, ratio_stress);
   }
 }
 }  // namespace ui
