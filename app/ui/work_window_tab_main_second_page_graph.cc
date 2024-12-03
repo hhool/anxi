@@ -739,7 +739,7 @@ void WorkWindowSecondPageGraph::UpdateGraphCtrl(
     for (int32_t i = 0; i < item_count; i++) {
       const std::map<std::string, std::string>& item = result[i];
       double x = std::stod(item.at("date"));
-      double y = std::stod(item.at("um"));
+      double y = std::stod(item.at("μm"));
       int32_t id = std::stoi(item.at("id"));
       element_list.push_back(Element2DPoint(x, y, id));
     }

@@ -142,7 +142,7 @@ class WorkWindowSecondPageData::ListVirtalDataView
           pHBox->GetItemAt(3)->GetInterface(DUI_CTR_LABEL));
       pText->SetText(dui_string);
 
-      double um = std::stod(result[0]["um"].c_str());
+      double um = std::stod(result[0]["μm"].c_str());
       std::string str_um = anx::common::to_string_with_precision(um, 2);
       dui_string = anx::common::UTF8ToUnicode(str_um).c_str();
       pText = static_cast<DuiLib::CLabelUI*>(
@@ -584,7 +584,7 @@ int32_t WorkWindowSecondPageData::ExportExpResult() {
     data.cycle_count_ = std::stoi(item["cycle"]);
     data.KHz_ = std::stod(item["kHz"]);
     data.MPa_ = std::stod(item["MPa"]);
-    data.um_ = std::stod(item["um"]);
+    data.um_ = std::stod(item["μm"]);
     exp_datas.push_back(data);
   }
 

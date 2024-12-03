@@ -1147,8 +1147,9 @@ void WorkWindowSecondPage::UpdateControlFromSettings() {
     set_value_to_edit(edit_exp_clip_time_duration_,
                       dus->exp_clip_time_duration_);
     set_value_to_edit(edit_exp_clip_time_paused_, dus->exp_clip_time_paused_);
-    set_value_to_edit(edit_max_cycle_count_, dus->exp_max_cycle_count_, 3);
-    set_value_to_edit(edit_max_cycle_power_, dus->exp_max_cycle_power_);
+    /// @note not apply according to customer opinions
+    // set_value_to_edit(edit_max_cycle_count_, dus->exp_max_cycle_count_, 3);
+    // set_value_to_edit(edit_max_cycle_power_, dus->exp_max_cycle_power_);
     set_value_to_edit(edit_frequency_fluctuations_range_,
                       dus->exp_frequency_fluctuations_range_);
 
@@ -1816,7 +1817,7 @@ void WorkWindowSecondPage::ProcessDataGraph() {
     // database
     std::string sql_str = ("INSERT INTO ");
     sql_str.append(anx::db::helper::kTableExpDataGraph);
-    sql_str.append((" (cycle, KHz, MPa, um, state, date) VALUES ("));
+    sql_str.append((" (cycle, KHz, MPa, μm, state, date) VALUES ("));
     sql_str.append(std::to_string(cycle_count));
     sql_str.append(", ");
     sql_str.append(std::to_string(exp_data_graph_info_.amp_freq_));
@@ -2021,7 +2022,7 @@ void WorkWindowSecondPage::ProcessDataListModeExponential() {
 void WorkWindowSecondPage::StoreDataListItem(int64_t cycle_count, double date) {
   std::string sql_str = ("INSERT INTO ");
   sql_str.append(anx::db::helper::kTableExpDataList);
-  sql_str.append((" (cycle, KHz, MPa, um, date) VALUES ("));
+  sql_str.append((" (cycle, KHz, MPa, μm, date) VALUES ("));
   sql_str.append(std::to_string(cycle_count));
   sql_str.append(", ");
   sql_str.append(anx::common::to_string_with_precision(

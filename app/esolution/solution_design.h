@@ -147,13 +147,13 @@ struct ExpDesignResult0 : public ExpDesignResult {
  public:
   virtual std::string ToXml(bool close_tag = true) const;
 
-  // @brief Amplitude A um
-  // @brief 振幅A  um
+  // @brief Amplitude A μm
+  // @brief 振幅A  μm
   double f_eamplitude_;
   // @brief 试验中应力与位移的关系
-  // 应力位移系数 MPa/um
+  // 应力位移系数 MPa/μm
   // @brief The stress displacement coefficient
-  // stress displacement coefficient MPa/um
+  // stress displacement coefficient MPa/μm
   double f_dc_stress_MPa_;
 };
 
@@ -222,8 +222,8 @@ struct ExpDesignResultTh3pointBending : public ExpDesignResult0 {
 
  public:
   virtual std::string ToXml(bool close_tag = true) const;
-  // @brief 理论振幅A' um
-  // @brief Theoretical amplitude A' um
+  // @brief 理论振幅A' μm
+  // @brief Theoretical amplitude A' μm
   double f_theory_eamplitude_;
   // @brief 理论应力 Cs' MPa
   // @brief Theoretical stress Cs' MPa

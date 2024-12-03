@@ -23,9 +23,9 @@ class DatabaseTest : public ::testing::Test {
 
 static const char* create_table_sql =
     "CREATE TABLE amp (id INTEGER PRIMARY KEY AUTOINCREMENT, cycle INTEGER, "
-    "kHz REAL, MPa REAL, um REAL, date REAL)";
+    "kHz REAL, MPa REAL, μm REAL, date REAL)";
 static const char* insert_sql_format =
-    "INSERT INTO amp (cycle, kHz, MPa, um, date) VALUES (%d, %f, %f, %f, %f)";
+    "INSERT INTO amp (cycle, kHz, MPa, μm, date) VALUES (%d, %f, %f, %f, %f)";
 static const char* query_sql_format_by_id_range =
     "SELECT * FROM amp WHERE id >= %d AND id <= %d";
 static const char* query_sql_format_by_date_range =

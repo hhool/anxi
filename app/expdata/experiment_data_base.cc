@@ -51,18 +51,19 @@ const char kTimeFormat[] = "%Y-%m-%d_%H-%M-%S";
 std::string TimeToString(int64_t time, const char* format = kTimeFormat) {
   struct tm* timeinfo = localtime(&time);
   char buffer[80];
-  strftime(buffer, 80, format, timeinfo);
+  strftime(buffer, 80, kTimeFormat, timeinfo);
   return std::string(buffer);
 }
 
-int64_t StringToTime(const std::string& time_str) {
+int64_t StringToTime(const std::string& time_str,
+                     const char* format = kTimeFormat) {
   struct tm tm;
   memset(&tm, 0, sizeof(tm));
-  ::strptime(time_str.c_str(), kTimeFormat, &tm);
+  ::strptime(time_str.c_str(), format, &tm);
   return mktime(&tm);
 }
 
-const char kCsvHeader[] = "id,cycle_count,KHz,MPa,um\n";
+const char kCsvHeader[] = "id,cycle_count,KHz,MPa,μm\n";
 const char kCsvFormat[] = "%lu,%lu,%f,%f,%f\n";
 const char kCsvDefaultPath[] = "expdata";
 }  // namespace
@@ -76,8 +77,8 @@ int32_t SaveExperimentDataFile(
     return -1;
   }
   // write as csv format
-  // write header id, cycle_count, KHz, MPa, um
-  std::string header = "id,cycle_count,KHz,MPa,um\n";
+  // write header id, cycle_count, KHz, MPa, μm
+  std::string header = "id,cycle_count,KHz,MPa,μm\n";
   size_t header_size = header.size();
   size_t header_written = fwrite(header.c_str(), 1, header_size, file);
   if (header_written != header_size) {
@@ -484,9 +485,12 @@ int32_t SaveReportToDocxWithDefaultPath(const ExperimentReport& exp_report,
     return -5;
   }
   //// to file path name
-  /// format file name as start_time H-M-S+experiment_name.docx
-  std::string to_file_name = TimeToString(exp_report.start_time_, "%H-%M-%S") +
-                             "+" + exp_report.experiment_name_ + ".docx";
+  /// format file name as start_time stoptime
+  /// YYYY-MM-DD_HH-MM-SS_YYY_MM-DD_HH-MM-SS+experiment_name.docx
+  std::string to_file_name =
+      TimeToString(exp_report.start_time_, "%Y-%m-%d_%H-%M-%S") + "_" +
+      TimeToString(exp_report.end_time_, "%Y-%m-%d_%H-%M-%S") + "+" +
+      exp_report.experiment_name_ + ".docx";
   std::string template_file_to =
       root_folder_path + anx::common::kPathSeparator + to_file_name;
 

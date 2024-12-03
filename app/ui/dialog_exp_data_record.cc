@@ -295,10 +295,12 @@ bool DialogExpDataRecord::OnRefreshButtonClick(void* msg) {
   }
   /// show the first item detail
   if (pList->GetCount() > 0) {
+    to_report_layout_->SetVisible(true);
     exp_data_detail_layout_->SetVisible(true);
     pList->SelectItem(0);
     ShowSummaryItemDetail(0);
   } else {
+    to_report_layout_->SetVisible(false);
     exp_data_detail_layout_->SetVisible(false);
   }
   return true;
