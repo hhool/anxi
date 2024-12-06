@@ -848,7 +848,7 @@ int32_t WorkWindow::LoadFileWithDialog() {
   memset(FileName, 0, sizeof(char) * MAX_PATH);
   ofn.lStructSize = sizeof(OPENFILENAME);
   ofn.hwndOwner = m_hWnd;
-  ofn.lpstrFilter = _T("*.xml\0\0");
+  ofn.lpstrFilter = _T("*.xml");
   ofn.lpstrFile = FileName;
   ofn.nMaxFile = MAX_PATH;
   ofn.Flags = OFN_FILEMUSTEXIST;
@@ -870,7 +870,7 @@ int32_t WorkWindow::SaveFileWithDialog() {
   memset(FileName, 0, sizeof(char) * MAX_PATH);
   ofn.lStructSize = sizeof(OPENFILENAME);
   ofn.hwndOwner = m_hWnd;
-  ofn.lpstrFilter = _T("*.xml\0\0");
+  ofn.lpstrFilter = _T("*.xml");
   ofn.lpstrFile = FileName;
   ofn.nMaxFile = MAX_PATH;
   ofn.Flags = OFN_FILEMUSTEXIST;

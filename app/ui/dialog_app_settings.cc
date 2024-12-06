@@ -194,7 +194,7 @@ void DialogAppSettingsCommon::LoadFileWithDialog() {
   memset(FileName, 0, sizeof(char) * MAX_PATH);
   ofn.lStructSize = sizeof(OPENFILENAME);
   ofn.hwndOwner = *pOwner_;
-  ofn.lpstrFilter = _T("*.exe\0\0");
+  ofn.lpstrFilter = _T("*.exe");
   ofn.lpstrFile = FileName;
   ofn.nMaxFile = MAX_PATH;
   ofn.Flags = OFN_FILEMUSTEXIST;
