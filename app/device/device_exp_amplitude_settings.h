@@ -22,18 +22,18 @@ class DeviceExpAmplitude {
  public:
   DeviceExpAmplitude();
   explicit DeviceExpAmplitude(
-      const std::map<int32_t, int32_t>& exp_power2amp_map);
+      const std::map<int32_t, float>& exp_power2amp_map);
   virtual ~DeviceExpAmplitude();
 
  public:
-  std::map<int32_t, int32_t> exp_power2amp_map_;
+  std::map<int32_t, float> exp_power2amp_map_;
 };
 
 class DeviceExpAmplitudeSettings : public DeviceExpAmplitude {
  public:
   DeviceExpAmplitudeSettings();
   DeviceExpAmplitudeSettings(
-      const std::map<int32_t, int32_t>& exp_power2amp_map);
+      const std::map<int32_t, float>& exp_power2amp_map);
   virtual ~DeviceExpAmplitudeSettings();
 
  public:
@@ -70,6 +70,14 @@ int32_t SaveDeviceExpAmplitudeSettingsDefaultResource(
 /// device_exp_amplitude_settings.xml from origin resource file at application
 /// path
 int32_t ResetDeviceExpAmplitudeSettingsDefaultResource();
+
+/// @brief  amp to device amp
+/// @param amp
+/// @param device_amp
+/// @return int32_t 0 success, -1 failed
+int32_t Amp2DeviceExpPower(const DeviceExpAmplitudeSettings& settings,
+                           float exp_amp,
+                           int32_t* exp_power);
 
 }  // namespace device
 }  // namespace anx

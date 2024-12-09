@@ -50,6 +50,17 @@ double CalcTh3Design(double E,
                      double t,
                      double cval);
 
+/**
+ * @brief Line fitting algorithm
+ * @param x x axis data
+ * @param y y axis data
+ * @param n data count
+ * @param a a value
+ * @param b b value
+ */
+void LineFit(float x[], float y[], int n, float* a, float* b);
+/// TODO(hhool): will remove
+void lineFit(float x[], float y[], int n, float* a, float* b);
 }  // namespace algorithm
 }  // namespace esolution
 }  // namespace anx

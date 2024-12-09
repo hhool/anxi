@@ -124,41 +124,41 @@ bool DialogAmplitudeCalibrationSettings::OnEditControlChanged(void* param) {
   }
   bool save = false;
   if (pMsg->pSender == edit_amp_level_one_) {
-    int32_t amp_level_one = 0;
+    float amp_level_one = 0;
     if (get_value_from_control(edit_amp_level_one_, &amp_level_one)) {
       if (amp_level_one >= 1) {
         deas_->exp_power2amp_map_[20] = amp_level_one;
         save = true;
       }
     }
-    set_value_to_edit(edit_amp_level_one_, deas_->exp_power2amp_map_[20]);
+    set_value_to_edit(edit_amp_level_one_, deas_->exp_power2amp_map_[20], 2);
   } else if (pMsg->pSender == edit_amp_level_two_) {
-    int32_t amp_level_two = 0;
+    float amp_level_two = 0;
     if (get_value_from_control(edit_amp_level_two_, &amp_level_two)) {
       if (amp_level_two >= 1) {
         deas_->exp_power2amp_map_[40] = amp_level_two;
         save = true;
       }
     }
-    set_value_to_edit(edit_amp_level_two_, deas_->exp_power2amp_map_[40]);
+    set_value_to_edit(edit_amp_level_two_, deas_->exp_power2amp_map_[40], 2);
   } else if (pMsg->pSender == edit_amp_level_third_) {
-    int32_t amp_level_third = 0;
+    float amp_level_third = 0;
     if (get_value_from_control(edit_amp_level_third_, &amp_level_third)) {
       if (amp_level_third >= 1) {
         deas_->exp_power2amp_map_[60] = amp_level_third;
         save = true;
       }
     }
-    set_value_to_edit(edit_amp_level_third_, deas_->exp_power2amp_map_[60]);
+    set_value_to_edit(edit_amp_level_third_, deas_->exp_power2amp_map_[60], 2);
   } else if (pMsg->pSender == edit_amp_level_fourth_) {
-    int32_t amp_level_fourth = 0;
+    float amp_level_fourth = 0;
     if (get_value_from_control(edit_amp_level_fourth_, &amp_level_fourth)) {
       if (amp_level_fourth >= 1) {
         deas_->exp_power2amp_map_[80] = amp_level_fourth;
         save = true;
       }
     }
-    set_value_to_edit(edit_amp_level_fourth_, deas_->exp_power2amp_map_[80]);
+    set_value_to_edit(edit_amp_level_fourth_, deas_->exp_power2amp_map_[80], 2);
   } else {
     return false;
   }
@@ -202,11 +202,11 @@ void DialogAmplitudeCalibrationSettings::UpdateControlFromSettings() {
     LOG_F(LG_ERROR) << "deas_ is nullptr";
     return;
   }
-  std::map<int32_t, int32_t> exp_power2amp_map = deas_->exp_power2amp_map_;
-  set_value_to_edit(edit_amp_level_one_, exp_power2amp_map[20]);
-  set_value_to_edit(edit_amp_level_two_, exp_power2amp_map[40]);
-  set_value_to_edit(edit_amp_level_third_, exp_power2amp_map[60]);
-  set_value_to_edit(edit_amp_level_fourth_, exp_power2amp_map[80]);
+  std::map<int32_t, float> exp_power2amp_map = deas_->exp_power2amp_map_;
+  set_value_to_edit(edit_amp_level_one_, exp_power2amp_map[20], 2);
+  set_value_to_edit(edit_amp_level_two_, exp_power2amp_map[40], 2);
+  set_value_to_edit(edit_amp_level_third_, exp_power2amp_map[60], 2);
+  set_value_to_edit(edit_amp_level_fourth_, exp_power2amp_map[80], 2);
 }
 
 void DialogAmplitudeCalibrationSettings::SaveSettingsToResource() {
@@ -214,7 +214,7 @@ void DialogAmplitudeCalibrationSettings::SaveSettingsToResource() {
     LOG_F(LG_INFO) << "deas_ is nullptr";
     return;
   }
-  std::map<int32_t, int32_t> exp_power2amp_map = deas_->exp_power2amp_map_;
+  std::map<int32_t, float> exp_power2amp_map = deas_->exp_power2amp_map_;
   anx::device::SaveDeviceExpAmplitudeSettingsDefaultResource(exp_power2amp_map);
 }
 

@@ -199,6 +199,7 @@ if(ANXI_BUILD_UNITTEST)
 endif()
 
 set(ESOLUTION_ALG_FILES
+    esolution/algorithm/alg_fitline.cc
     esolution/algorithm/alg_th3.cc
     esolution/algorithm/alg.h)
 source_group("esolution\\algorithm" FILES ${ESOLUTION_ALG_FILES})

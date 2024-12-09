@@ -36,6 +36,8 @@ R get_value_from_control(DuiLib::CControlUI* edit) {
     return static_cast<R>(_ttoi64(value.GetData()));
   } else if (std::is_same<R, double>::value) {
     return static_cast<R>(_ttof(value.GetData()));
+  } else if (std::is_same<R, float>::value) {
+    return static_cast<R>(_ttof(value.GetData()));
   } else {
     return static_cast<R>(_ttof(value.GetData()));
   }
@@ -52,7 +54,7 @@ bool get_value_from_control(DuiLib::CControlUI* control, T* value) {
   }
   /// check T is not int and int64_t and double type
   if (!std::is_same<T, int32_t>::value && !std::is_same<T, int64_t>::value &&
-      !std::is_same<T, double>::value) {
+      !std::is_same<T, double>::value && !std::is_same<T, float>::value) {
     return false;
   }
   *value = get_value_from_control<T>(control);
@@ -73,6 +75,16 @@ bool set_value_to_control(DuiLib::CControlUI* control, T value) {
   } else if (std::is_same<T, int64_t>::value) {
     CDuiString text;
     text.Format(_T("%lld"), value);
+    control->SetText(text);
+    return true;
+  } else if (std::is_same<T, double>::value) {
+    CDuiString text;
+    text.Format(_T("%f"), value);
+    control->SetText(text);
+    return true;
+  } else if (std::is_same<T, float>::value) {
+    CDuiString text;
+    text.Format(_T("%f"), value);
     control->SetText(text);
     return true;
   } else {
@@ -113,6 +125,16 @@ bool set_value_to_edit(DuiLib::CEditUI* edit, T value) {
   } else if (std::is_same<T, int64_t>::value) {
     CDuiString text;
     text.Format(_T("%lld"), value);
+    edit->SetText(text);
+    return true;
+  } else if (std::is_same<T, double>::value) {
+    CDuiString text;
+    text.Format(_T("%f"), value);
+    edit->SetText(text);
+    return true;
+  } else if (std::is_same<T, float>::value) {
+    CDuiString text;
+    text.Format(_T("%f"), value);
     edit->SetText(text);
     return true;
   } else {
@@ -156,6 +178,16 @@ bool set_value_to_label(DuiLib::CLabelUI* label, T value) {
     text.Format(_T("%lld"), value);
     label->SetText(text);
     return true;
+  } else if (std::is_same<T, double>::value) {
+    CDuiString text;
+    text.Format(_T("%f"), value);
+    label->SetText(text);
+    return true;
+  } else if (std::is_same<T, float>::value) {
+    CDuiString text;
+    text.Format(_T("%f"), value);
+    label->SetText(text);
+    return true;
   } else {
     return false;
   }
@@ -195,6 +227,16 @@ bool set_value_to_button(DuiLib::CButtonUI* btn, T value) {
   } else if (std::is_same<T, int64_t>::value) {
     CDuiString text;
     text.Format(_T("%lld"), value);
+    btn->SetText(text);
+    return true;
+  } else if (std::is_same<T, double>::value) {
+    CDuiString text;
+    text.Format(_T("%f"), value);
+    btn->SetText(text);
+    return true;
+  } else if (std::is_same<T, float>::value) {
+    CDuiString text;
+    text.Format(_T("%f"), value);
     btn->SetText(text);
     return true;
   } else {

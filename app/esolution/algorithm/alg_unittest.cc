@@ -17,6 +17,82 @@ namespace anx {
 namespace esolution {
 namespace algorithm {
 
+TEST(AlgTest, FitLine) {
+  float x[] = {1, 2, 3, 4, 5};
+  float y[] = {1, 2, 3, 4, 5};
+
+  float a, b;
+  LineFit(x, y, 5, &a, &b);
+  EXPECT_NEAR(a, 1.0, 0.0001);
+  EXPECT_NEAR(b, 0.0, 0.0001);
+}
+
+TEST(AlgTest, FitLine2) {
+  float x[] = {1, 2, 3, 4, 5};
+  float y[] = {2, 3, 4, 5, 6};
+
+  float a, b;
+  LineFit(x, y, 5, &a, &b);
+  EXPECT_NEAR(a, 1.0, 0.0001);
+  EXPECT_NEAR(b, 1.0, 0.0001);
+}
+
+TEST(AlgTest, FitLine3) {
+  float x[] = {30, 38, 47, 54};
+  float y[] = {20, 40, 60, 80};
+
+  float a, b;
+  LineFit(x, y, 4, &a, &b);
+  EXPECT_NEAR(a, 1.0, 0.0001);
+  EXPECT_NEAR(b, -20.0, 0.0001);
+  float x5 = 28.34f * 2.0f;
+  float y5 = a * x5 + b;
+  int32_t y5_i = static_cast<int32_t>(y5);
+  EXPECT_NEAR(y5, 25.0, 0.0001);
+}
+
+TEST(AlgTest, FitLine4) {
+  float x[] = {37.8f, 46.8f, 55.6f, 63.f};
+  float y[] = {20, 40, 60, 80};
+
+  float a, b;
+  LineFit(x, y, 4, &a, &b);
+  EXPECT_NEAR(a, 1.0, 0.0001);
+  EXPECT_NEAR(b, -20.0, 0.0001);
+  float x5 = 28.34f * 2.0f;
+  float y5 = a * x5 + b;
+  int32_t y5_i = static_cast<int32_t>(y5);
+  EXPECT_NEAR(y5, 25.0, 0.0001);
+}
+
+TEST(AlgTest, FitLine5) {
+  float x[] = {30, 38, 47, 54};
+  float y[] = {20, 40, 60, 80};
+
+  float a, b;
+  lineFit(x, y, 4, &a, &b);
+  EXPECT_NEAR(a, 1.0, 0.0001);
+  EXPECT_NEAR(b, -20.0, 0.0001);
+  float x5 = 28.34f * 2.0f;
+  float y5 = a * x5 + b;
+  int32_t y5_i = static_cast<int32_t>(y5);
+  EXPECT_NEAR(y5, 25.0, 0.0001);
+}
+
+TEST(AlgTest, FitLine6) {
+  float x[] = {37, 46, 56, 63};
+  float y[] = {20, 40, 60, 80};
+
+  float a, b;
+  lineFit(x, y, 4, &a, &b);
+  EXPECT_NEAR(a, 1.0, 0.0001);
+  EXPECT_NEAR(b, -20.0, 0.0001);
+  float x5 = 28.34f * 2.0f;
+  float y5 = a * x5 + b;
+  int32_t y5_i = static_cast<int32_t>(y5);
+  EXPECT_NEAR(y5, 25.0, 0.0001);
+}
+
 TEST(AlgTest, CalcLengthOfTh3Design) {
   double E = 116;                            // 10^9 MPa
   double h = 4;                              // height mm

@@ -11,13 +11,18 @@
 
 #include "app/device/device_exp_amplitude_settings.h"
 
+#include <assert.h>
+#include <map>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include "app/common/file_utils.h"
 #include "app/common/logger.h"
 #include "app/common/module_utils.h"
 #include "app/common/string_utils.h"
+
+#include "app/esolution/algorithm/alg.h"
 
 #include "third_party/tinyxml2/source/tinyxml2.h"
 
@@ -26,11 +31,11 @@ namespace device {
 ////////////////////////////////////////////////////////////////////
 // clz DeviceExpAmplitude
 DeviceExpAmplitude::DeviceExpAmplitude() {
-  exp_power2amp_map_ = {{20, 30}, {40, 38}, {60, 47}, {80, 54}};
+  exp_power2amp_map_ = {{20, 37.8f}, {40, 46.8f}, {60, 55.6f}, {80, 63.f}};
 }
 
 DeviceExpAmplitude::DeviceExpAmplitude(
-    const std::map<int32_t, int32_t>& exp_power2amp_map) {
+    const std::map<int32_t, float>& exp_power2amp_map) {
   exp_power2amp_map_ = exp_power2amp_map;
 }
 
@@ -41,7 +46,7 @@ DeviceExpAmplitude::~DeviceExpAmplitude() {}
 DeviceExpAmplitudeSettings::DeviceExpAmplitudeSettings() {}
 
 DeviceExpAmplitudeSettings::DeviceExpAmplitudeSettings(
-    const std::map<int32_t, int32_t>& exp_power2amp_map)
+    const std::map<int32_t, float>& exp_power2amp_map)
     : DeviceExpAmplitude(exp_power2amp_map) {}
 
 DeviceExpAmplitudeSettings::~DeviceExpAmplitudeSettings() {}
@@ -54,7 +59,7 @@ std::string DeviceExpAmplitudeSettings::ToXml(bool close_tag) const {
   for (const auto& item : exp_power2amp_map_) {
     ss << "<exp_power2amp_item>\r\n";
     ss << "<exp_power>" << item.first << "</exp_power>\r\n";
-    ss << "<exp_amp>" << item.second << "</exp_amp>\r\n";
+    ss << "<exp_amp>" << std::to_string(item.second) << "</exp_amp>\r\n";
     ss << "</exp_power2amp_item>\r\n";
   }
   if (close_tag) {
@@ -74,18 +79,18 @@ std::unique_ptr<DeviceExpAmplitudeSettings> DeviceExpAmplitudeSettings::FromXml(
     return nullptr;
   }
 
-  std::map<int32_t, int32_t> exp_power2amp_map;
+  std::map<int32_t, float> exp_power2amp_map;
   for (auto item = root->FirstChildElement("exp_power2amp_item"); item;
        item = item->NextSiblingElement("exp_power2amp_item")) {
     int32_t exp_power = 0;
-    int32_t exp_amp = 0;
+    float exp_amp = 0;
     auto sub = item->FirstChildElement("exp_power");
     if (sub) {
       exp_power = std::stoi(sub->GetText());
     }
     sub = item->FirstChildElement("exp_amp");
     if (sub) {
-      exp_amp = std::stoi(sub->GetText());
+      exp_amp = std::stof(sub->GetText());
     }
     exp_power2amp_map[exp_power] = exp_amp;
   }
@@ -177,5 +182,51 @@ int32_t ResetDeviceExpAmplitudeSettingsDefaultResource() {
   }
   return 0;
 }
+
+namespace {
+static int32_t Interpolation(const std::vector<float>& x,
+                             const std::vector<float>& y,
+                             float x0) {
+  assert(x.size() == y.size());
+  float* _x = new float[x.size()];
+  float* _y = new float[y.size()];
+  for (size_t i = 0; i < x.size(); i++) {
+    _x[i] = x[i];
+    _y[i] = y[i];
+  }
+  float a = 0;
+  float b = 0;
+  anx::esolution::algorithm::LineFit(_x, _y, x.size(), &a, &b);
+  delete[] _x;
+  delete[] _y;
+  return static_cast<int32_t>(a * x0 + b);
+}
+}
+
+int32_t Amp2DeviceExpPower(const DeviceExpAmplitudeSettings& settings,
+                           float exp_amp,
+                           int32_t* exp_power) {
+  if (exp_power == nullptr) {
+    return -1;
+  }
+  // define vector with exp_power2amp_map_ size
+  std::vector<float> exp_power2amp_map(settings.exp_power2amp_map_.size());
+  // copy the exp_power2amp_map_ to the vector
+  int32_t i = 0;
+  for (const auto& item : settings.exp_power2amp_map_) {
+    exp_power2amp_map[i++] = item.second;
+  }
+  // define vector with exp_power2amp_map_ size
+  std::vector<float> exp_power2amp_map_key(settings.exp_power2amp_map_.size());
+  // copy the exp_power2amp_map_ to the vector
+  i = 0;
+  for (const auto& item : settings.exp_power2amp_map_) {
+    exp_power2amp_map_key[i++] = item.first * 1.0f;
+  }
+  // call the algorithm function
+  *exp_power = Interpolation(exp_power2amp_map, exp_power2amp_map_key, exp_amp);
+  return 0;
+}
+
 }  // namespace device
 }  // namespace anx

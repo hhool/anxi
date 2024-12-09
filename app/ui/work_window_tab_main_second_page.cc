@@ -29,6 +29,7 @@
 #include "app/device/device_com_factory.h"
 #include "app/device/device_com_settings.h"
 #include "app/device/device_com_settings_helper.h"
+#include "app/device/device_exp_amplitude_settings.h"
 #include "app/device/device_exp_data_sample_settings.h"
 #include "app/device/device_exp_graph_settings.h"
 #include "app/device/device_exp_load_static_settings.h"
@@ -1365,6 +1366,25 @@ int32_t WorkWindowSecondPage::exp_start() {
     return 0;
   }
 
+  // get amplitude from solution design and transform to power step
+  std::unique_ptr<anx::device::DeviceExpAmplitudeSettings> deas =
+      anx::device::LoadDeviceExpAmplitudeSettingsDefaultResource();
+  int32_t exp_power = 0;
+  anx::device::Amp2DeviceExpPower(
+      *deas, static_cast<float>(this->exp_amplitude_ * 2), &exp_power);
+  LOG_F(LG_INFO) << "exp_power:" << exp_power
+                 << " exp_amplitude_:" << exp_amplitude_;
+  if (exp_power < 0 || exp_power > 100) {
+    std::string msg = "功率当前值";
+    msg += anx::common::to_string_with_precision(exp_power, 0) + "，";
+    msg += "超出设备范围[0,100], 请重新设置振幅校准";
+    // format the message
+    anx::ui::DialogCommon::ShowDialog(
+        *pWorkWindow_, "错误", msg.c_str(),
+        anx::ui::DialogCommon::kDialogCommonStyleOk);
+    return -1;
+  }
+
   UpdateUIButton();
 
   UpdateExpClipTimeFromControl();
@@ -1407,6 +1427,12 @@ int32_t WorkWindowSecondPage::exp_start() {
   if (ret < 0) {
     is_exp_state_ = kExpStateUnvalid;
     LOG_F(LG_WARN) << "SetWedingTime failed";
+    return -1;
+  }
+  ret = ultra_device_->SetAmplitude(exp_power);
+  if (ret < 0) {
+    is_exp_state_ = kExpStateUnvalid;
+    LOG_F(LG_WARN) << "SetPower failed";
     return -1;
   }
   cur_freq_ = initial_frequency_ = ultra_device_->GetCurrentFreq();
