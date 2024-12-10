@@ -51,7 +51,8 @@ class WorkWindowThirdPage;
 namespace anx {
 namespace ui {
 class WorkWindow : public DuiLib::WindowImplBase,
-                   public anx::device::DeviceComListener {
+                   public anx::device::DeviceComListener,
+                   public anx::ui::UIExpStateBase {
  public:
   explicit WorkWindow(DuiLib::WindowImplBase* pOwner, int32_t solution_type);
   ~WorkWindow() override;
@@ -162,6 +163,9 @@ class WorkWindow : public DuiLib::WindowImplBase,
       // TODO(hhool):
     }
   }
+
+  // impliment anx::ui::UIExpStateBase
+  void UpdateExpError(int32_t code, const std::string& msg) override;
 
  protected:
   void OnExpStart();

@@ -47,6 +47,8 @@ typedef enum ENMsgType {
   /// @details the message is used to update the exp stress amplitude
   /// @see anx::esolution::SolutionDesign
   enmsg_type_exp_stress_amp,
+  /// @brief exp stress error message
+  enmsg_type_exp_error,
 } ENMsgType;
 
 /// @brief message struct

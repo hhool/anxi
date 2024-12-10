@@ -27,6 +27,7 @@
 #include "app/ui/work_window.h"
 #include "app/ui/work_window_menu_design.h"
 #include "app/ui/work_window_menu_store.h"
+#include "app/ui/work_window_tab_main_page_base.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 namespace anx {
@@ -316,6 +317,7 @@ PageSolutionDesignBase::ExpDesignBaseParamFromControl() {
 DUI_BEGIN_MESSAGE_MAP(WorkWindowFirstPageAxiallySymmetrical,
                       DuiLib::CNotifyPump)
 DUI_ON_MSGTYPE(DUI_MSGTYPE_CLICK, OnClick)
+DUI_ON_MSGTYPE(DUI_MSGTYPE_VALUECHANGED, OnValueChanged)
 DUI_END_MESSAGE_MAP()
 WorkWindowFirstPageAxiallySymmetrical::WorkWindowFirstPageAxiallySymmetrical(
     WorkWindow* pOwner,
@@ -372,6 +374,28 @@ void WorkWindowFirstPageAxiallySymmetrical::OnClick(TNotifyUI& msg) {
       set_enable_to_control_with_prefix("btn_solution_design_refresh",
                                         t_prefix_, paint_manager_ui_, true);
       exp_running_ = false;
+    } else {
+      // do nothing
+    }
+  }
+}
+
+void WorkWindowFirstPageAxiallySymmetrical::OnValueChanged(TNotifyUI& msg) {
+  if (msg.sType == DUI_MSGTYPE_VALUECHANGED) {
+    if (msg.pSender->GetName() == _T("work_args_area")) {
+      ENMsgStruct* enmsg = reinterpret_cast<ENMsgStruct*>(msg.wParam);
+      if (enmsg == nullptr) {
+        LOG_F(LG_ERROR) << "WorkWindowFirstPageTh3pointBending::OnValueChanged"
+                           "enmsg is nullptr";
+        return;
+      }
+      if (enmsg->type_ == enmsg_type_exp_error) {
+        set_enable_to_control_with_prefix("btn_solution_design_refresh",
+                                          t_prefix_, paint_manager_ui_, true);
+        exp_running_ = false;
+      } else {
+        // do nothing
+      }
     } else {
       // do nothing
     }
@@ -469,6 +493,7 @@ WorkWindowFirstPageAxiallySymmetrical::SolutionDesignFromPage() {
 
 DUI_BEGIN_MESSAGE_MAP(WorkWindownFirstPageStressAjustable, DuiLib::CNotifyPump)
 DUI_ON_MSGTYPE(DUI_MSGTYPE_CLICK, OnClick)
+DUI_ON_MSGTYPE(DUI_MSGTYPE_VALUECHANGED, OnValueChanged)
 DUI_END_MESSAGE_MAP()
 WorkWindownFirstPageStressAjustable::WorkWindownFirstPageStressAjustable(
     WorkWindow* pOwner,
@@ -510,6 +535,28 @@ void WorkWindownFirstPageStressAjustable::OnClick(TNotifyUI& msg) {
   if (msg.sType == kClick) {
     if (msg.pSender->GetName() == _T("btn_solution_design_refresh_stresses")) {
       // TODO(hhool):
+    }
+  }
+}
+
+void WorkWindownFirstPageStressAjustable::OnValueChanged(TNotifyUI& msg) {
+  if (msg.sType == DUI_MSGTYPE_VALUECHANGED) {
+    if (msg.pSender->GetName() == _T("work_args_area")) {
+      ENMsgStruct* enmsg = reinterpret_cast<ENMsgStruct*>(msg.wParam);
+      if (enmsg == nullptr) {
+        LOG_F(LG_ERROR) << "WorkWindowFirstPageTh3pointBending::OnValueChanged"
+                           "enmsg is nullptr";
+        return;
+      }
+      if (enmsg->type_ == enmsg_type_exp_error) {
+        set_enable_to_control_with_prefix("btn_solution_design_refresh",
+                                          t_prefix_, paint_manager_ui_, true);
+        exp_running_ = false;
+      } else {
+        // do nothing
+      }
+    } else {
+      // do nothing
     }
   }
 }
@@ -613,6 +660,7 @@ WorkWindownFirstPageStressAjustable::SolutionDesignFromPage() {
 
 DUI_BEGIN_MESSAGE_MAP(WorkWindowFirstPageTh3pointBending, DuiLib::CNotifyPump)
 DUI_ON_MSGTYPE(DUI_MSGTYPE_CLICK, OnClick)
+DUI_ON_MSGTYPE(DUI_MSGTYPE_VALUECHANGED, OnValueChanged)
 DUI_END_MESSAGE_MAP()
 WorkWindowFirstPageTh3pointBending::WorkWindowFirstPageTh3pointBending(
     WorkWindow* pOwner,
@@ -787,6 +835,28 @@ void WorkWindowFirstPageTh3pointBending::OnClick(TNotifyUI& msg) {
   }
 }
 
+void WorkWindowFirstPageTh3pointBending::OnValueChanged(TNotifyUI& msg) {
+  if (msg.sType == DUI_MSGTYPE_VALUECHANGED) {
+    if (msg.pSender->GetName() == _T("work_args_area")) {
+      ENMsgStruct* enmsg = reinterpret_cast<ENMsgStruct*>(msg.wParam);
+      if (enmsg == nullptr) {
+        LOG_F(LG_ERROR) << "WorkWindowFirstPageTh3pointBending::OnValueChanged"
+                           "enmsg is nullptr";
+        return;
+      }
+      if (enmsg->type_ == enmsg_type_exp_error) {
+        set_enable_to_control_with_prefix("btn_solution_design_refresh",
+                                          t_prefix_, paint_manager_ui_, true);
+        exp_running_ = false;
+      } else {
+        // do nothing
+      }
+    } else {
+      // do nothing
+    }
+  }
+}
+
 void WorkWindowFirstPageTh3pointBending::InitPage() {
   __super::InitPage();
 }
@@ -885,6 +955,7 @@ WorkWindowFirstPageTh3pointBending::SolutionDesignFromPage() {
 
 DUI_BEGIN_MESSAGE_MAP(WorkWindowFirstPageVibrationBending, DuiLib::CNotifyPump)
 DUI_ON_MSGTYPE(DUI_MSGTYPE_CLICK, OnClick)
+DUI_ON_MSGTYPE(DUI_MSGTYPE_VALUECHANGED, OnValueChanged)
 DUI_END_MESSAGE_MAP()
 
 WorkWindowFirstPageVibrationBending::WorkWindowFirstPageVibrationBending(
@@ -931,6 +1002,28 @@ void WorkWindowFirstPageVibrationBending::OnClick(TNotifyUI& msg) {
   if (msg.sType == kClick) {
     if (msg.pSender->GetName() == _T("btn_solution_design_refresh_vibration")) {
       // TODO(hhool):
+    }
+  }
+}
+
+void WorkWindowFirstPageVibrationBending::OnValueChanged(TNotifyUI& msg) {
+  if (msg.sType == DUI_MSGTYPE_VALUECHANGED) {
+    if (msg.pSender->GetName() == _T("work_args_area")) {
+      ENMsgStruct* enmsg = reinterpret_cast<ENMsgStruct*>(msg.wParam);
+      if (enmsg == nullptr) {
+        LOG_F(LG_ERROR) << "WorkWindowFirstPageTh3pointBending::OnValueChanged"
+                           "enmsg is nullptr";
+        return;
+      }
+      if (enmsg->type_ == enmsg_type_exp_error) {
+        set_enable_to_control_with_prefix("btn_solution_design_refresh",
+                                          t_prefix_, paint_manager_ui_, true);
+        exp_running_ = false;
+      } else {
+        // do nothing
+      }
+    } else {
+      // do nothing
     }
   }
 }
