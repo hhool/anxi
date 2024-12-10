@@ -114,20 +114,6 @@ int32_t STLoadHelper::STLoadSetup() {
     nDTCType = 0;
     nDataBlockSize = 5;
   }
-  // 力传感器P值
-  int lLoad_P = 20;
-  int lLoad_I = 0;
-  int lLoad_D = 0;
-
-  // 位移传感器P值
-  int lPosi_P = 20;
-  int lPosi_I = 0;
-  int lPosi_D = 0;
-
-  // 引伸计P值
-  int lExt_P = 30;
-  int lExt_I = 0;
-  int lExt_D = 0;
   BOOL bSuccess =
       anx::device::stload::STLoadHelper::st_load_loader_.st_api_.on_line(
           nChannelNo, 0, 0, 0, rate, machineType, nDTCType, sensorPosition,
@@ -139,6 +125,20 @@ int32_t STLoadHelper::STLoadSetup() {
     return -1;
   }
   if (version_ == 1) {
+    // 力传感器P值
+    int lLoad_P = 20;
+    int lLoad_I = 0;
+    int lLoad_D = 0;
+
+    // 位移传感器P值
+    int lPosi_P = 20;
+    int lPosi_I = 0;
+    int lPosi_D = 0;
+
+    // 引伸计P值
+    int lExt_P = 30;
+    int lExt_I = 0;
+    int lExt_D = 0;
     bSuccess =
         anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
             CH_LOAD, lLoad_P, lLoad_I, lLoad_D)
@@ -160,6 +160,47 @@ int32_t STLoadHelper::STLoadSetup() {
     bSuccess =
         anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
             CH_EXTN, lExt_P, lExt_I, lExt_D)
+            ? true
+            : false;
+    if (!bSuccess) {
+      LOG_F(LG_ERROR) << "carry_pid failed";
+      return -4;
+    }
+  } else {
+    int lLoad_P = 75;
+    int lLoad_I = 0;
+    int lLoad_D = 0;
+
+    // 位移传感器P值
+    int lPosi_P = 100;
+    int lPosi_I = 0;
+    int lPosi_D = 0;
+
+    // 引伸计P值
+    int lExt_P = 80;
+    int lExt_I = 0;
+    int lExt_D = 0;
+    bSuccess =
+        anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
+            CH_LOAD_V2, lLoad_P, lLoad_I, lLoad_D)
+            ? true
+            : false;
+    if (!bSuccess) {
+      LOG_F(LG_ERROR) << "carry_pid failed";
+      return -2;
+    }
+    bSuccess =
+        anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
+            CH_POSI_V2, lPosi_P, lPosi_I, lPosi_D)
+            ? true
+            : false;
+    if (!bSuccess) {
+      LOG_F(LG_ERROR) << "carry_pid failed";
+      return -3;
+    }
+    bSuccess =
+        anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
+            CH_EXTN_V2, lExt_P, lExt_I, lExt_D)
             ? true
             : false;
     if (!bSuccess) {

@@ -374,6 +374,7 @@ void WorkWindowSecondPage::OnValueChanged(TNotifyUI& msg) {
             st_load_achieve_target_time_ = -1;
             OnButtonStaticAircraftStop();
           } else {
+            /// TODO(hhool): will be remove keep load logic.
             LOG_F(LG_INFO) << "static load aircraft keep the target load:"
                            << st_result->load_ << " for "
                            << st_load_achieve_target_keep_duration_ms_ << " ms"
@@ -384,13 +385,6 @@ void WorkWindowSecondPage::OnValueChanged(TNotifyUI& msg) {
             if (target_load - st_result->load_ > 0.1) {
               LOG_F(LG_INFO) << "static load aircraft achieve the target load:"
                              << st_result->load_;
-              if (lss_->direct_ == 1) {
-                this->StaticAircraftDoMoveUp();
-              } else if (lss_->direct_ == 2) {
-                this->StaticAircraftDoMoveDown();
-              } else {
-                // do nothing
-              }
               /// value 2 keep load action is done
               st_load_keep_load_ = 2;
             } else {
@@ -1610,37 +1604,6 @@ bool WorkWindowSecondPage::StaticAircraftDoMoveUp() {
       speed = speed / 60.0f;
     }
   }
-  if (anx::device::stload::STLoadHelper::STLoadVersion() == 2) {
-    if (st_load_event_from_ == kSTLoadEventFromButtonUpDown) {
-      LOG_F(LG_INFO) << "carry_pid ctrl_type:" << ctrl_type
-                     << " endtype:" << endtype << " speed:" << speed
-                     << " end_value:" << end_value << " version:"
-                     << anx::device::stload::STLoadHelper::STLoadVersion()
-                     << " "
-                     << "st_load_event_from_:" << st_load_event_from_;
-      bool bSuccess =
-          anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
-              ctrl_type, 100, 1, 3);
-      if (!bSuccess) {
-        LOG_F(LG_ERROR) << "carry_pid failed";
-        return false;
-      }
-    } else {
-      LOG_F(LG_INFO) << "carry_pid ctrl_type:" << ctrl_type
-                     << " endtype:" << endtype << " speed:" << speed
-                     << " end_value:" << end_value << " version:"
-                     << anx::device::stload::STLoadHelper::STLoadVersion()
-                     << " "
-                     << "st_load_event_from_:" << st_load_event_from_;
-      bool bSuccess =
-          anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
-              ctrl_type, 100, 1, 3);
-      if (!bSuccess) {
-        LOG_F(LG_ERROR) << "carry_pid failed";
-        return false;
-      }
-    }
-  }
   LOG_F(LG_INFO) << "carry_200:" << ctrl_type << " " << endtype << " " << speed
                  << " " << end_value;
   bool bSuccess =
@@ -1651,6 +1614,24 @@ bool WorkWindowSecondPage::StaticAircraftDoMoveUp() {
   if (!bSuccess) {
     LOG_F(LG_ERROR) << "carry_200 error";
     return false;
+  }
+  /////////////////////////////////////////////////////////////////////////////
+  if (ctrl_type == CTRL_LOAD) {
+    Sleep(500);
+    int32_t version = anx::device::stload::STLoadHelper::STLoadVersion();
+    if (version == 1) {
+      endtype = END_TIME;
+    } else {
+      endtype = END_TIME_V2;
+    }
+    /// time default is 10s
+    end_value = lss_->keep_load_duration_ * 1.0f;
+    bSuccess =
+        anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_200(
+            ctrl_type, endtype, speed, end_value, 0, false, DIR_NO, 0, 1, 0);
+    if (!bSuccess) {
+      LOG_F(LG_ERROR) << "carry_200 error";
+    }
   }
   return true;
 }
@@ -1678,38 +1659,6 @@ bool WorkWindowSecondPage::StaticAircraftDoMoveDown() {
       speed = speed / 60.0f;
     }
   }
-  if (anx::device::stload::STLoadHelper::STLoadVersion() == 2) {
-    if (st_load_event_from_ == kSTLoadEventFromButtonUpDown) {
-      LOG_F(LG_INFO) << "carry_pid ctrl_type:" << ctrl_type
-                     << " endtype:" << endtype << " speed:" << speed
-                     << " end_value:" << end_value << " version:"
-                     << anx::device::stload::STLoadHelper::STLoadVersion()
-                     << " "
-                     << "st_load_event_from_:" << st_load_event_from_;
-      bool bSuccess =
-          anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
-              ctrl_type, 100, 1, 3);
-      if (!bSuccess) {
-        LOG_F(LG_ERROR) << "carry_pid failed";
-        return false;
-      }
-    } else {
-      LOG_F(LG_INFO) << "carry_pid ctrl_type:" << ctrl_type
-                     << " endtype:" << endtype << " speed:" << speed
-                     << " end_value:" << end_value << " version:"
-                     << anx::device::stload::STLoadHelper::STLoadVersion()
-                     << " "
-                     << "st_load_event_from_:" << st_load_event_from_;
-      bool bSuccess =
-          anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
-              ctrl_type, 100, 1, 3);
-      if (!bSuccess) {
-        LOG_F(LG_ERROR) << "carry_pid failed";
-        return false;
-      }
-    }
-  }
-
   LOG_F(LG_INFO) << "carry_200:" << ctrl_type << " " << endtype << " " << speed
                  << " " << end_value;
   bool bSuccess =
@@ -1720,6 +1669,24 @@ bool WorkWindowSecondPage::StaticAircraftDoMoveDown() {
   if (!bSuccess) {
     LOG_F(LG_ERROR) << "carry_200 error";
     return false;
+  }
+  /////////////////////////////////////////////////////////////////////////////
+  if (ctrl_type == CTRL_LOAD) {
+    Sleep(500);
+    int32_t version = anx::device::stload::STLoadHelper::STLoadVersion();
+    if (version == 1) {
+      endtype = END_TIME;
+    } else {
+      endtype = END_TIME_V2;
+    }
+    /// time default is 10s
+    end_value = lss_->keep_load_duration_ * 1.0f;
+    bSuccess =
+        anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_200(
+            ctrl_type, endtype, speed, end_value, 0, false, DIR_NO, 0, 1, 0);
+    if (!bSuccess) {
+      LOG_F(LG_ERROR) << "carry_200 error";
+    }
   }
   return true;
 }

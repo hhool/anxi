@@ -29,6 +29,11 @@
 #define CH_EXT6 7  // 扩展6
 #define CH_POSI 8  // 位移
 
+
+#define CH_POSI_V2 0  // 位移
+#define CH_LOAD_V2 1  // 负荷
+#define CH_EXTN_V2 2  // 引伸计
+
 // 控制方式CTRL_XXXX
 #define CTRL_LOAD 0  // 力控
 #define CTRL_EXTN 1  // 变形控
@@ -39,6 +44,11 @@
 #define END_EXTN 1  // 变形相对量,AD码
 #define END_POSI 2  // 位移相对量,脉冲数
 #define END_TIME 3  // 时间相对量,0.01s
+
+#define END_POSI_V2 0  // 位移
+#define END_LOAD_V2 1  // 负荷
+#define END_EXTN_V2 2  // 引伸计
+#define END_TIME_V2 3  // 时间
 
 // 运行方向DIR_XXXX
 #define DIR_NO 0     // 方向由下位机自己定义
