@@ -15,6 +15,7 @@
 
 #include "app/common/logger.h"
 #include "app/common/string_utils.h"
+#include "app/device/device_exp_amplitude_settings.h"
 #include "app/esolution/algorithm/alg.h"
 #include "app/esolution/solution_design.h"
 #include "app/esolution/solution_design_default.h"
@@ -27,6 +28,7 @@
 #include "app/ui/work_window.h"
 #include "app/ui/work_window_menu_design.h"
 #include "app/ui/work_window_menu_store.h"
+#include "app/ui/work_window_tab_main_page_base.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 namespace anx {
@@ -316,6 +318,7 @@ PageSolutionDesignBase::ExpDesignBaseParamFromControl() {
 DUI_BEGIN_MESSAGE_MAP(WorkWindowFirstPageAxiallySymmetrical,
                       DuiLib::CNotifyPump)
 DUI_ON_MSGTYPE(DUI_MSGTYPE_CLICK, OnClick)
+DUI_ON_MSGTYPE(DUI_MSGTYPE_VALUECHANGED, OnValueChanged)
 DUI_END_MESSAGE_MAP()
 WorkWindowFirstPageAxiallySymmetrical::WorkWindowFirstPageAxiallySymmetrical(
     WorkWindow* pOwner,
@@ -372,6 +375,28 @@ void WorkWindowFirstPageAxiallySymmetrical::OnClick(TNotifyUI& msg) {
       set_enable_to_control_with_prefix("btn_solution_design_refresh",
                                         t_prefix_, paint_manager_ui_, true);
       exp_running_ = false;
+    } else {
+      // do nothing
+    }
+  }
+}
+
+void WorkWindowFirstPageAxiallySymmetrical::OnValueChanged(TNotifyUI& msg) {
+  if (msg.sType == DUI_MSGTYPE_VALUECHANGED) {
+    if (msg.pSender->GetName() == _T("work_args_area")) {
+      ENMsgStruct* enmsg = reinterpret_cast<ENMsgStruct*>(msg.wParam);
+      if (enmsg == nullptr) {
+        LOG_F(LG_ERROR) << "WorkWindowFirstPageTh3pointBending::OnValueChanged"
+                           "enmsg is nullptr";
+        return;
+      }
+      if (enmsg->type_ == enmsg_type_exp_error) {
+        set_enable_to_control_with_prefix("btn_solution_design_refresh",
+                                          t_prefix_, paint_manager_ui_, true);
+        exp_running_ = false;
+      } else {
+        // do nothing
+      }
     } else {
       // do nothing
     }
@@ -469,6 +494,7 @@ WorkWindowFirstPageAxiallySymmetrical::SolutionDesignFromPage() {
 
 DUI_BEGIN_MESSAGE_MAP(WorkWindownFirstPageStressAjustable, DuiLib::CNotifyPump)
 DUI_ON_MSGTYPE(DUI_MSGTYPE_CLICK, OnClick)
+DUI_ON_MSGTYPE(DUI_MSGTYPE_VALUECHANGED, OnValueChanged)
 DUI_END_MESSAGE_MAP()
 WorkWindownFirstPageStressAjustable::WorkWindownFirstPageStressAjustable(
     WorkWindow* pOwner,
@@ -510,6 +536,28 @@ void WorkWindownFirstPageStressAjustable::OnClick(TNotifyUI& msg) {
   if (msg.sType == kClick) {
     if (msg.pSender->GetName() == _T("btn_solution_design_refresh_stresses")) {
       // TODO(hhool):
+    }
+  }
+}
+
+void WorkWindownFirstPageStressAjustable::OnValueChanged(TNotifyUI& msg) {
+  if (msg.sType == DUI_MSGTYPE_VALUECHANGED) {
+    if (msg.pSender->GetName() == _T("work_args_area")) {
+      ENMsgStruct* enmsg = reinterpret_cast<ENMsgStruct*>(msg.wParam);
+      if (enmsg == nullptr) {
+        LOG_F(LG_ERROR) << "WorkWindowFirstPageTh3pointBending::OnValueChanged"
+                           "enmsg is nullptr";
+        return;
+      }
+      if (enmsg->type_ == enmsg_type_exp_error) {
+        set_enable_to_control_with_prefix("btn_solution_design_refresh",
+                                          t_prefix_, paint_manager_ui_, true);
+        exp_running_ = false;
+      } else {
+        // do nothing
+      }
+    } else {
+      // do nothing
     }
   }
 }
@@ -613,6 +661,7 @@ WorkWindownFirstPageStressAjustable::SolutionDesignFromPage() {
 
 DUI_BEGIN_MESSAGE_MAP(WorkWindowFirstPageTh3pointBending, DuiLib::CNotifyPump)
 DUI_ON_MSGTYPE(DUI_MSGTYPE_CLICK, OnClick)
+DUI_ON_MSGTYPE(DUI_MSGTYPE_VALUECHANGED, OnValueChanged)
 DUI_END_MESSAGE_MAP()
 WorkWindowFirstPageTh3pointBending::WorkWindowFirstPageTh3pointBending(
     WorkWindow* pOwner,
@@ -649,7 +698,7 @@ void WorkWindowFirstPageTh3pointBending::Notify(TNotifyUI& msg) {
       if (f_elastic_modulus_GPa <= 0.0) {
         // TODO(hhool): show error message, show with tips
         anx::ui::DialogCommon::ShowDialog(
-            *pOwner_, "Error", "Elastic modulus must be greater than 0.0",
+            *pOwner_, "错误", "弹性模量必须大于0.0",
             anx::ui::DialogCommon::kDialogCommonStyleOk);
       }
     } else if (ctrl_name.find("tm_page_first_left_density") !=
@@ -660,7 +709,7 @@ void WorkWindowFirstPageTh3pointBending::Notify(TNotifyUI& msg) {
       if (f_density_kg_m3 <= 0.0f) {
         // TODO(hhool): show error message, show with tips
         anx::ui::DialogCommon::ShowDialog(
-            *pOwner_, "Error", "Density must be greater than 0.0",
+            *pOwner_, "错误", "密度必须大于0.0",
             anx::ui::DialogCommon::kDialogCommonStyleOk);
       }
     } else if (ctrl_name.find("tm_page_first_left_max_stress") !=
@@ -671,7 +720,7 @@ void WorkWindowFirstPageTh3pointBending::Notify(TNotifyUI& msg) {
       if (f_max_stress_MPa <= 0.0f) {
         // TODO(hhool): show error message, show with tips
         anx::ui::DialogCommon::ShowDialog(
-            *pOwner_, "Error", "Max stress must be greater than 0.0",
+            *pOwner_, "错误", "最大应力必须大于0.0",
             anx::ui::DialogCommon::kDialogCommonStyleOk);
       }
     } else if (ctrl_name.find("tm_page_first_left_ratio_stress") !=
@@ -682,7 +731,7 @@ void WorkWindowFirstPageTh3pointBending::Notify(TNotifyUI& msg) {
       if (f_stress_ratio <= 0.0f) {
         // TODO(hhool): show error message, show with tips
         anx::ui::DialogCommon::ShowDialog(
-            *pOwner_, "Error", "Stress ratio must be greater than 0.0",
+            *pOwner_, "错误", "应力比必须大于0.0",
             anx::ui::DialogCommon::kDialogCommonStyleOk);
       }
     }
@@ -783,6 +832,47 @@ void WorkWindowFirstPageTh3pointBending::OnClick(TNotifyUI& msg) {
       }
       pOwner_->UpdateArgsArea(-1, -1, f_amplitude, f_static_load_MPa,
                               f_max_stress_MPa, f_stress_ratio);
+      if (f_amplitude != -1.0f) {
+        // get amplitude from solution design and
+        // transform to power step
+        std::unique_ptr<anx::device::DeviceExpAmplitudeSettings> deas =
+            anx::device::LoadDeviceExpAmplitudeSettingsDefaultResource();
+        int32_t exp_power = 0;
+        anx::device::Amp2DeviceExpPower(
+            *deas, static_cast<float>(f_amplitude * 2), &exp_power);
+        LOG_F(LG_INFO) << "exp_power:" << exp_power
+                       << " exp_amplitude_:" << f_amplitude;
+        /// TODO(hhool): make 20 and 100 to const as 2000C property
+        if (exp_power < 20 || exp_power > 100) {
+          std::string msg = "超出振幅范围";
+          // format the message
+          anx::ui::DialogCommon::ShowDialog(
+              *pOwner_, "错误", msg.c_str(),
+              anx::ui::DialogCommon::kDialogCommonStyleOk);
+        }
+      }
+    }
+  }
+}
+
+void WorkWindowFirstPageTh3pointBending::OnValueChanged(TNotifyUI& msg) {
+  if (msg.sType == DUI_MSGTYPE_VALUECHANGED) {
+    if (msg.pSender->GetName() == _T("work_args_area")) {
+      ENMsgStruct* enmsg = reinterpret_cast<ENMsgStruct*>(msg.wParam);
+      if (enmsg == nullptr) {
+        LOG_F(LG_ERROR) << "WorkWindowFirstPageTh3pointBending::OnValueChanged"
+                           "enmsg is nullptr";
+        return;
+      }
+      if (enmsg->type_ == enmsg_type_exp_error) {
+        set_enable_to_control_with_prefix("btn_solution_design_refresh",
+                                          t_prefix_, paint_manager_ui_, true);
+        exp_running_ = false;
+      } else {
+        // do nothing
+      }
+    } else {
+      // do nothing
     }
   }
 }
@@ -885,6 +975,7 @@ WorkWindowFirstPageTh3pointBending::SolutionDesignFromPage() {
 
 DUI_BEGIN_MESSAGE_MAP(WorkWindowFirstPageVibrationBending, DuiLib::CNotifyPump)
 DUI_ON_MSGTYPE(DUI_MSGTYPE_CLICK, OnClick)
+DUI_ON_MSGTYPE(DUI_MSGTYPE_VALUECHANGED, OnValueChanged)
 DUI_END_MESSAGE_MAP()
 
 WorkWindowFirstPageVibrationBending::WorkWindowFirstPageVibrationBending(
@@ -931,6 +1022,28 @@ void WorkWindowFirstPageVibrationBending::OnClick(TNotifyUI& msg) {
   if (msg.sType == kClick) {
     if (msg.pSender->GetName() == _T("btn_solution_design_refresh_vibration")) {
       // TODO(hhool):
+    }
+  }
+}
+
+void WorkWindowFirstPageVibrationBending::OnValueChanged(TNotifyUI& msg) {
+  if (msg.sType == DUI_MSGTYPE_VALUECHANGED) {
+    if (msg.pSender->GetName() == _T("work_args_area")) {
+      ENMsgStruct* enmsg = reinterpret_cast<ENMsgStruct*>(msg.wParam);
+      if (enmsg == nullptr) {
+        LOG_F(LG_ERROR) << "WorkWindowFirstPageTh3pointBending::OnValueChanged"
+                           "enmsg is nullptr";
+        return;
+      }
+      if (enmsg->type_ == enmsg_type_exp_error) {
+        set_enable_to_control_with_prefix("btn_solution_design_refresh",
+                                          t_prefix_, paint_manager_ui_, true);
+        exp_running_ = false;
+      } else {
+        // do nothing
+      }
+    } else {
+      // do nothing
     }
   }
 }

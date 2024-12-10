@@ -29,6 +29,10 @@ class UIVirtualWndBase {
   virtual void Unbind() = 0;
 };
 
+class UIExpStateBase {
+ public:
+  virtual void UpdateExpError(int32_t code, const std::string& msg) = 0;
+};
 }  // namespace ui
 }  // namespace anx
 

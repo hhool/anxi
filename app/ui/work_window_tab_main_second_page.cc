@@ -905,8 +905,22 @@ void WorkWindowSecondPage::OnExpStart() {
     return;
   }
   exp_pause_stop_reason_ = kExpPauseStopReasonNone;
-  /// @note start the ultrasound device
-  exp_start();
+  /// @note start exp action
+  int32_t ret = exp_start();
+  if (ret != 0) {
+    LOG_F(LG_ERROR) << "exp_start error:" << ret;
+    std::string msg = "未知设备错误";
+    if (ret == -1) {
+      msg = "超出振幅范围"; 
+	}
+    // format the message
+    anx::ui::DialogCommon::ShowDialog(
+        *pWorkWindow_, "错误", msg.c_str(),
+        anx::ui::DialogCommon::kDialogCommonStyleOk);
+    pWorkWindow_->UpdateExpError(-10, "exp_start error");
+    user_exp_state_ = kExpStateUnvalid;
+    return;
+  }
 }
 
 void WorkWindowSecondPage::OnExpStop() {
@@ -1368,14 +1382,8 @@ int32_t WorkWindowSecondPage::exp_start() {
       *deas, static_cast<float>(this->exp_amplitude_ * 2), &exp_power);
   LOG_F(LG_INFO) << "exp_power:" << exp_power
                  << " exp_amplitude_:" << exp_amplitude_;
-  if (exp_power < 0 || exp_power > 100) {
-    std::string msg = "功率当前值";
-    msg += anx::common::to_string_with_precision(exp_power, 0) + "，";
-    msg += "超出设备范围[0,100], 请重新设置振幅校准";
-    // format the message
-    anx::ui::DialogCommon::ShowDialog(
-        *pWorkWindow_, "错误", msg.c_str(),
-        anx::ui::DialogCommon::kDialogCommonStyleOk);
+  /// TODO(hhool): check the exp_power is valid or not valid
+  if (exp_power < 20 || exp_power > 100) {
     return -1;
   }
 
@@ -1421,13 +1429,13 @@ int32_t WorkWindowSecondPage::exp_start() {
   if (ret < 0) {
     is_exp_state_ = kExpStateUnvalid;
     LOG_F(LG_WARN) << "SetWedingTime failed";
-    return -1;
+    return -2;
   }
   ret = ultra_device_->SetAmplitude(exp_power);
   if (ret < 0) {
     is_exp_state_ = kExpStateUnvalid;
     LOG_F(LG_WARN) << "SetPower failed";
-    return -1;
+    return -3;
   }
   cur_freq_ = initial_frequency_ = ultra_device_->GetCurrentFreq();
   cur_power_ = initial_power_ = ultra_device_->GetCurrentPower();
@@ -1435,7 +1443,7 @@ int32_t WorkWindowSecondPage::exp_start() {
     is_exp_state_ = kExpStateUnvalid;
     LOG_F(LG_WARN) << "initial_frequency_:" << initial_frequency_
                    << " initial_power_:" << initial_power_;
-    return -1;
+    return -4;
   }
   /// @brief start the ultrasound device if the sampling start pos is 0
   /// else will done with OnTimer
@@ -1443,7 +1451,7 @@ int32_t WorkWindowSecondPage::exp_start() {
     if (ultra_device_->StartUltra() < 0) {
       is_exp_state_ = kExpStateUnvalid;
       LOG_F(LG_WARN) << "StartUltra failed";
-      return -1;
+      return -5;
     }
   }
 

@@ -212,6 +212,13 @@ if(ANXI_BUILD_UNITTEST)
     add_executable(app_esolution_alg_unittest ${APP_ESOLUTION_ALG_UNITTEST_FILES})
     target_link_libraries(app_esolution_alg_unittest gtest_main gtest app_ui)
     set_target_properties(app_esolution_alg_unittest PROPERTIES FOLDER "app_unittest")
+
+    set(APP_ESOLUTION_ALG_FITLINE_UNITTEST_FILES
+        esolution/algorithm/alg_fitline_unittest.cc)
+    source_group("algorithm_unittest" FILES ${APP_ESOLUTION_ALG_FITLINE_UNITTEST_FILES})
+    add_executable(app_esolution_alg_fitline_unittest ${APP_ESOLUTION_ALG_FITLINE_UNITTEST_FILES})
+    target_link_libraries(app_esolution_alg_fitline_unittest gtest_main gtest app_ui)
+    set_target_properties(app_esolution_alg_fitline_unittest PROPERTIES FOLDER "app_unittest")
 endif()
 
 set(APP_FILES

@@ -162,9 +162,6 @@ bool DialogAmplitudeCalibrationSettings::OnEditControlChanged(void* param) {
   } else {
     return false;
   }
-  if (save) {
-    SaveSettingsToResource();
-  }
   return true;
 }
 

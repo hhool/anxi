@@ -52,6 +52,7 @@ class WorkWindowFirstPageAxiallySymmetrical : public DuiLib::CNotifyPump,
  public:
   DUI_DECLARE_MESSAGE_MAP()
   void OnClick(TNotifyUI& msg);  // NOLINT
+  void OnValueChanged(TNotifyUI& msg);  // NOLINT
 
  public:
   std::unique_ptr<anx::esolution::SolutionDesign> SolutionDesignFromPage()
@@ -88,6 +89,7 @@ class WorkWindownFirstPageStressAjustable : public DuiLib::CNotifyPump,
  public:
   DUI_DECLARE_MESSAGE_MAP()
   void OnClick(TNotifyUI& msg);  // NOLINT
+  void OnValueChanged(TNotifyUI& msg);  // NOLINT
 
  public:
   std::unique_ptr<anx::esolution::SolutionDesign> SolutionDesignFromPage()
@@ -123,6 +125,7 @@ class WorkWindowFirstPageTh3pointBending : public DuiLib::CNotifyPump,
  public:
   DUI_DECLARE_MESSAGE_MAP()
   void OnClick(TNotifyUI& msg);  // NOLINT
+  void OnValueChanged(TNotifyUI& msg);  // NOLINT
 
  public:
   std::unique_ptr<anx::esolution::SolutionDesign> SolutionDesignFromPage()
@@ -155,6 +158,7 @@ class WorkWindowFirstPageVibrationBending : public DuiLib::CNotifyPump,
 
  public:
   void Notify(TNotifyUI& msg) override;
+  void OnValueChanged(TNotifyUI& msg);  // NOLINT
 
  public:
   DUI_DECLARE_MESSAGE_MAP()

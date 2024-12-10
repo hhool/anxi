@@ -199,9 +199,19 @@ static int32_t Interpolation(const std::vector<float>& x,
   anx::esolution::algorithm::LineFit(_x, _y, x.size(), &a, &b);
   delete[] _x;
   delete[] _y;
+  LOG_F(LG_INFO) << "a:" << a << " b:" << b << " x0:" << x0;
+  LOG_F(LG_INFO) << "result:" << a * x0 + b << " "
+                 << static_cast<int32_t>(a * x0 + b);
+  /// TODO(hhool): eg 20.1 -> 21 20.09 -> 20
+  /// 100.f utral device power step max
+  float result = a * x0 + b;
+  if (result >= 20.f && result - static_cast<int32_t>(result) >= 0.1f ||
+      result > 100.f) {
+    return static_cast<int32_t>(result) + 1;
+  }
   return static_cast<int32_t>(a * x0 + b);
 }
-}
+}  // namespace
 
 int32_t Amp2DeviceExpPower(const DeviceExpAmplitudeSettings& settings,
                            float exp_amp,
@@ -216,6 +226,8 @@ int32_t Amp2DeviceExpPower(const DeviceExpAmplitudeSettings& settings,
   for (const auto& item : settings.exp_power2amp_map_) {
     exp_power2amp_map[i++] = item.second;
   }
+  float min_amp_value =
+      (exp_power2amp_map.size() > 0) ? exp_power2amp_map[0] : 0.0f;
   // define vector with exp_power2amp_map_ size
   std::vector<float> exp_power2amp_map_key(settings.exp_power2amp_map_.size());
   // copy the exp_power2amp_map_ to the vector
@@ -225,6 +237,12 @@ int32_t Amp2DeviceExpPower(const DeviceExpAmplitudeSettings& settings,
   }
   // call the algorithm function
   *exp_power = Interpolation(exp_power2amp_map, exp_power2amp_map_key, exp_amp);
+  if (*exp_power < 20 || *exp_power > 100) {
+    float half_exp_amp = exp_amp / 2;
+    if (exp_amp > min_amp_value && *exp_power < 20) {
+      *exp_power = 20;
+    }
+  }
   return 0;
 }
 

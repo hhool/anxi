@@ -14,6 +14,8 @@
 #include <math.h>
 #include <iostream>
 
+#include "app/common/logger.h"
+
 namespace anx {
 namespace esolution {
 namespace algorithm {
@@ -24,6 +26,7 @@ void LineFit(float x[], float y[], int n, float* a, float* b) {
   float sumx2 = 0.0;
   float sumxy = 0.0;
   for (int i = 0; i < n; i++) {
+    LOG_F(LG_SENSITIVE) << "x=" << x[i] << ", y=" << y[i];
     sumx += x[i];
     sumy += y[i];
     sumx2 += x[i] * x[i];
@@ -32,27 +35,10 @@ void LineFit(float x[], float y[], int n, float* a, float* b) {
   float a1 = n * sumxy - sumx * sumy;
   float a2 = n * sumx2 - sumx * sumx;
   *a = a1 / a2;
+  LOG_F(LG_SENSITIVE) << "a1=" << a1 << ", a2=" << a2 << ", a=" << *a;
   *b = (sumy - (*a) * sumx) / n;
+  LOG_F(LG_SENSITIVE) << "b=" << *b << ", sumy=" << sumy << ", sumx=" << sumx;
 }
-
-void lineFit(float x[], float y[], int n, float* a, float* b) {
-  float avgX = 0, avgY = 0;
-  float Lxx = 0, Lyy = 0, Lxy = 0;
-  for (int i = 0; i < n; i++) {
-    avgX += x[i] / n;
-    avgY += y[i] / n;
-  }
-  for (int i = 0; i < n; i++) {
-    Lxy += (x[i] - avgX) * (y[i] - avgY);
-    Lxx += (x[i] - avgX) * (x[i] - avgX);
-    Lyy += (y[i] - avgY) * (y[i] - avgY);
-  }
-  *a = Lxy / Lxx;
-  *b = avgY - (*a) * avgX;
-  std::cout << "相关系数r=" << Lxy / sqrt(Lxx * Lyy) << std::endl;
-  std::cout << "线性方程:" << "y=" << *a << "+" << *b << "x" << std::endl;
-}
-
 }  // namespace algorithm
 }  // namespace esolution
 }  // namespace anx

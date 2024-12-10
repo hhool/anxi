@@ -129,10 +129,14 @@ TEST_F(UltraDeviceTest, SetAndGetAmplitude) {
   anx::device::ComSettings com_settings(anx::device::kDeviceCom_Ultrasound,
                                         com_port_name_.c_str(), &com_port_);
   EXPECT_EQ(0, ultra_device_->Open(com_settings));
+  EXPECT_NE(0, ultra_device_->SetAmplitude(120));
+  EXPECT_NE(120, ultra_device_->GetAmplitude());
   EXPECT_EQ(0, ultra_device_->SetAmplitude(100));
   EXPECT_EQ(100, ultra_device_->GetAmplitude());
   EXPECT_EQ(0, ultra_device_->SetAmplitude(20));
   EXPECT_EQ(20, ultra_device_->GetAmplitude());
+  EXPECT_NE(0, ultra_device_->SetAmplitude(19));
+  EXPECT_NE(19, ultra_device_->GetAmplitude());
   anx::common::sleep_ms(kSleepTimeMs);
   ultra_device_->StopUltra();
 

@@ -65,34 +65,6 @@ TEST(AlgTest, FitLine4) {
   EXPECT_NEAR(y5, 25.0, 0.0001);
 }
 
-TEST(AlgTest, FitLine5) {
-  float x[] = {30, 38, 47, 54};
-  float y[] = {20, 40, 60, 80};
-
-  float a, b;
-  lineFit(x, y, 4, &a, &b);
-  EXPECT_NEAR(a, 1.0, 0.0001);
-  EXPECT_NEAR(b, -20.0, 0.0001);
-  float x5 = 28.34f * 2.0f;
-  float y5 = a * x5 + b;
-  int32_t y5_i = static_cast<int32_t>(y5);
-  EXPECT_NEAR(y5, 25.0, 0.0001);
-}
-
-TEST(AlgTest, FitLine6) {
-  float x[] = {37, 46, 56, 63};
-  float y[] = {20, 40, 60, 80};
-
-  float a, b;
-  lineFit(x, y, 4, &a, &b);
-  EXPECT_NEAR(a, 1.0, 0.0001);
-  EXPECT_NEAR(b, -20.0, 0.0001);
-  float x5 = 28.34f * 2.0f;
-  float y5 = a * x5 + b;
-  int32_t y5_i = static_cast<int32_t>(y5);
-  EXPECT_NEAR(y5, 25.0, 0.0001);
-}
-
 TEST(AlgTest, CalcLengthOfTh3Design) {
   double E = 116;                            // 10^9 MPa
   double h = 4;                              // height mm
