@@ -348,6 +348,9 @@ add_custom_command(TARGET app_exe POST_BUILD
     ${PROJECT_SOURCE_DIR}/resource/template ${PROJECT_BINARY_DIR}/../bin/${CMAKE_BUILD_TYPE}/template)
 add_custom_command(TARGET app_exe POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${PROJECT_SOURCE_DIR}/resource/pilot ${PROJECT_BINARY_DIR}/../bin/${CMAKE_BUILD_TYPE}/pilot)
+add_custom_command(TARGET app_exe POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${PROJECT_SOURCE_DIR}/resource/default ${PROJECT_BINARY_DIR}/../bin/${CMAKE_BUILD_TYPE}/default)
 add_custom_command(TARGET app_exe POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory

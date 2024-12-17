@@ -15,6 +15,7 @@ install(FILES ${PROJECT_SOURCE_DIR}/app/resource/pilot/etm/WanceMachine.mdb DEST
 install(FILES ${PROJECT_SOURCE_DIR}/app/resource/pilot/etm2/CTRL2.dll DESTINATION bin COMPONENT binaries)
 install(FILES ${PROJECT_SOURCE_DIR}/app/resource/pilot/etm2/TestLeader-CN.sys DESTINATION bin COMPONENT binaries)
 install(FILES ${PROJECT_SOURCE_DIR}/app/resource/pilot/etm2/WanceMachine-CN.mdb DESTINATION bin COMPONENT binaries)
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/app/resource/pilot DESTINATION bin COMPONENT binaries)
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/app/resource/template DESTINATION bin COMPONENT binaries)
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/app/resource/default DESTINATION bin COMPONENT binaries)
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/app/resource/db DESTINATION bin COMPONENT binaries)

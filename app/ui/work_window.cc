@@ -80,7 +80,8 @@ WorkWindow::WorkWindow(DuiLib::WindowImplBase* pOwner, int32_t solution_type)
   if (ver == 2) {
     anx::device::stload::STLoadHelper::InitStLoad(2);
   } else {
-    anx::device::stload::STLoadHelper::InitStLoad(1);
+	std::string sensor = anx::settings::SettingSTLoad::GetEnableStloadSensor();
+    anx::device::stload::STLoadHelper::InitStLoad(1, sensor.c_str());
   }
   anx::device::ultrasonic::UltrasonicHelper::InitUltrasonic();
   // database initial
@@ -1122,85 +1123,84 @@ void WorkWindow::UpdateExpError(int32_t code, const std::string& message) {
   tab_main_pages_["WorkWindowSecondPage"]->NotifyPump(msg);
 }
 
-  void WorkWindow::OnExpStart() {
-    is_exp_state_ = kExpStateStart;
+void WorkWindow::OnExpStart() {
+  is_exp_state_ = kExpStateStart;
 
-    std::unique_ptr<anx::esolution::SolutionDesign> design =
-        solution_design_base_->SolutionDesignFromPage();
-    if (design == nullptr) {
-      LOG_F(LG_ERROR) << "SolutionDesignFromPage failed";
-      return;
-    }
-
-    exp_report_.reset(new anx::expdata::ExperimentReport());
-    exp_report_->start_time_ = time(nullptr);
-    exp_report_->elastic_modulus_ = design->base_param_->f_elastic_modulus_GPa_;
-    exp_report_->density_ = design->base_param_->f_density_kg_m3_;
-    exp_report_->max_stress_ = design->base_param_->f_max_stress_MPa_;
-    exp_report_->ratio_stress_ = design->base_param_->f_stress_ratio_;
-    exp_report_->amplitude_ =
-        reinterpret_cast<anx::esolution::ExpDesignResult0*>(
-            design->result_.get())
-            ->f_eamplitude_;
-    exp_report_->experiment_name_.assign(
-        design->header_->name_,
-        design->header_->name_ + strlen((const char*)(design->header_->name_)));
-    DuiLib::TNotifyUI msg;
-    msg.pSender = this->h_layout_args_area_;
-    msg.sType = kValueChanged;
-    ENMsgStruct enmsg;
-    enmsg.ptr_ = design.get();
-    enmsg.type_ = enmsg_type_exp_stress_amp;
-    msg.wParam = reinterpret_cast<WPARAM>(&enmsg);
-    tab_main_pages_["WorkWindowThirdPage"]->NotifyPump(msg);
-    tab_main_pages_["WorkWindowSecondPage"]->NotifyPump(msg);
+  std::unique_ptr<anx::esolution::SolutionDesign> design =
+      solution_design_base_->SolutionDesignFromPage();
+  if (design == nullptr) {
+    LOG_F(LG_ERROR) << "SolutionDesignFromPage failed";
+    return;
   }
 
-  void WorkWindow::OnExpStop() {
-    is_exp_state_ = kExpStateStop;
+  exp_report_.reset(new anx::expdata::ExperimentReport());
+  exp_report_->start_time_ = time(nullptr);
+  exp_report_->elastic_modulus_ = design->base_param_->f_elastic_modulus_GPa_;
+  exp_report_->density_ = design->base_param_->f_density_kg_m3_;
+  exp_report_->max_stress_ = design->base_param_->f_max_stress_MPa_;
+  exp_report_->ratio_stress_ = design->base_param_->f_stress_ratio_;
+  exp_report_->amplitude_ =
+      reinterpret_cast<anx::esolution::ExpDesignResult0*>(design->result_.get())
+          ->f_eamplitude_;
+  exp_report_->experiment_name_.assign(
+      design->header_->name_,
+      design->header_->name_ + strlen((const char*)(design->header_->name_)));
+  DuiLib::TNotifyUI msg;
+  msg.pSender = this->h_layout_args_area_;
+  msg.sType = kValueChanged;
+  ENMsgStruct enmsg;
+  enmsg.ptr_ = design.get();
+  enmsg.type_ = enmsg_type_exp_stress_amp;
+  msg.wParam = reinterpret_cast<WPARAM>(&enmsg);
+  tab_main_pages_["WorkWindowThirdPage"]->NotifyPump(msg);
+  tab_main_pages_["WorkWindowSecondPage"]->NotifyPump(msg);
+}
+
+void WorkWindow::OnExpStop() {
+  is_exp_state_ = kExpStateStop;
+  if (exp_report_.get()) {
+    exp_report_->end_time_ = time(nullptr);
+  }
+}
+
+void WorkWindow::ClearArgsFreqNum() {
+  // clear freq num
+  set_value_to_button(btn_args_area_value_freq_num_, 0);
+}
+
+void WorkWindow::UpdateArgsArea(int64_t cycle_count,
+                                double freq,
+                                double amplitude,
+                                double static_load,
+                                double max_stress,
+                                double ratio_stress) {
+  DuiLib::CDuiString value;
+  // update cycle count
+  if (cycle_count >= 0) {
+    set_value_to_button(btn_args_area_value_freq_num_, cycle_count);
     if (exp_report_.get()) {
-      exp_report_->end_time_ = time(nullptr);
+      exp_report_->cycle_count_ = cycle_count;
     }
   }
-
-  void WorkWindow::ClearArgsFreqNum() {
-    // clear freq num
-    set_value_to_button(btn_args_area_value_freq_num_, 0);
+  // update freq
+  if (freq >= 0) {
+    set_value_to_button(btn_args_area_value_freq_, freq / 1000.0f, 3);
   }
-
-  void WorkWindow::UpdateArgsArea(int64_t cycle_count,
-                                  double freq,
-                                  double amplitude,
-                                  double static_load,
-                                  double max_stress,
-                                  double ratio_stress) {
-    DuiLib::CDuiString value;
-    // update cycle count
-    if (cycle_count >= 0) {
-      set_value_to_button(btn_args_area_value_freq_num_, cycle_count);
-      if (exp_report_.get()) {
-        exp_report_->cycle_count_ = cycle_count;
-      }
-    }
-    // update freq
-    if (freq >= 0) {
-      set_value_to_button(btn_args_area_value_freq_, freq / 1000.0f, 3);
-    }
-    // update amplitude
-    if (amplitude >= 0) {
-      set_value_to_button(btn_args_area_value_amplitude_, amplitude, 2);
-    }
-    // update static load
-    if (static_load >= 0) {
-      set_value_to_button(btn_args_area_value_static_load_, static_load, 2);
-    }
-    if (max_stress >= 0) {
-      set_value_to_button(btn_args_area_value_max_stress_, max_stress);
-    }
-    if (ratio_stress >= 0) {
-      set_value_to_button(btn_args_area_value_stress_ratio_, ratio_stress);
-    }
+  // update amplitude
+  if (amplitude >= 0) {
+    set_value_to_button(btn_args_area_value_amplitude_, amplitude, 2);
   }
+  // update static load
+  if (static_load >= 0) {
+    set_value_to_button(btn_args_area_value_static_load_, static_load, 2);
+  }
+  if (max_stress >= 0) {
+    set_value_to_button(btn_args_area_value_max_stress_, max_stress);
+  }
+  if (ratio_stress >= 0) {
+    set_value_to_button(btn_args_area_value_stress_ratio_, ratio_stress);
+  }
+}
 
 }  // namespace ui
 }  // namespace anx

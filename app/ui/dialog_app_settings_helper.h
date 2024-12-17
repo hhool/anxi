@@ -24,12 +24,22 @@ class SettingSTLoad {
   ~SettingSTLoad() {}
   class STLoadItem {
    public:
-    STLoadItem(const std::string& name, const std::string& id, bool enabled)
-        : name_(name), id_(id), enable_(enabled) {}
+    /// @brief  STLoadItem constructor
+    /// @param name  name of the stload item
+    /// @param id  id of the stload item
+    /// @param enabled  enable or disable the stload item
+    /// @param sensor  sensor of the stload item default is "default", can be
+    /// set "1KN"or "2KN" or "3KN" and so on
+    STLoadItem(const std::string& name,
+               const std::string& id,
+               bool enabled,
+               const std::string& sensor)
+        : name_(name), id_(id), enable_(enabled), sensor_(sensor) {}
     ~STLoadItem() {}
     std::string name_;
     std::string id_;
     bool enable_ = false;
+    std::string sensor_ = "default";
   };
   static int32_t LoadStloadList(
       std::vector<SettingSTLoad::STLoadItem>* stload_list);
@@ -38,14 +48,17 @@ class SettingSTLoad {
   static int32_t GetEnableStloadVersionFromList(
       const std::vector<SettingSTLoad::STLoadItem>& stload_list);
   static int32_t GetEnableStloadVersion();
+  static std::string GetEnableStloadSensor();
+  static int32_t ResetStload();
+
  public:
   std::string stload_dll_path_;
 };
 
 class SettingAppThird {
  public:
-  SettingAppThird();
-  ~SettingAppThird();
+  SettingAppThird() {}
+  ~SettingAppThird() {}
 
   /// @brief load third app from xml file app_settings_third_app.xml
   /// @return std::vector<std::string> third app info pos 0: name, pos 1: path

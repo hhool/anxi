@@ -74,10 +74,44 @@ STLoadLoader anx::device::stload::STLoadHelper::st_load_loader_;
 bool anx::device::stload::STLoadHelper::is_stload_simulation_ = false;
 int32_t anx::device::stload::STLoadHelper::version_ = 1;
 
-bool STLoadHelper::InitStLoad(int32_t version) {
+bool STLoadHelper::InitStLoad(int32_t version, const char* sensor) {
   std::string module_dir = anx::common::GetModuleDir();
   std::string module_path = module_dir;
   if (version == 1) {
+    // compare sensor with 1KN
+    std::string file_settings_path =
+        anx::common::GetModuleDir() + anx::common::kPathSeparator + "pilot";
+    std::string dst_path = anx::common::GetApplicationDataPath("anxi") +
+                           anx::common::kPathSeparator;
+    std::string file_hard_param = "HardPara.mdb";
+    std::string file_test_pilot = "TestPilot.ini";
+    std::string file_wance_machine = "WanceMachine.mdb";
+    std::string file_ctrl = "CTRL.dll";
+    std::string file_list[] = {file_hard_param, file_test_pilot,
+                               file_wance_machine, file_ctrl};
+    if (!sensor || strcmp(sensor, "1KN") == 0) {
+      file_settings_path += anx::common::kPathSeparator;
+      file_settings_path += "ETM_";
+      file_settings_path += sensor;
+    } else if (!sensor || strcmp(sensor, "2KN") == 0) {
+      file_settings_path += anx::common::kPathSeparator;
+      file_settings_path += "ETM_";
+      file_settings_path += sensor;
+    } else {
+      LOG_F(LG_ERROR) << "sensor not supported: " << sensor;
+      return false;
+    }
+    for (const auto& file : file_list) {
+      std::string src_file =
+          file_settings_path + anx::common::kPathSeparator + file;
+      std::string dst_file = dst_path + file;
+      if (!anx::common::CCopyFile(src_file, dst_file)) {
+        LOG_F(LG_ERROR) << "copy file failed: " << src_file << " to "
+                        << dst_file;
+        return false;
+      }
+    }
+    module_path = dst_path;
     module_path += "\\CTRL.dll";
   } else {
     module_path += "\\CTRL2.dll";

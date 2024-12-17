@@ -74,6 +74,8 @@ void DialogAppSettingsCommon::OnClick(DuiLib::TNotifyUI& msg) {
     SaveSettingsToResource();
   } else if (msg.pSender->GetName() == _T("btn_e10c_pilot_params_reset")) {
     OnBtnThirdAppReset();
+  } else if (msg.pSender->GetName() == _T("btn_stload_params_reset")) {
+    OnBtnStloadReset();
   } else {
     // TODO(hhool): do nothing
   }
@@ -103,6 +105,61 @@ void DialogAppSettingsCommon::OnSelectChanged(DuiLib::TNotifyUI& msg) {
         stload.enable_ = false;
       }
     }
+
+    bool enable_sensor = false;
+    enable_sensor = index == 0 ? true : false;
+    DuiLib::CHorizontalLayoutUI* hlayout_stload_N =
+        static_cast<DuiLib::CHorizontalLayoutUI*>(
+            paint_manager_ui_->FindControl(_T("hlayout_stload_N")));
+    hlayout_stload_N->SetVisible(enable_sensor);
+    if (enable_sensor) {
+      DuiLib::CComboUI* combo_stload_sensor = static_cast<DuiLib::CComboUI*>(
+          paint_manager_ui_->FindControl(_T("combo_stload_N")));
+      // enum combo_stload_sensor text
+      int32_t i = 0;
+      int32_t select_index = 0;
+      std::string sensor_val = "default";
+      for (const auto& stload : stloads_) {
+        if (stload.enable_) {
+          sensor_val = stload.sensor_;
+          break;
+        }
+      }
+      // sensor_val to index of combo_stload_sensor
+      if (sensor_val == "1KN") {
+        select_index = 0;
+      } else if (sensor_val == "2KN") {
+        select_index = 1;
+      } else if (sensor_val == "3KN") {
+        select_index = 2;
+      } else {
+        select_index = -1;
+      }
+      if (select_index < 0) {
+        return;
+      }
+      combo_stload_sensor->SelectItem(select_index);
+    }
+  } else if (msg.pSender->GetName() == _T("combo_stload_N")) {
+    DuiLib::CComboUI* combo_stload_sensor = static_cast<DuiLib::CComboUI*>(
+        paint_manager_ui_->FindControl(_T("combo_stload_N")));
+    int32_t index = combo_stload_sensor->GetCurSel();
+    if (index < 0) {
+      return;
+    }
+    DuiLib::CControlUI* control = combo_stload_sensor->GetItemAt(index);
+    if (control == nullptr) {
+      return;
+    }
+    DuiLib::CDuiString text = control->GetText();
+    std::string sensor = anx::common::UnicodeToUTF8(text.GetData());
+    for (auto& stload : stloads_) {
+      if (stload.enable_) {
+        stload.sensor_ = sensor;
+      }
+    }
+  } else {
+    // do nothing
   }
 }
 
@@ -141,6 +198,67 @@ void DialogAppSettingsCommon::OnBtnThirdAppReset() {
   edit_third_app->SetText(anx::common::UTF8ToUnicode(third_app_path_).c_str());
 }
 
+void DialogAppSettingsCommon::OnBtnStloadReset() {
+  int32_t ret = anx::settings::SettingSTLoad::ResetStload();
+  if (ret != 0) {
+    LOG_F(LG_ERROR) << "ResetStload failed";
+    return;
+  }
+  std::vector<anx::settings::SettingSTLoad::STLoadItem> stloads;
+  ret = anx::settings::SettingSTLoad::LoadStloadList(&stloads);
+  if (ret != 0) {
+    LOG_F(LG_ERROR) << "LoadStloadList failed";
+    return;
+  }
+  stloads_ = stloads;
+  DuiLib::CComboUI* combo_stload = static_cast<DuiLib::CComboUI*>(
+      paint_manager_ui_->FindControl(_T("combo_stload_version")));
+  int32_t i = 0;
+  int32_t select_index = 0;
+  for (const auto& stload : stloads_) {
+    combo_stload->GetItemAt(i++)->SetText(
+        anx::common::UTF8ToUnicode(stload.name_).c_str());
+    if (stload.enable_) {
+      select_index = i - 1;
+    }
+  }
+  combo_stload->SelectItem(select_index);
+  bool enable_sensor = false;
+  enable_sensor = select_index == 0 ? true : false;
+  DuiLib::CHorizontalLayoutUI* hlayout_stload_N =
+      static_cast<DuiLib::CHorizontalLayoutUI*>(
+          paint_manager_ui_->FindControl(_T("hlayout_stload_N")));
+  hlayout_stload_N->SetVisible(enable_sensor);
+  if (enable_sensor) {
+    DuiLib::CComboUI* combo_stload_sensor = static_cast<DuiLib::CComboUI*>(
+        paint_manager_ui_->FindControl(_T("combo_stload_N")));
+    // enum combo_stload_sensor text
+    int32_t i = 0;
+    int32_t select_index = 0;
+    std::string sensor_val = "default";
+    for (const auto& stload : stloads_) {
+      if (stload.enable_) {
+        sensor_val = stload.sensor_;
+        break;
+      }
+    }
+    // sensor_val to index of combo_stload_sensor
+    if (sensor_val == "1KN") {
+      select_index = 0;
+    } else if (sensor_val == "2KN") {
+      select_index = 1;
+    } else if (sensor_val == "3KN") {
+      select_index = 2;
+    } else {
+      select_index = -1;
+    }
+    if (select_index < 0) {
+      return;
+    }
+    combo_stload_sensor->SelectItem(select_index);
+  }
+}
+
 void DialogAppSettingsCommon::Bind() {
   UpdateControlFromAppSettings();
 }
@@ -156,7 +274,13 @@ int32_t DialogAppSettingsCommon::SaveSettingsToResource() {
 
 void DialogAppSettingsCommon::UpdateControlFromAppSettings() {
   /// update control from app settings
-  anx::settings::SettingSTLoad::LoadStloadList(&stloads_);
+  std::vector<anx::settings::SettingSTLoad::STLoadItem> stloads;
+  int32_t ret = anx::settings::SettingSTLoad::LoadStloadList(&stloads);
+  if (ret != 0) {
+    LOG_F(LG_ERROR) << "LoadStloadList failed";
+    return;
+  }
+  stloads_ = stloads;
   DuiLib::CComboUI* combo_stload = static_cast<DuiLib::CComboUI*>(
       paint_manager_ui_->FindControl(_T("combo_stload_version")));
   int32_t i = 0;
@@ -169,7 +293,40 @@ void DialogAppSettingsCommon::UpdateControlFromAppSettings() {
     }
   }
   combo_stload->SelectItem(select_index);
-
+  bool enable_sensor = false;
+  enable_sensor = select_index == 0 ? true : false;
+  DuiLib::CHorizontalLayoutUI* hlayout_stload_N =
+      static_cast<DuiLib::CHorizontalLayoutUI*>(
+          paint_manager_ui_->FindControl(_T("hlayout_stload_N")));
+  hlayout_stload_N->SetVisible(enable_sensor);
+  if (enable_sensor) {
+    DuiLib::CComboUI* combo_stload_sensor = static_cast<DuiLib::CComboUI*>(
+        paint_manager_ui_->FindControl(_T("combo_stload_N")));
+    // enum combo_stload_sensor text
+    int32_t i = 0;
+    int32_t select_index = 0;
+    std::string sensor_val = "default";
+    for (const auto& stload : stloads_) {
+      if (stload.enable_) {
+        sensor_val = stload.sensor_;
+        break;
+      }
+    }
+    // sensor_val to index of combo_stload_sensor
+    if (sensor_val == "1KN") {
+      select_index = 0;
+    } else if (sensor_val == "2KN") {
+      select_index = 1;
+    } else if (sensor_val == "3KN") {
+      select_index = 2;
+    } else {
+      select_index = -1;
+    }
+    if (select_index < 0) {
+      return;
+    }
+    combo_stload_sensor->SelectItem(select_index);
+  }
   /// load third app list
   std::string third_app_name =
       anx::settings::SettingAppThird::GetThirdAppName();

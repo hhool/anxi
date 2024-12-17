@@ -56,6 +56,7 @@ class DialogAppSettingsCommon : public DuiLib::CNotifyPump,
   void OnSelectChanged(TNotifyUI& msg);  // NOLINT
   void OnKillFocus(TNotifyUI& msg);      // NOLINT
   void OnBtnThirdAppReset();
+  void OnBtnStloadReset();
 
  public:
   // implement the base class UIVirtualWndBase virtual function

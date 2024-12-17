@@ -85,8 +85,12 @@ int32_t SettingSTLoad::LoadStloadList(
         (val_enabled == "true" || val_enabled == "1" || val_enabled == "True" ||
          val_enabled == "TRUE" || val_enabled == "yes" ||
          val_enabled == "Yes" || val_enabled == "YES");
+    const char* attr_sensor = device_item->Attribute("sensor");
+    if (attr_sensor == nullptr) {
+      attr_sensor = "default";
+    }
     stload_list->push_back(
-        SettingSTLoad::STLoadItem(attr_name, attr_id, enabled));
+        SettingSTLoad::STLoadItem(attr_name, attr_id, enabled, attr_sensor));
   } while (device_item = device_item->NextSiblingElement("device"));
 
   return 0;
@@ -111,6 +115,7 @@ int32_t SettingSTLoad::SaveStloadList(
     device_item->SetAttribute("name", stload.name_.c_str());
     device_item->SetAttribute("id", stload.id_.c_str());
     device_item->SetAttribute("enabled", stload.enable_);
+    device_item->SetAttribute("sensor", stload.sensor_.c_str());
     devices_item->InsertEndChild(device_item);
   }
   auto err = doc.SaveFile(file_pathname.c_str());
@@ -142,6 +147,40 @@ int32_t SettingSTLoad::GetEnableStloadVersion() {
     return -1;
   }
   return GetEnableStloadVersionFromList(stload_list);
+}
+
+std::string SettingSTLoad::GetEnableStloadSensor() {
+  std::vector<SettingSTLoad::STLoadItem> stload_list;
+  int32_t ret = LoadStloadList(&stload_list);
+  if (ret != 0) {
+    return "";
+  }
+  for (const auto& stload : stload_list) {
+    if (stload.enable_) {
+      return stload.sensor_.c_str();
+    }
+  }
+  return "";
+}
+
+int32_t SettingSTLoad::ResetStload() {
+  std::string app_data_dir = anx::common::GetApplicationDataPath("anxi");
+  if (app_data_dir.empty()) {
+    return -1;
+  }
+  std::string dst_xml =
+      app_data_dir + anx::common::kPathSeparator + DefaultStlodXmlPath();
+  std::string origin_xml = anx::common::GetModuleDir() +
+                           anx::common::kPathSeparator + DefaultStlodXmlPath();
+  if (!anx::common::FileExists(origin_xml)) {
+    LOG_F(LG_ERROR) << "origin xml file not exists: " << origin_xml;
+    return -1;
+  }
+  if (!anx::common::CCopyFile(origin_xml, dst_xml)) {
+    LOG_F(LG_ERROR) << "copy file failed: " << origin_xml << " to " << dst_xml;
+    return -2;
+  }
+  return 0;
 }
 //////////////////////////////////////////////////////////////////////////
 /// SettingAppThird

@@ -39,7 +39,7 @@ class STResult {
 
 class STLoadHelper {
  public:
-  static bool InitStLoad(int32_t verison = 1);
+  static bool InitStLoad(int32_t verison = 1, const char* sensor = nullptr);
   static void UnInitStLoad();
 
   static anx::device::stload::STLoadLoader st_load_loader_;
