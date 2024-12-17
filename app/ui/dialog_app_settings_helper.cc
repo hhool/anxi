@@ -287,5 +287,126 @@ std::string SettingAppThird::GetThirdAppName() {
   return infos[0];
 }
 
+//////////////////////////////////////////////////////////////////////////
+/// SettingExpPathRule
+/// xml sample:
+/// <?xml version="1.0" encoding="utf-8"?>
+/// <exp_path_rule>
+/// <rule name = "rule_exp_starttime" enabled = "false" />
+/// <rule name = "rule_exp_endtime" enabled = "false" />
+/// <rule name = "rule_exp_stoptime" enabled = "true" />
+/// </ exp_path_rule>
+
+int32_t SettingExpPathRule::LoadExpPathRule(std::string* exp_path_rule) {
+  std::string app_data_dir = anx::common::GetApplicationDataPath("anxi");
+  if (app_data_dir.empty()) {
+    return -1;
+  }
+  std::string file_pathname =
+      app_data_dir + anx::common::kPathSeparator + "config_exp_path_rule.xml";
+
+  tinyxml2::XMLDocument doc;
+  if (doc.LoadFile(file_pathname.c_str()) != tinyxml2::XML_SUCCESS) {
+    return -2;
+  }
+  tinyxml2::XMLElement* root = doc.RootElement();
+  if (root == nullptr) {
+    return -3;
+  }
+  tinyxml2::XMLElement* ele_rule = root->FirstChildElement("rule");
+  if (ele_rule == nullptr) {
+    return -4;
+  }
+  do {
+    if (ele_rule == nullptr) {
+      break;
+    }
+    const char* attr_name = ele_rule->Attribute("name");
+    if (attr_name == nullptr) {
+      break;
+    }
+    const char* attr_enabled = ele_rule->Attribute("enabled");
+    if (attr_enabled == nullptr) {
+      break;
+    }
+    std::string val_enabled(attr_enabled);
+    bool enabled =
+        (val_enabled == "true" || val_enabled == "1" || val_enabled == "True" ||
+         val_enabled == "TRUE" || val_enabled == "yes" ||
+         val_enabled == "Yes" || val_enabled == "YES");
+    if (enabled) {
+      *exp_path_rule = attr_name;
+      break;
+    }
+  } while (ele_rule = ele_rule->NextSiblingElement("rule"));
+  /// compare the attr_name is starttime, endtime, userstop
+  if (exp_path_rule->empty()) {
+    return 2;
+  }
+  if (*exp_path_rule == "rule_exp_starttime") {
+    return 0;
+  } else if (*exp_path_rule == "rule_exp_endtime") {
+    return 1;
+  }
+  return 2;
+}
+
+int32_t SettingExpPathRule::SaveExpPathRule(int32_t exp_path_rule) {
+  std::string app_data_dir = anx::common::GetApplicationDataPath("anxi");
+  if (app_data_dir.empty()) {
+    return -1;
+  }
+  std::string file_pathname =
+      app_data_dir + anx::common::kPathSeparator + "config_exp_path_rule.xml";
+
+  tinyxml2::XMLDocument doc;
+  tinyxml2::XMLElement* root = doc.NewElement("exp_path_rule");
+  doc.InsertFirstChild(root);
+  tinyxml2::XMLElement* ele_rule = doc.NewElement("rule");
+  ele_rule->SetAttribute("name", "rule_exp_starttime");
+  ele_rule->SetAttribute("enabled", exp_path_rule == 0);
+  root->InsertEndChild(ele_rule);
+  ele_rule = doc.NewElement("rule");
+  ele_rule->SetAttribute("name", "rule_exp_endtime");
+  ele_rule->SetAttribute("enabled", exp_path_rule == 1);
+  root->InsertEndChild(ele_rule);
+  ele_rule = doc.NewElement("rule");
+  ele_rule->SetAttribute("name", "rule_exp_stoptime");
+  ele_rule->SetAttribute("enabled", exp_path_rule == 2);
+  root->InsertEndChild(ele_rule);
+  auto err = doc.SaveFile(file_pathname.c_str());
+  if (err != tinyxml2::XML_SUCCESS) {
+    return -2;
+  }
+  return 0;
+}
+
+int32_t SettingExpPathRule::ResetExpPathRule() {
+  std::string app_data_dir = anx::common::GetApplicationDataPath("anxi");
+  if (app_data_dir.empty()) {
+    return -1;
+  }
+  std::string dst_xml =
+      app_data_dir + anx::common::kPathSeparator + "config_exp_path_rule.xml";
+  std::string origin_xml = anx::common::GetModuleDir() +
+                           anx::common::kPathSeparator +
+                           "default\\config_exp_path_rule.xml";
+  if (!anx::common::FileExists(origin_xml)) {
+    LOG_F(LG_ERROR) << "origin xml file not exists: " << origin_xml;
+    return -1;
+  }
+  if (!anx::common::CCopyFile(origin_xml, dst_xml)) {
+    LOG_F(LG_ERROR) << "copy file failed: " << origin_xml << " to " << dst_xml;
+    return -2;
+  }
+  return 0;
+}
+
+int32_t SettingExpPathRule::GetExpPathRule() {
+  std::string rule;
+  int32_t ret = LoadExpPathRule(&rule);
+  return ret == 0 ? 0 : (ret == 1 ? 1 : 2);
+}
+
 }  // namespace settings
 }  // namespace anx

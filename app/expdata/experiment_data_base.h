@@ -136,7 +136,8 @@ int32_t SaveExperimentReportToXmlWithDefaultPath(
 /// @return int32_t 0 if success, -1 if failed
 int32_t SaveReportToDocxWithDefaultPath(const ExperimentReport& exp_report,
                                         const std::string& cvs_file_pathname,
-                                        std::string* file_pathname = nullptr);
+                                        std::string* file_pathname = nullptr,
+                                        int32_t path_rules = 2);
 
 }  // namespace expdata
 }  // namespace anx

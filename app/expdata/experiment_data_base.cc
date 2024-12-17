@@ -438,7 +438,8 @@ int32_t SaveExperimentReportToXmlWithDefaultPath(
 
 int32_t SaveReportToDocxWithDefaultPath(const ExperimentReport& exp_report,
                                         const std::string& cvs_file_pathname,
-                                        std::string* file_pathname) {
+                                        std::string* file_pathname,
+                                        int32_t path_rules) {
   // 1. generate xml file with experiment final result and experiment
   // parameters.
   // 2. generate csv file with the experiment data.
@@ -468,9 +469,15 @@ int32_t SaveReportToDocxWithDefaultPath(const ExperimentReport& exp_report,
       anx::common::kPathSeparator + "3th_report_template.docx";
   struct tm tm;
   /// @note convert start time to tm struct
-  time_t start_time = exp_report.start_time_;
+  time_t time_point = exp_report.start_time_;
+  if (path_rules == 1) {
+    time_point = exp_report.end_time_;
+  } else {
+    /// @note get current time
+    time_point = time(nullptr);
+  }
 #ifdef _WIN32
-  if (localtime_s(&tm, &start_time) != 0)
+  if (localtime_s(&tm, &time_point) != 0)
 #else
   if (!localtime_r(&start_time, &tm))
 #endif

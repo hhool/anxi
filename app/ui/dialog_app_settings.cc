@@ -76,6 +76,8 @@ void DialogAppSettingsCommon::OnClick(DuiLib::TNotifyUI& msg) {
     OnBtnThirdAppReset();
   } else if (msg.pSender->GetName() == _T("btn_stload_params_reset")) {
     OnBtnStloadReset();
+  } else if (msg.pSender->GetName() == _T("btn_path_rule_params_reset")) {
+    anx::settings::SettingExpPathRule::GetExpPathRule();
   } else {
     // TODO(hhool): do nothing
   }
@@ -259,6 +261,26 @@ void DialogAppSettingsCommon::OnBtnStloadReset() {
   }
 }
 
+bool DialogAppSettingsCommon::OnOptPathRuleChange(void* param) {
+  if (param == nullptr) {
+    return false;
+  }
+  TNotifyUI* pMsg = reinterpret_cast<TNotifyUI*>(param);
+  if (pMsg == nullptr || pMsg->pSender == nullptr) {
+    return false;
+  }
+  if (pMsg->pSender->GetName() == _T("opt_path_rule_starttime")) {
+    exp_path_rule_ = 0;
+  } else if (pMsg->pSender->GetName() == _T("opt_path_rule_endtime")) {
+    exp_path_rule_ = 1;
+  } else if (pMsg->pSender->GetName() == _T("opt_path_rule_current")) {
+    exp_path_rule_ = 2;
+  } else {
+    // do nothing
+  }
+  return true;
+}
+
 void DialogAppSettingsCommon::Bind() {
   UpdateControlFromAppSettings();
 }
@@ -269,6 +291,7 @@ int32_t DialogAppSettingsCommon::SaveSettingsToResource() {
   anx::settings::SettingSTLoad::SaveStloadList(stloads_);
   anx::settings::SettingAppThird::SaveThirdApp(third_app_name_,
                                                third_app_path_);
+  anx::settings::SettingExpPathRule::SaveExpPathRule(exp_path_rule_);
   return 0;
 }
 
@@ -342,6 +365,32 @@ void DialogAppSettingsCommon::UpdateControlFromAppSettings() {
       paint_manager_ui_->FindControl(_T("edit_e10c_pilot_path")));
   edit_third_app->SetText(anx::common::UTF8ToUnicode(third_app_path).c_str());
   third_app_path_ = third_app_path;
+
+  /// load path rule
+  int32_t path_rule = anx::settings::SettingExpPathRule::GetExpPathRule();
+  DuiLib::COptionUI* opt_path_rule_starttime = static_cast<DuiLib::COptionUI*>(
+      paint_manager_ui_->FindControl(_T("opt_path_rule_starttime")));
+  DuiLib::COptionUI* opt_path_rule_endtime = static_cast<DuiLib::COptionUI*>(
+      paint_manager_ui_->FindControl(_T("opt_path_rule_endtime")));
+  DuiLib::COptionUI* opt_path_rule_current = static_cast<DuiLib::COptionUI*>(
+      paint_manager_ui_->FindControl(_T("opt_path_rule_current")));
+  if (path_rule == 0) {
+    opt_path_rule_starttime->Selected(true);
+  } else if (path_rule == 1) {
+    opt_path_rule_endtime->Selected(true);
+  } else if (path_rule == 2) {
+    opt_path_rule_current->Selected(true);
+  } else {
+    // do nothing
+  }
+  exp_path_rule_ = path_rule;
+
+  opt_path_rule_starttime->OnNotify +=
+      MakeDelegate(this, &DialogAppSettingsCommon::OnOptPathRuleChange);
+  opt_path_rule_endtime->OnNotify +=
+      MakeDelegate(this, &DialogAppSettingsCommon::OnOptPathRuleChange);
+  opt_path_rule_current->OnNotify +=
+      MakeDelegate(this, &DialogAppSettingsCommon::OnOptPathRuleChange);
 }
 
 void DialogAppSettingsCommon::LoadFileWithDialog() {

@@ -57,6 +57,7 @@ class DialogAppSettingsCommon : public DuiLib::CNotifyPump,
   void OnKillFocus(TNotifyUI& msg);      // NOLINT
   void OnBtnThirdAppReset();
   void OnBtnStloadReset();
+  bool OnOptPathRuleChange(void* param);
 
  public:
   // implement the base class UIVirtualWndBase virtual function
@@ -78,6 +79,7 @@ class DialogAppSettingsCommon : public DuiLib::CNotifyPump,
   std::vector<anx::settings::SettingSTLoad::STLoadItem> stloads_;
   std::string third_app_path_;
   std::string third_app_name_;
+  int32_t exp_path_rule_ = 2;
 };
 
 class DialogAppSettingsAdvanced : public DuiLib::CNotifyPump,
