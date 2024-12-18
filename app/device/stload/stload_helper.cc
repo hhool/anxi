@@ -78,7 +78,7 @@ bool STLoadHelper::InitStLoad(int32_t version, const char* sensor) {
   std::string module_dir = anx::common::GetModuleDir();
   std::string module_path = module_dir;
   if (version == 1) {
-    // compare sensor with 1KN
+    // compare sensor with 10KN
     std::string file_settings_path =
         anx::common::GetModuleDir() + anx::common::kPathSeparator + "pilot";
     std::string dst_path = anx::common::GetApplicationDataPath("anxi") +
@@ -89,11 +89,11 @@ bool STLoadHelper::InitStLoad(int32_t version, const char* sensor) {
     std::string file_ctrl = "CTRL.dll";
     std::string file_list[] = {file_hard_param, file_test_pilot,
                                file_wance_machine, file_ctrl};
-    if (!sensor || strcmp(sensor, "1KN") == 0) {
+    if (!sensor || strcmp(sensor, "10KN") == 0) {
       file_settings_path += anx::common::kPathSeparator;
       file_settings_path += "ETM_";
       file_settings_path += sensor;
-    } else if (!sensor || strcmp(sensor, "2KN") == 0) {
+    } else if (!sensor || strcmp(sensor, "20KN") == 0) {
       file_settings_path += anx::common::kPathSeparator;
       file_settings_path += "ETM_";
       file_settings_path += sensor;

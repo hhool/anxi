@@ -128,9 +128,9 @@ void DialogAppSettingsCommon::OnSelectChanged(DuiLib::TNotifyUI& msg) {
         }
       }
       // sensor_val to index of combo_stload_sensor
-      if (sensor_val == "1KN") {
+      if (sensor_val == "10KN") {
         select_index = 0;
-      } else if (sensor_val == "2KN") {
+      } else if (sensor_val == "20KN") {
         select_index = 1;
       } else if (sensor_val == "3KN") {
         select_index = 2;
@@ -245,9 +245,9 @@ void DialogAppSettingsCommon::OnBtnStloadReset() {
       }
     }
     // sensor_val to index of combo_stload_sensor
-    if (sensor_val == "1KN") {
+    if (sensor_val == "10KN") {
       select_index = 0;
-    } else if (sensor_val == "2KN") {
+    } else if (sensor_val == "20KN") {
       select_index = 1;
     } else if (sensor_val == "3KN") {
       select_index = 2;
@@ -336,9 +336,9 @@ void DialogAppSettingsCommon::UpdateControlFromAppSettings() {
       }
     }
     // sensor_val to index of combo_stload_sensor
-    if (sensor_val == "1KN") {
+    if (sensor_val == "10KN") {
       select_index = 0;
-    } else if (sensor_val == "2KN") {
+    } else if (sensor_val == "20KN") {
       select_index = 1;
     } else if (sensor_val == "3KN") {
       select_index = 2;

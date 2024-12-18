@@ -29,7 +29,7 @@ class SettingSTLoad {
     /// @param id  id of the stload item
     /// @param enabled  enable or disable the stload item
     /// @param sensor  sensor of the stload item default is "default", can be
-    /// set "1KN"or "2KN" or "3KN" and so on
+    /// set "10KN"or "20KN" or "3KN" and so on
     STLoadItem(const std::string& name,
                const std::string& id,
                bool enabled,
