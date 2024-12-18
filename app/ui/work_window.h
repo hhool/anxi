@@ -206,6 +206,8 @@ class WorkWindow : public DuiLib::WindowImplBase,
   int32_t is_exp_state_ = kExpStateUnvalid;
   /// @brief exp report data
   std::unique_ptr<anx::expdata::ExperimentReport> exp_report_;
+  /// @brief work window quit dialog show flag.
+  bool quit_dialog_show_ = false;
 
   CButtonUI* btn_close_;
   CButtonUI* btn_max_;

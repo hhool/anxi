@@ -400,8 +400,9 @@ void WorkWindow::Notify(DuiLib::TNotifyUI& msg) {
 }
 
 void WorkWindow::OnClick(DuiLib::TNotifyUI& msg) {
-  if (msg.pSender == btn_close_) {
+  if (msg.pSender == btn_close_ && !quit_dialog_show_) {
     if (pOwner_ != nullptr) {
+      quit_dialog_show_ = true;
       int32_t result = anx::ui::DialogCommon::ShowDialog(
           *pOwner_, "提示", "确认退出",
           anx::ui::DialogCommon::kDialogCommonStyleOkCancel);
