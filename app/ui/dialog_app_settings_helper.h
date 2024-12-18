@@ -89,12 +89,13 @@ class SettingExpPathRule {
   ~SettingExpPathRule() {}
 
  public:
-  /// @brief  Load the exp path rule from xml file config_exp_path_rule.xml
+  /// @brief  Load the exp path rule from xml file
+  /// app_settings_exp_path_rule.xml
   /// @param exp_path_rule  the exp path rule to load
   /// @return  Rule index that enabled, 0 means starttime, 1 means endtime, 2
   /// current time
   static int32_t LoadExpPathRule(std::string* exp_path_rule);
-  /// @brief  Save the exp path rule to xml file config_exp_path_rule.xml
+  /// @brief  Save the exp path rule to xml file app_settings_exp_path_rule.xml
   /// @param exp_path_rule  the exp path rule to save
   /// @return  int32_t 0 success, other failed
   static int32_t SaveExpPathRule(int32_t exp_path_rule);

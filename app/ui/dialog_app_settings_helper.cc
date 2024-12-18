@@ -39,6 +39,14 @@ static std::string DefaultThirdAppXmlPath() {
 #endif
 }
 
+static std::string DefaultExpPathRuleXmlPath() {
+#if defined(WIN32) || defined(_WIN64)
+  return "default\\app_settings_exp_path_rule.xml";
+#else
+  return "default/app_settings_exp_path_rule.xml";
+#endif
+}
+
 int32_t SettingSTLoad::LoadStloadList(
     std::vector<SettingSTLoad::STLoadItem>* stload_list) {
   std::string app_data_dir = anx::common::GetApplicationDataPath("anxi");
@@ -294,7 +302,7 @@ std::string SettingAppThird::GetThirdAppName() {
 /// <exp_path_rule>
 /// <rule name = "rule_exp_starttime" enabled = "false" />
 /// <rule name = "rule_exp_endtime" enabled = "false" />
-/// <rule name = "rule_exp_stoptime" enabled = "true" />
+/// <rule name = "rule_exp_current_time" enabled = "true" />
 /// </ exp_path_rule>
 
 int32_t SettingExpPathRule::LoadExpPathRule(std::string* exp_path_rule) {
@@ -303,7 +311,7 @@ int32_t SettingExpPathRule::LoadExpPathRule(std::string* exp_path_rule) {
     return -1;
   }
   std::string file_pathname =
-      app_data_dir + anx::common::kPathSeparator + "config_exp_path_rule.xml";
+      app_data_dir + anx::common::kPathSeparator + DefaultExpPathRuleXmlPath();
 
   tinyxml2::XMLDocument doc;
   if (doc.LoadFile(file_pathname.c_str()) != tinyxml2::XML_SUCCESS) {
@@ -357,7 +365,7 @@ int32_t SettingExpPathRule::SaveExpPathRule(int32_t exp_path_rule) {
     return -1;
   }
   std::string file_pathname =
-      app_data_dir + anx::common::kPathSeparator + "config_exp_path_rule.xml";
+      app_data_dir + anx::common::kPathSeparator + DefaultExpPathRuleXmlPath();
 
   tinyxml2::XMLDocument doc;
   tinyxml2::XMLElement* root = doc.NewElement("exp_path_rule");
@@ -371,7 +379,7 @@ int32_t SettingExpPathRule::SaveExpPathRule(int32_t exp_path_rule) {
   ele_rule->SetAttribute("enabled", exp_path_rule == 1);
   root->InsertEndChild(ele_rule);
   ele_rule = doc.NewElement("rule");
-  ele_rule->SetAttribute("name", "rule_exp_stoptime");
+  ele_rule->SetAttribute("name", "rule_exp_current_time");
   ele_rule->SetAttribute("enabled", exp_path_rule == 2);
   root->InsertEndChild(ele_rule);
   auto err = doc.SaveFile(file_pathname.c_str());
@@ -387,10 +395,10 @@ int32_t SettingExpPathRule::ResetExpPathRule() {
     return -1;
   }
   std::string dst_xml =
-      app_data_dir + anx::common::kPathSeparator + "config_exp_path_rule.xml";
+      app_data_dir + anx::common::kPathSeparator + DefaultExpPathRuleXmlPath();
   std::string origin_xml = anx::common::GetModuleDir() +
                            anx::common::kPathSeparator +
-                           "default\\config_exp_path_rule.xml";
+                           DefaultExpPathRuleXmlPath();
   if (!anx::common::FileExists(origin_xml)) {
     LOG_F(LG_ERROR) << "origin xml file not exists: " << origin_xml;
     return -1;
