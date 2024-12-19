@@ -9,9 +9,6 @@ install(TARGETS app_exe DESTINATION bin COMPONENT binaries
 
 # install files at resource/pilot/etm/ to the target directory
 install(FILES ${PROJECT_SOURCE_DIR}/app/resource/pilot/etm/CTRL.dll DESTINATION bin COMPONENT binaries)
-install(FILES ${PROJECT_SOURCE_DIR}/app/resource/pilot/etm/HardPara.mdb DESTINATION bin COMPONENT binaries)
-install(FILES ${PROJECT_SOURCE_DIR}/app/resource/pilot/etm/TestPilot.ini DESTINATION bin COMPONENT binaries)
-install(FILES ${PROJECT_SOURCE_DIR}/app/resource/pilot/etm/WanceMachine.mdb DESTINATION bin COMPONENT binaries)
 install(FILES ${PROJECT_SOURCE_DIR}/app/resource/pilot/etm2/CTRL2.dll DESTINATION bin COMPONENT binaries)
 install(FILES ${PROJECT_SOURCE_DIR}/app/resource/pilot/etm2/TestLeader-CN.sys DESTINATION bin COMPONENT binaries)
 install(FILES ${PROJECT_SOURCE_DIR}/app/resource/pilot/etm2/WanceMachine-CN.mdb DESTINATION bin COMPONENT binaries)

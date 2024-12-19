@@ -321,7 +321,7 @@ set_target_properties(app_exe PROPERTIES FOLDER "app")
 
 if(WIN32)
     target_link_libraries(app_exe user32 gdi32)
-    set_target_properties(app_exe PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS")
+    set_target_properties(app_exe PROPERTIES LINK_FLAGS "/MANIFESTUAC:\"level='requireAdministrator' uiAccess='false'\" /SUBSYSTEM:WINDOWS")
 
     # set working directory to bin directory
     # for visual studio debugger to find third stload third dll
