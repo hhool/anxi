@@ -92,10 +92,12 @@ bool STLoadHelper::InitStLoad(int32_t version, const char* sensor) {
       file_settings_path += anx::common::kPathSeparator;
       file_settings_path += "ETM_";
       file_settings_path += sensor;
+      sensor_ = 1;
     } else if (!sensor || strcmp(sensor, "20KN") == 0) {
       file_settings_path += anx::common::kPathSeparator;
       file_settings_path += "ETM_";
       file_settings_path += sensor;
+      sensor_ = 2;
     } else {
       LOG_F(LG_ERROR) << "sensor not supported: " << sensor;
       return false;
@@ -159,10 +161,12 @@ int32_t STLoadHelper::STLoadSetup() {
   }
   if (version_ == 1) {
     // 力传感器P值
-    int lLoad_P = 20;
+    int lLoad_P = 80;
     int lLoad_I = 0;
     int lLoad_D = 0;
-
+    if (sensor_ == 1) {
+      lLoad_P = 50;
+    }
     // 位移传感器P值
     int lPosi_P = 20;
     int lPosi_I = 0;

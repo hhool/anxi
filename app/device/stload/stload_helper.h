@@ -52,6 +52,7 @@ class STLoadHelper {
  private:
   static bool is_stload_simulation_;
   static int32_t version_;
+  static int32_t sensor_;
 };
 
 }  // namespace stload
