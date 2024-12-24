@@ -1592,23 +1592,23 @@ bool WorkWindowSecondPage::StaticAircraftDoMoveUp() {
   assert(lss_ != nullptr);
   assert(st_load_event_from_ != kSTLoadEventNone);
   st_load_achieve_target_keep_duration_ms_ = lss_->keep_load_duration_ * 1000;
-  anx::device::stload::STLoadHelper::st_load_loader_.st_api_.set_test_dir(1);
+  // anx::device::stload::STLoadHelper::st_load_loader_.st_api_.set_test_dir(1);
   float speed = lss_->speed_ * 1.0f;
   /// RUN the static load, the direction is up and the speed is 2.0f / 60.0f
   int32_t ctrl_type = CTRL_LOAD;
   int32_t endtype = END_LOAD;
-  float end_value = lss_->retention_ * 1.0f;
+  float end_value = lss_->retention_ * -1.0f;
   if (st_load_event_from_ == kSTLoadEventFromButtonUpDown) {
     // TODO(hhool): read from setting 10000 mm
     ctrl_type = CTRL_POSI;
     endtype = END_POSI;
-    end_value = 10000.0f;
+    end_value = 10000.0f * -1.0f;
     speed = 50.0f / 60.0f;
   } else if (st_load_event_from_ == kSTLoadEventFromKeepLoadButton) {
     if (lss_->ctrl_type_ == CTRL_POSI) {
       ctrl_type = CTRL_POSI;
       endtype = END_POSI;
-      end_value = lss_->displacement_ * 1.0f;
+      end_value = lss_->displacement_ * -1.0f;
       speed = speed / 60.0f;
     }
   }
@@ -1648,7 +1648,7 @@ bool WorkWindowSecondPage::StaticAircraftDoMoveDown() {
   assert(lss_ != nullptr);
   assert(st_load_event_from_ != kSTLoadEventNone);
   st_load_achieve_target_keep_duration_ms_ = lss_->keep_load_duration_ * 1000;
-  anx::device::stload::STLoadHelper::st_load_loader_.st_api_.set_test_dir(0);
+  // anx::device::stload::STLoadHelper::st_load_loader_.st_api_.set_test_dir(0);
   float speed = lss_->speed_ * 1.0f;
   int32_t ctrl_type = CTRL_LOAD;
   int32_t endtype = END_LOAD;
@@ -1657,7 +1657,7 @@ bool WorkWindowSecondPage::StaticAircraftDoMoveDown() {
     // TODO(hhool): read from setting 10000 mm
     ctrl_type = CTRL_POSI;
     endtype = END_POSI;
-    end_value = 10000.0f;
+    end_value = 10000.0f * 1.0f;
     speed = 50.0f / 60.0f;
   } else if (st_load_event_from_ == kSTLoadEventFromKeepLoadButton) {
     if (lss_->ctrl_type_ == CTRL_POSI) {

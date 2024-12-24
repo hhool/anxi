@@ -73,6 +73,7 @@ static bool LoadConfig(ConfigStLoad* config) {
 STLoadLoader anx::device::stload::STLoadHelper::st_load_loader_;
 bool anx::device::stload::STLoadHelper::is_stload_simulation_ = false;
 int32_t anx::device::stload::STLoadHelper::version_ = 1;
+int32_t anx::device::stload::STLoadHelper::sensor_ = 1;
 
 bool STLoadHelper::InitStLoad(int32_t version, const char* sensor) {
   std::string module_dir = anx::common::GetModuleDir();
@@ -161,6 +162,7 @@ int32_t STLoadHelper::STLoadSetup() {
   }
   if (version_ == 1) {
     // 力传感器P值
+    // sensoer 20KN
     int lLoad_P = 80;
     int lLoad_I = 0;
     int lLoad_D = 0;
@@ -185,6 +187,8 @@ int32_t STLoadHelper::STLoadSetup() {
       LOG_F(LG_ERROR) << "carry_pid failed";
       return -2;
     }
+    LOG_F(LG_INFO) << "carry_pid success: " << "lLoad_P:" << lLoad_P << " "
+                   << "lLoad_I:" << lLoad_I << " " << "lLoad_D:" << lLoad_D;
     bSuccess =
         anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_pid(
             CH_POSI, lPosi_P, lPosi_I, lPosi_D)
@@ -245,6 +249,7 @@ int32_t STLoadHelper::STLoadSetup() {
       return -4;
     }
   }
+  anx::device::stload::STLoadHelper::st_load_loader_.st_api_.set_test_dir(0);
   return 0;
 }
 

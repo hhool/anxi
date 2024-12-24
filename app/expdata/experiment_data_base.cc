@@ -274,6 +274,21 @@ void MakeFolderPathByDate(const std::string& root,
 ExperimentReport::ExperimentReport() {}
 ExperimentReport::~ExperimentReport() {}
 
+/// to xml format
+/// @return std::string
+/// example:
+///
+/// <ExperimentReport>
+///     <StartTime>2022-01-01 12:00:00</StartTime>
+///     <EndTime>2022-01-01 13:00:00</EndTime>
+///     <ExperimentName>Sample ExperimentReport</ExperimentName>
+///     <ElasticModulus>100 GPa</ElasticModulus>
+///     <Density>2.7 g/cm^3</Density>
+///     <MaxStress>100 MPa</MaxStress>
+///     <RatioOfStress>0.5</RatioOfStress>
+///     <CycleCount>1000</CycleCount>
+///     <BottomAmplitude>10 mm</BottomAmplitude>
+/// </ExperimentReport>
 std::string ExperimentReport::ToXml() const {
   std::stringstream ss;
   ss << "<ExperimentReport>\r\n";
