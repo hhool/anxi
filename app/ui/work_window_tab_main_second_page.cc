@@ -326,7 +326,6 @@ void WorkWindowSecondPage::OnValueChanged(TNotifyUI& msg) {
           if (st_posi_reach_first_time_ == 0) {
             st_posi_reach_first_time_ = anx::common::GetCurrentTimeMillis();
           } else {
-            bool need_stop = true;
             int64_t current_time = anx::common::GetCurrentTimeMillis();
             int64_t cur_duration = current_time - st_posi_reach_first_time_;
             if (cur_duration > 1000) {
@@ -335,62 +334,13 @@ void WorkWindowSecondPage::OnValueChanged(TNotifyUI& msg) {
               LOG_F(LG_INFO) << "static load aircraft reach the target position"
                              << " for 1000 ms, stop";
               st_posi_reach_first_time_ = 0;
-              /// @note static load aircraft stop action for delay stop of
-              /// st_load_achieve_target_keep_duration_ms_. will be remove
-              /// keep load logic. @related st_load_keep_load_ etc variables.
-              if (lss_->ctrl_type_ == CTRL_LOAD) {
-                if (st_load_achieve_target_keep_duration_ms_ > 0) {
-                  st_load_keep_load_ = 1;
-                  need_stop = false;
-                  /// record first time achieve the target load time point in ms
-                  /// value -1 is not achieve the target load, value > 0 is
-                  /// achieve the target load first time point
-                  if (st_load_achieve_target_time_ < 0) {
-                    st_load_achieve_target_time_ =
-                        anx::common::GetCurrentTimeMillis();
-                  }
-                }
-              }
-              /// ctrl_type is CTRL_POSI, then stop the action
-              need_stop ? OnButtonStaticAircraftStop() : 0;
+              OnButtonStaticAircraftStop();
             } else {
               // do nothing
             }
           }
         } else {
           st_posi_reach_first_time_ = 0;
-        }
-        /// @note static load aircraft keep the target load value for
-        /// st_load_achieve_target_keep_duration_ms_ ms. will be remove keep
-        /// load logic. @related st_load_keep_load_ etc variables.
-        if (st_load_keep_load_ == 1) {
-          int64_t current_time = anx::common::GetCurrentTimeMillis();
-          int64_t cur_duration = current_time - st_load_achieve_target_time_;
-          if (cur_duration > st_load_achieve_target_keep_duration_ms_) {
-            LOG_F(LG_INFO) << "static load aircraft keep the target load:"
-                           << st_result->load_ << " for "
-                           << st_load_achieve_target_keep_duration_ms_ << " ms"
-                           << " stop";
-            st_load_achieve_target_time_ = -1;
-            OnButtonStaticAircraftStop();
-          } else {
-            /// TODO(hhool): will be remove keep load logic.
-            LOG_F(LG_INFO) << "static load aircraft keep the target load:"
-                           << st_result->load_ << " for "
-                           << st_load_achieve_target_keep_duration_ms_ << " ms"
-                           << " target load:" << lss_->retention_ << " continue"
-                           << " cur_duration:" << cur_duration << " ms"
-                           << " cur_load:" << st_result->load_;
-            double target_load = lss_->retention_;
-            if (target_load - st_result->load_ > 0.1) {
-              LOG_F(LG_INFO) << "static load aircraft achieve the target load:"
-                             << st_result->load_;
-              /// value 2 keep load action is done
-              st_load_keep_load_ = 2;
-            } else {
-              // do nothing
-            }
-          }
         }
         st_load_result_ = *st_result;
       } else if (enmsg->type_ == enmsg_type_exp_stress_amp) {
@@ -1703,8 +1653,6 @@ bool WorkWindowSecondPage::StaticAircraftStop() {
   LOG_F(LG_INFO) << "stop the static load";
   anx::device::stload::STLoadHelper::st_load_loader_.st_api_.stop_run();
   st_load_is_running_ = false;
-  st_load_achieve_target_time_ = -1;
-  st_load_keep_load_ = -1;
   st_load_event_from_ = kSTLoadEventNone;
   return true;
 }

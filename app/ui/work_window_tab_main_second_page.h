@@ -192,16 +192,6 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   /// @note load achieve target keep duration time in ms
   /// 20s default value
   int64_t st_load_achieve_target_keep_duration_ms_ = 200 * 1000;
-  /// @note record first time achieve the target load time point in ms
-  /// value -1 is not achieve the target load, value > 0 is achieve the
-  /// target load first time point.
-  int64_t st_load_achieve_target_time_ = -1;
-  /// @note load keep load value actual state.
-  /// value -1 is not achieve the target load, value == 1 is achieve the target
-  /// load first time point. will detect the load value with target load value
-  /// periodically. if the load value is not equal to the target load value,
-  /// then keep do the action for target load value. eg up or down.
-  int64_t st_load_keep_load_ = -1;
   /// @note Aircraft static load event from who.
   /// value -1 no event from, value 0 is from button (up and down), value 1 is
   /// from button (keep load button)
