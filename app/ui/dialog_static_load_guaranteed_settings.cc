@@ -140,44 +140,38 @@ bool DialogStaticLoadGuaranteedSettings::OnEditControlChanged(void* param) {
   }
   bool save = false;
   if (pMsg->pSender == edit_speed_) {
-    int64_t speed = 0;
+    float speed = 0;
     if (get_value_from_control(edit_speed_, &speed)) {
       if (speed != lss_->speed_) {
-        lss_->speed_ = static_cast<int32_t>(speed);
-        save = true;
+        lss_->speed_ = speed;
       }
     }
-    set_value_to_edit(edit_speed_, lss_->speed_);
+    set_value_to_edit(edit_speed_, lss_->speed_, 2);
   } else if (pMsg->pSender == edit_retention_) {
-    int64_t retention = 0;
+    float retention = 0;
     if (get_value_from_control(edit_retention_, &retention)) {
       if (retention != lss_->retention_) {
-        lss_->retention_ = static_cast<int32_t>(retention);
-        save = true;
+        lss_->retention_ = retention;
       }
     }
-    set_value_to_edit(edit_retention_, lss_->retention_);
+    set_value_to_edit(edit_retention_, lss_->retention_, 2);
   } else if (pMsg->pSender == edit_displacement_) {
-    int64_t displacement = 0;
+    float displacement = 0;
     if (get_value_from_control(edit_displacement_, &displacement)) {
       if (displacement != lss_->displacement_) {
-        lss_->displacement_ = static_cast<int32_t>(displacement);
-        save = true;
+        lss_->displacement_ = displacement;
       }
     }
-    set_value_to_edit(edit_displacement_, lss_->displacement_);
+    set_value_to_edit(edit_displacement_, lss_->displacement_, 2);
   } else if (pMsg->pSender == edit_keep_load_duration_) {
-    int64_t keep_load_duration = 0;
+    float keep_load_duration = 0;
     if (get_value_from_control(edit_keep_load_duration_, &keep_load_duration)) {
       if (keep_load_duration != lss_->keep_load_duration_) {
-        lss_->keep_load_duration_ = static_cast<int32_t>(keep_load_duration);
-        save = true;
+        lss_->keep_load_duration_ = keep_load_duration;
       }
     }
-    set_value_to_edit(edit_keep_load_duration_, lss_->keep_load_duration_);
+    set_value_to_edit(edit_keep_load_duration_, lss_->keep_load_duration_, 2);
   }
-
-  SaveSettingsToResource();
   return true;
 }
 
@@ -284,10 +278,10 @@ void DialogStaticLoadGuaranteedSettings::UpdateControlFromSettings() {
     opt_up_->Selected(false);
     opt_down_->Selected(true);
   }
-  set_value_to_edit(edit_speed_, lss_->speed_);
-  set_value_to_edit(edit_retention_, lss_->retention_);
-  set_value_to_edit(edit_displacement_, lss_->displacement_);
-  set_value_to_edit(edit_keep_load_duration_, lss_->keep_load_duration_);
+  set_value_to_edit(edit_speed_, lss_->speed_, 2);
+  set_value_to_edit(edit_retention_, lss_->retention_, 2);
+  set_value_to_edit(edit_displacement_, lss_->displacement_, 2);
+  set_value_to_edit(edit_keep_load_duration_, lss_->keep_load_duration_, 2);
 }
 
 void DialogStaticLoadGuaranteedSettings::SaveSettingsToResource() {

@@ -1541,7 +1541,8 @@ void WorkWindowSecondPage::exp_stop() {
 bool WorkWindowSecondPage::StaticAircraftDoMoveUp() {
   assert(lss_ != nullptr);
   assert(st_load_event_from_ != kSTLoadEventNone);
-  st_load_achieve_target_keep_duration_ms_ = lss_->keep_load_duration_ * 1000;
+  st_load_achieve_target_keep_duration_ms_ =
+      static_cast<int64_t>(lss_->keep_load_duration_ * 1000);
   // anx::device::stload::STLoadHelper::st_load_loader_.st_api_.set_test_dir(1);
   float speed = lss_->speed_ * 1.0f;
   /// RUN the static load, the direction is up and the speed is 2.0f / 60.0f
@@ -1597,7 +1598,8 @@ bool WorkWindowSecondPage::StaticAircraftDoMoveUp() {
 bool WorkWindowSecondPage::StaticAircraftDoMoveDown() {
   assert(lss_ != nullptr);
   assert(st_load_event_from_ != kSTLoadEventNone);
-  st_load_achieve_target_keep_duration_ms_ = lss_->keep_load_duration_ * 1000;
+  st_load_achieve_target_keep_duration_ms_ =
+      static_cast<int64_t>(lss_->keep_load_duration_ * 1000);
   // anx::device::stload::STLoadHelper::st_load_loader_.st_api_.set_test_dir(0);
   float speed = lss_->speed_ * 1.0f;
   int32_t ctrl_type = CTRL_LOAD;

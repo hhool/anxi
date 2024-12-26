@@ -610,8 +610,8 @@ LRESULT WorkWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
         pos = static_cast<double>(rand() % 100) * 1.0f;
         load = static_cast<double>(rand() % 100) * 1.0f;
       }
-      int32_t target_load_n = -1;
-      int32_t target_load_pos = -1;
+      float target_load_n = -1;
+      float target_load_pos = -1;
       std::unique_ptr<anx::device::DeviceLoadStaticSettings> lss;
       std::unique_ptr<anx::esolution::SolutionDesign> design =
           solution_design_base_->SolutionDesignFromPage();
@@ -637,7 +637,7 @@ LRESULT WorkWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
         /// append target load to str_value
         str_value.append(" ");
         str_value.append(
-            anx::common::to_string_with_precision(target_load_n, 1));
+            anx::common::to_string_with_precision(target_load_n, 2));
       }
       btn_args_area_name_static_load_n_->SetText(
           anx::common::UTF8ToUnicode(str_value.c_str()).c_str());
@@ -662,7 +662,7 @@ LRESULT WorkWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
         /// append target load to str_value
         str_value.append(" ");
         str_value.append(
-            anx::common::to_string_with_precision(target_load_pos, 1));
+            anx::common::to_string_with_precision(target_load_pos, 2));
       }
       btn_args_area_name_static_shift_mm_->SetText(
           anx::common::UTF8ToUnicode(str_value.c_str()).c_str());

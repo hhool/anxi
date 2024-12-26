@@ -28,17 +28,17 @@ namespace device {
 DeviceLoadStatic::DeviceLoadStatic()
     : direct_(0),
       ctrl_type_(0),
-      speed_(50),
-      retention_(10),
-      displacement_(50),
-      keep_load_duration_(120) {}
+      speed_(50.00f),
+      retention_(10.00f),
+      displacement_(50.00f),
+      keep_load_duration_(10.00f) {}
 
 DeviceLoadStatic::DeviceLoadStatic(int32_t direct,
                                    int32_t ctrl_type,
-                                   int32_t speed,
-                                   int32_t retention,
-                                   int32_t displacement,
-                                   int32_t keep_load_duration)
+                                   float speed,
+                                   float retention,
+                                   float displacement,
+                                   float keep_load_duration)
     : direct_(direct),
       ctrl_type_(ctrl_type),
       speed_(speed),
@@ -160,10 +160,10 @@ std::unique_ptr<DeviceLoadStaticSettings> DeviceLoadStaticSettings::FromXml(
       new DeviceLoadStaticSettings());
   settings->direct_ = ValueDirectFromString(ele_direct->GetText());
   settings->ctrl_type_ = std::stoi(ele_ctrltype->GetText());
-  settings->speed_ = std::stoi(ele_speed->GetText());
-  settings->retention_ = std::stoi(ele_retention->GetText());
-  settings->displacement_ = std::stoi(ele_displacement->GetText());
-  settings->keep_load_duration_ = std::stoi(ele_keep_load_duration->GetText());
+  settings->speed_ = std::stof(ele_speed->GetText());
+  settings->retention_ = std::stof(ele_retention->GetText());
+  settings->displacement_ = std::stof(ele_displacement->GetText());
+  settings->keep_load_duration_ = std::stof(ele_keep_load_duration->GetText());
   return settings;
 }
 

@@ -22,10 +22,10 @@ class DeviceLoadStatic {
   DeviceLoadStatic();
   DeviceLoadStatic(int32_t direct,
                    int32_t ctrl_type,
-                   int32_t speed,
-                   int32_t retention,
-                   int32_t displacement,
-                   int32_t keep_load_duration);
+                   float speed,
+                   float retention,
+                   float displacement,
+                   float keep_load_duration);
   virtual ~DeviceLoadStatic();
 
  public:
@@ -34,13 +34,13 @@ class DeviceLoadStatic {
   /// @brief  control type 0: load, 1: extn, 2: posi
   int32_t ctrl_type_;
   /// @brief speed
-  int32_t speed_;
+  float speed_;
   /// @brief retention
-  int32_t retention_;
+  float retention_;
   /// @brief  displacement unit: mm
-  int32_t displacement_;
+  float displacement_;
   /// @brief keep_load_duration in seconds unit: second
-  int32_t keep_load_duration_;
+  float keep_load_duration_;
 
  public:
   std::string ValueDirectToString() const;

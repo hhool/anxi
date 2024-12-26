@@ -191,7 +191,7 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   std::unique_ptr<anx::device::DeviceLoadStaticSettings> lss_;
   /// @note load achieve target keep duration time in ms
   /// 20s default value
-  int64_t st_load_achieve_target_keep_duration_ms_ = 200 * 1000;
+  int64_t st_load_achieve_target_keep_duration_ms_ = 10 * 1000;
   /// @note Aircraft static load event from who.
   /// value -1 no event from, value 0 is from button (up and down), value 1 is
   /// from button (keep load button)
