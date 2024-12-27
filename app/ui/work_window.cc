@@ -407,11 +407,13 @@ void WorkWindow::OnClick(DuiLib::TNotifyUI& msg) {
           *pOwner_, "提示", "确认退出",
           anx::ui::DialogCommon::kDialogCommonStyleOkCancel);
       if (result == anx::ui::DialogCommon::DC_Cancel) {
+        quit_dialog_show_ = false;
         return;
       }
       this->Close();
       pOwner_->ShowWindow(true, true);
     } else {
+      LOG_F(LG_ERROR) << "PostQuitMessage";
       PostQuitMessage(0);
     }
     return;

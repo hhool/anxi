@@ -45,6 +45,9 @@
 #define END_POSI 2  // 位移相对量,脉冲数
 #define END_TIME 3  // 时间相对量,0.01s
 
+// TODO(hhool): 位移控制V2
+// 控制方式CTRL_XXXX V2
+// 结束条件END_XXXX V2
 #define END_POSI_V2 0  // 位移
 #define END_LOAD_V2 1  // 负荷
 #define END_EXTN_V2 2  // 引伸计

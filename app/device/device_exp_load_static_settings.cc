@@ -29,19 +29,22 @@ DeviceLoadStatic::DeviceLoadStatic()
     : direct_(0),
       ctrl_type_(0),
       speed_(50.00f),
-      retention_(10.00f),
+      threshold_(10.00f),
+      retention_(100.00f),
       displacement_(50.00f),
       keep_load_duration_(10.00f) {}
 
 DeviceLoadStatic::DeviceLoadStatic(int32_t direct,
                                    int32_t ctrl_type,
                                    float speed,
+                                   float threshold,
                                    float retention,
                                    float displacement,
                                    float keep_load_duration)
     : direct_(direct),
       ctrl_type_(ctrl_type),
       speed_(speed),
+      threshold_(threshold),
       retention_(retention),
       displacement_(displacement),
       keep_load_duration_(keep_load_duration) {}
@@ -106,6 +109,9 @@ std::string DeviceLoadStaticSettings::ToXml(bool close_tag) const {
   xml += "<speed>";
   xml += std::to_string(speed_);
   xml += "</speed>\r\n";
+  xml += "<threshold>";
+  xml += std::to_string(threshold_);
+  xml += "</threshold>\r\n";
   xml += "<retention>";
   xml += std::to_string(retention_);
   xml += "</retention>\r\n";
@@ -141,6 +147,10 @@ std::unique_ptr<DeviceLoadStaticSettings> DeviceLoadStaticSettings::FromXml(
   if (ele_speed == nullptr) {
     return nullptr;
   }
+  tinyxml2::XMLElement* ele_theshold = root->FirstChildElement("threshold");
+  if (ele_theshold == nullptr) {
+    return nullptr;
+  }
   tinyxml2::XMLElement* ele_retention = root->FirstChildElement("retention");
   if (ele_retention == nullptr) {
     return nullptr;
@@ -161,6 +171,7 @@ std::unique_ptr<DeviceLoadStaticSettings> DeviceLoadStaticSettings::FromXml(
   settings->direct_ = ValueDirectFromString(ele_direct->GetText());
   settings->ctrl_type_ = std::stoi(ele_ctrltype->GetText());
   settings->speed_ = std::stof(ele_speed->GetText());
+  settings->threshold_ = std::stof(ele_theshold->GetText());
   settings->retention_ = std::stof(ele_retention->GetText());
   settings->displacement_ = std::stof(ele_displacement->GetText());
   settings->keep_load_duration_ = std::stof(ele_keep_load_duration->GetText());

@@ -23,6 +23,7 @@ class DeviceLoadStatic {
   DeviceLoadStatic(int32_t direct,
                    int32_t ctrl_type,
                    float speed,
+                   float threshold,
                    float retention,
                    float displacement,
                    float keep_load_duration);
@@ -35,6 +36,8 @@ class DeviceLoadStatic {
   int32_t ctrl_type_;
   /// @brief speed
   float speed_;
+  /// @brief threshold
+  float threshold_;
   /// @brief retention
   float retention_;
   /// @brief  displacement unit: mm

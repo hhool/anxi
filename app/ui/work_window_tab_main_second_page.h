@@ -205,6 +205,8 @@ class WorkWindowSecondPage : public DuiLib::CNotifyPump,
   /// value -1 is not reach the first time point, value > 0 is reach the first
   /// time point. delay 1000ms for the aircraft stop action.
   int64_t st_posi_reach_first_time_ = 0;
+  int32_t st_ctrl_type_of_keep_load_current_ = -1;
+  int64_t st_ctrl_type_of_keep_load_current_start_time_ = 0;
   DuiLib::CTabLayoutUI* btn_tablayout_;
   DuiLib::CButtonUI* btn_tab_graph_;
   DuiLib::CButtonUI* btn_tab_data_;

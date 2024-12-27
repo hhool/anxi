@@ -317,6 +317,7 @@ void WorkWindowSecondPage::OnValueChanged(TNotifyUI& msg) {
         LOG_F(LG_INFO) << "st_result->status_:" << st_result->status_ << " "
                        << "st_result->load_:" << st_result->load_ << " "
                        << "st_result->position_:" << st_result->pos_ << " "
+                       << "lss->threshold_:" << lss_->threshold_ << " "
                        << "lss_->retention_:" << lss_->retention_ << " "
                        << "lss_->direct_:" << lss_->direct_ << " "
                        << "lss_->speed_:" << lss_->speed_;
@@ -328,10 +329,11 @@ void WorkWindowSecondPage::OnValueChanged(TNotifyUI& msg) {
           } else {
             int64_t current_time = anx::common::GetCurrentTimeMillis();
             int64_t cur_duration = current_time - st_posi_reach_first_time_;
-            if (cur_duration > 1000) {
-              /// @note static load aircraft reach the target value for 1000 ms
-              /// then stop the action.
-              LOG_F(LG_INFO) << "static load aircraft reach the target position"
+            if (cur_duration > 200) {
+              /// @note static load aircraft reach the target value for 1000
+              /// ms then stop the action.
+              LOG_F(LG_INFO) << "static load aircraft reach the target value "
+                                "of load or displacement"
                              << " for 1000 ms, stop";
               st_posi_reach_first_time_ = 0;
               OnButtonStaticAircraftStop();
@@ -341,6 +343,62 @@ void WorkWindowSecondPage::OnValueChanged(TNotifyUI& msg) {
           }
         } else {
           st_posi_reach_first_time_ = 0;
+          if (st_ctrl_type_of_keep_load_current_ == CTRL_POSI) {
+            /// @note static load aircraft reach the target value for 1000
+            /// ms then stop the action.
+            LOG_F(LG_INFO) << "static load aircraft reach the target position"
+                           << " then for target load value to reach and keep";
+            float target_load_threshold = lss_->threshold_;
+            float st_result_load = fabsf(static_cast<float>(st_result->load_));
+            float bl = st_result_load / target_load_threshold;
+            if (bl >= 0.8f) {
+              LOG_F(LG_INFO) << "static load aircraft reach the target load:"
+                             << st_result->load_ << " "
+                             << "target load:" << target_load_threshold << " "
+                             << "bl:" << bl;
+              if (lss_->direct_ == 1) {
+                if (!StaticAircraftDoMoveUp()) {
+                  LOG_F(LG_ERROR) << "StaticAircraftDoMoveUp error";
+                  st_load_event_from_ = kSTLoadEventNone;
+                }
+              } else {
+                if (!StaticAircraftDoMoveDown()) {
+                  LOG_F(LG_ERROR) << "StaticAircraftDoMoveDown error";
+                  st_load_event_from_ = kSTLoadEventNone;
+                }
+              }
+            }
+          } else if (st_ctrl_type_of_keep_load_current_ == CTRL_LOAD) {
+            /// @note static load aircraft reach the target value for 1000
+            /// ms then stop the action.
+            int64_t current_time = anx::common::GetCurrentTimeMillis();
+            int64_t cur_duration =
+                current_time - st_ctrl_type_of_keep_load_current_start_time_;
+            if (cur_duration > 200) {
+              LOG_F(LG_INFO) << "static load aircraft send keep load time:"
+                             << lss_->keep_load_duration_ << " "
+                             << "target keep load:" << lss_->retention_;
+              int32_t version =
+                  anx::device::stload::STLoadHelper::STLoadVersion();
+              int32_t ctrl_type = CTRL_LOAD;
+              int32_t endtype = END_TIME_V2;
+              if (version == 1) {
+                endtype = END_TIME;
+              }
+
+              float speed = lss_->speed_ * 1.0f;
+              float end_value = lss_->keep_load_duration_ * 1.0f;
+              bool bSuccess =
+                  anx::device::stload::STLoadHelper::st_load_loader_.st_api_
+                      .carry_200(ctrl_type, endtype, speed, end_value, 0, false,
+                                 DIR_NO, 0, 1, 0);
+              if (!bSuccess) {
+                LOG_F(LG_ERROR) << "carry_200 error";
+              }
+              st_ctrl_type_of_keep_load_current_ = -1;
+              st_ctrl_type_of_keep_load_current_start_time_ = 0;
+            }
+          }
         }
         st_load_result_ = *st_result;
       } else if (enmsg->type_ == enmsg_type_exp_stress_amp) {
@@ -682,6 +740,8 @@ void WorkWindowSecondPage::OnButtonStaticAircraftUp() {
     return;
   }
   st_load_is_running_ = true;
+  st_ctrl_type_of_keep_load_current_ = -1;
+  st_ctrl_type_of_keep_load_current_start_time_ = 0;
   /// update the releated button state
   btn_sa_keep_load_->SetEnabled(false);
   btn_sa_up_->SetEnabled(false);
@@ -705,6 +765,8 @@ void WorkWindowSecondPage::OnButtonStaticAircraftDown() {
     return;
   }
   st_load_is_running_ = true;
+  st_ctrl_type_of_keep_load_current_ = -1;
+  st_ctrl_type_of_keep_load_current_start_time_ = 0;
 
   /// update the releated button state
   btn_sa_keep_load_->SetEnabled(false);
@@ -770,6 +832,7 @@ void WorkWindowSecondPage::OnButtonStaticAircraftKeepLoad() {
   // StaticAircraftStop();
   /// @brief static aircraft keep load.
   st_load_event_from_ = kSTLoadEventFromKeepLoadButton;
+  st_ctrl_type_of_keep_load_current_ = -1;
   if (lss_->direct_ == 1) {
     if (!StaticAircraftDoMoveUp()) {
       LOG_F(LG_ERROR) << "StaticAircraftDoMoveUp error";
@@ -861,8 +924,8 @@ void WorkWindowSecondPage::OnExpStart() {
     LOG_F(LG_ERROR) << "exp_start error:" << ret;
     std::string msg = "未知设备错误";
     if (ret == -1) {
-      msg = "超出振幅范围"; 
-	}
+      msg = "超出振幅范围";
+    }
     // format the message
     anx::ui::DialogCommon::ShowDialog(
         *pWorkWindow_, "错误", msg.c_str(),
@@ -1561,6 +1624,19 @@ bool WorkWindowSecondPage::StaticAircraftDoMoveUp() {
       endtype = END_POSI;
       end_value = lss_->displacement_ * -1.0f;
       speed = speed / 60.0f;
+    } else {
+      assert(lss_->ctrl_type_ == CTRL_LOAD);
+      if (st_ctrl_type_of_keep_load_current_ < 0) {
+        st_ctrl_type_of_keep_load_current_ = CTRL_POSI;
+        ctrl_type = CTRL_POSI;
+        endtype = END_LOAD;
+        speed = 2.0f / 60.0f;
+        end_value = lss_->threshold_ * -1.0f;
+      } else {
+        st_ctrl_type_of_keep_load_current_ = CTRL_LOAD;
+        st_ctrl_type_of_keep_load_current_start_time_ =
+            anx::common::GetCurrentTimeMillis();
+      }
     }
   }
   LOG_F(LG_INFO) << "carry_200:" << ctrl_type << " " << endtype << " " << speed
@@ -1574,24 +1650,7 @@ bool WorkWindowSecondPage::StaticAircraftDoMoveUp() {
     LOG_F(LG_ERROR) << "carry_200 error";
     return false;
   }
-  /////////////////////////////////////////////////////////////////////////////
-  if (ctrl_type == CTRL_LOAD) {
-    Sleep(500);
-    int32_t version = anx::device::stload::STLoadHelper::STLoadVersion();
-    if (version == 1) {
-      endtype = END_TIME;
-    } else {
-      endtype = END_TIME_V2;
-    }
-    /// time default is 10s
-    end_value = lss_->keep_load_duration_ * 1.0f;
-    bSuccess =
-        anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_200(
-            ctrl_type, endtype, speed, end_value, 0, false, DIR_NO, 0, 1, 0);
-    if (!bSuccess) {
-      LOG_F(LG_ERROR) << "carry_200 error";
-    }
-  }
+
   return true;
 }
 
@@ -1617,8 +1676,22 @@ bool WorkWindowSecondPage::StaticAircraftDoMoveDown() {
       endtype = END_POSI;
       end_value = lss_->displacement_ * 1.0f;
       speed = speed / 60.0f;
+    } else {
+      assert(lss_->ctrl_type_ == CTRL_LOAD);
+      if (st_ctrl_type_of_keep_load_current_ < 0) {
+        st_ctrl_type_of_keep_load_current_ = CTRL_POSI;
+        ctrl_type = CTRL_POSI;
+        endtype = END_LOAD;
+        speed = 2.0f / 60.0f;
+        end_value = lss_->threshold_ * 1.0f;
+      } else {
+        st_ctrl_type_of_keep_load_current_ = CTRL_LOAD;
+        st_ctrl_type_of_keep_load_current_start_time_ =
+            anx::common::GetCurrentTimeMillis();
+      }
     }
   }
+
   LOG_F(LG_INFO) << "carry_200:" << ctrl_type << " " << endtype << " " << speed
                  << " " << end_value;
   bool bSuccess =
@@ -1630,24 +1703,7 @@ bool WorkWindowSecondPage::StaticAircraftDoMoveDown() {
     LOG_F(LG_ERROR) << "carry_200 error";
     return false;
   }
-  /////////////////////////////////////////////////////////////////////////////
-  if (ctrl_type == CTRL_LOAD) {
-    Sleep(500);
-    int32_t version = anx::device::stload::STLoadHelper::STLoadVersion();
-    if (version == 1) {
-      endtype = END_TIME;
-    } else {
-      endtype = END_TIME_V2;
-    }
-    /// time default is 10s
-    end_value = lss_->keep_load_duration_ * 1.0f;
-    bSuccess =
-        anx::device::stload::STLoadHelper::st_load_loader_.st_api_.carry_200(
-            ctrl_type, endtype, speed, end_value, 0, false, DIR_NO, 0, 1, 0);
-    if (!bSuccess) {
-      LOG_F(LG_ERROR) << "carry_200 error";
-    }
-  }
+
   return true;
 }
 
@@ -1656,6 +1712,8 @@ bool WorkWindowSecondPage::StaticAircraftStop() {
   anx::device::stload::STLoadHelper::st_load_loader_.st_api_.stop_run();
   st_load_is_running_ = false;
   st_load_event_from_ = kSTLoadEventNone;
+  st_ctrl_type_of_keep_load_current_ = -1;
+  st_ctrl_type_of_keep_load_current_start_time_ = 0;
   return true;
 }
 
