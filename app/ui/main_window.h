@@ -88,6 +88,7 @@ class MainWindow : public DuiLib::WindowImplBase {
   CHorizontalLayoutUI* hlayout_work_pilot_e10c_;
   CButtonUI* btn_work_pilot_e10c_;
   CButtonUI* btn_app_settings_;
+  bool is_deal_with_quit_ = false;
 };
 }  // namespace ui
 }  // namespace anx

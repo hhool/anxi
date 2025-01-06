@@ -14,9 +14,11 @@
 #include "app/common/file_utils.h"
 #include "app/common/module_utils.h"
 #include "app/common/string_utils.h"
+#include "app/common/usb_auth.h"
 #include "app/esolution/solution_design.h"
 #include "app/ui/app_config.h"
 #include "app/ui/dialog_app_settings.h"
+#include "app/ui/dialog_common.h"
 #include "app/ui/ui_constants.h"
 #include "app/ui/work_window.h"
 
@@ -119,6 +121,18 @@ LRESULT MainWindow::OnSetFocus(UINT /*uMsg*/,
                                WPARAM /*wParam*/,
                                LPARAM /*lParam*/,
                                BOOL& bHandled) {
+  if (!anx::common::CheckUsbAuth()) {
+    if (is_deal_with_quit_) {
+      return 0;
+    }
+    is_deal_with_quit_ = true;
+    anx::ui::DialogCommon::ShowDialog(
+        m_hWnd, "错误", "授权信息读取失败, 自动退出系统。",
+        anx::ui::DialogCommon::kDialogCommonStyleOk);
+    PostQuitMessage(0);
+    bHandled = TRUE;
+    return 0;
+  }
   bHandled = TRUE;
   /// @note redraw the window when it is shown again.
   /// @note it is necessary to redraw the window when it is shown again.

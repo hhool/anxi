@@ -70,3 +70,12 @@ target_include_directories(${PREFIX}_sqlite_unittest PRIVATE ${CMAKE_CURRENT_SOU
 # Link gtest
 target_link_libraries(${PREFIX}_sqlite_unittest gtest_main gtest SQLite::SQLite3)
 set_target_properties(${PREFIX}_sqlite_unittest PROPERTIES FOLDER "test")
+
+# ###############
+# Define a test
+add_executable(${PREFIX}_usb_auth_unittest usb_auth_unittest.cc)
+target_include_directories(${PREFIX}_usb_auth_unittest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../third_party/usb_auth/source)
+
+# Link gtest
+target_link_libraries(${PREFIX}_usb_auth_unittest gtest_main gtest)
+set_target_properties(${PREFIX}_usb_auth_unittest PROPERTIES FOLDER "test")
