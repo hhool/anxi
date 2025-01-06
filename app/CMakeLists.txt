@@ -46,7 +46,9 @@ set(COMMON_FILES
     common/thread.cc
     common/thread.h
     common/time_utils.cc
-    common/time_utils.h)
+    common/time_utils.h
+    common/usb_auth.cc
+    common/usb_auth.h)
 source_group("common" FILES ${COMMON_FILES})
 list(APPEND APP_SOURCES ${COMMON_FILES})
 
