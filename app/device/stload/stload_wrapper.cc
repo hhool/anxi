@@ -107,6 +107,8 @@ bool STLoadLoader::Load(const std::string& dll_path) {
       reinterpret_cast<SetTestDir>(GetProcAddress(h_module_, "SetTestDir"));
   st_api_.carry_200 =
       reinterpret_cast<Carry200>(GetProcAddress(h_module_, "Carry200"));
+  st_api_.set_intest =
+      reinterpret_cast<SetInTest>(GetProcAddress(h_module_, "SetInTest"));
   st_api_.carry_210 =
       reinterpret_cast<Carry210>(GetProcAddress(h_module_, "Carry210"));
   st_api_.stop_run =

@@ -176,6 +176,11 @@ BOOL CALL OffLine() {
   return TRUE;
 }
 
+BOOL CALL SetInTest(BOOL) {
+  LOG_F(LOG_LEVEL) << "SetInTest";
+  return TRUE;
+}
+
 BOOL CALL Carry200(long control,  // NOLINT
                    long end,      // NOLINT
                    float speed,

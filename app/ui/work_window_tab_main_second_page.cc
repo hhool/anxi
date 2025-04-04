@@ -733,10 +733,19 @@ void WorkWindowSecondPage::OnButtonStaticAircraftUp() {
     LOG_F(LG_WARN) << "static load is running, can not up";
     return;
   }
+  bool bSuccess =
+      anx::device::stload::STLoadHelper::st_load_loader_.st_api_.set_intest(
+          true);
+  if (!bSuccess) {
+    LOG_F(LG_WARN) << "failed to set intest";
+    return;
+  }
   st_load_event_from_ = kSTLoadEventFromButtonUpDown;
   if (!StaticAircraftDoMoveUp()) {
     LOG_F(LG_ERROR) << "StaticAircraftDoMoveUp error";
     st_load_event_from_ = kSTLoadEventNone;
+    anx::device::stload::STLoadHelper::st_load_loader_.st_api_.set_intest(
+        false);
     return;
   }
   st_load_is_running_ = true;
@@ -758,10 +767,19 @@ void WorkWindowSecondPage::OnButtonStaticAircraftDown() {
     LOG_F(LG_WARN) << "static load is running, can not down";
     return;
   }
+  bool bSuccess =
+      anx::device::stload::STLoadHelper::st_load_loader_.st_api_.set_intest(
+          true);
+  if (!bSuccess) {
+    LOG_F(LG_WARN) << "failed to set intest";
+    return;
+  }
   st_load_event_from_ = kSTLoadEventFromButtonUpDown;
   if (!StaticAircraftDoMoveDown()) {
     LOG_F(LG_ERROR) << "StaticAircraftDoMoveDown error";
     st_load_event_from_ = kSTLoadEventNone;
+    anx::device::stload::STLoadHelper::st_load_loader_.st_api_.set_intest(
+        false);
     return;
   }
   st_load_is_running_ = true;
@@ -783,6 +801,12 @@ void WorkWindowSecondPage::OnButtonStaticAircraftStop() {
   // anx::device::stload::STLoadHelper::st_load_loader_.st_api_.end_read();
   LOG_F(LG_INFO) << "stop the static load";
   StaticAircraftStop();
+  bool bSuccess =
+      anx::device::stload::STLoadHelper::st_load_loader_.st_api_.set_intest(
+          true);
+  if (!bSuccess) {
+    LOG_F(LG_WARN) << "failed to set intest";
+  }
   btn_sa_keep_load_->SetEnabled(true);
   btn_sa_clear_->SetEnabled(true);
   btn_sa_up_->SetEnabled(true);
@@ -831,6 +855,13 @@ void WorkWindowSecondPage::OnButtonStaticAircraftKeepLoad() {
   /// @brief static aircraft stop.
   // StaticAircraftStop();
   /// @brief static aircraft keep load.
+  bool bSuccess =
+      anx::device::stload::STLoadHelper::st_load_loader_.st_api_.set_intest(
+          true);
+  if (!bSuccess) {
+    LOG_F(LG_WARN) << "failed to set intest";
+    return;
+  }
   st_load_event_from_ = kSTLoadEventFromKeepLoadButton;
   st_ctrl_type_of_keep_load_current_ = -1;
   if (lss_->direct_ == 1) {

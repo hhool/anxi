@@ -22,7 +22,6 @@
 #else
 #define STLOAD_SIMULATION_API
 #endif
- 
 #if defined(WIN32) || defined(_WIN32)
 #include <windows.h>
 #define CALL __stdcall
@@ -516,50 +515,53 @@ STLOAD_SIMULATION_API char* __stdcall GetExtensions();
 STLOAD_SIMULATION_API char* __stdcall GetExtendSensors();
 
 STLOAD_SIMULATION_API BOOL __stdcall OpenDevice(long Unit);  // NOLINT
-STLOAD_SIMULATION_API BOOL __stdcall OpenDeviceLAN(char* IpAddress, short nPort);   // NOLINT
+STLOAD_SIMULATION_API BOOL __stdcall OpenDeviceLAN(char* IpAddress,
+                                                   short nPort);  // NOLINT
 STLOAD_SIMULATION_API BOOL __stdcall CloseDevice();
 
 STLOAD_SIMULATION_API void __stdcall SetTestDir(long dir);   // NOLINT
 STLOAD_SIMULATION_API BOOL __stdcall CarryPID(long channel,  // NOLINT
-                                    long Kp,       // NOLINT
-                                    long Ki,       // NOLINT
-                                    long Kd);      // NOLINT
+                                              long Kp,       // NOLINT
+                                              long Ki,       // NOLINT
+                                              long Kd);      // NOLINT
 
 STLOAD_SIMULATION_API BOOL __stdcall OnLine(long channelNo,  // NOLINT
-                                  int nLoadIndex,
-                                  int nExtensionIndex,
-                                  int nExtendIndex,
-                                  int rate,
-                                  int machineType,
-                                  int DTCType,
-                                  BYTE sensorPosition,
-                                  BYTE CloseOfflineCheck,
-                                  int dataBlockSize,
-                                  BOOL isAE);
+                                            int nLoadIndex,
+                                            int nExtensionIndex,
+                                            int nExtendIndex,
+                                            int rate,
+                                            int machineType,
+                                            int DTCType,
+                                            BYTE sensorPosition,
+                                            BYTE CloseOfflineCheck,
+                                            int dataBlockSize,
+                                            BOOL isAE);
 STLOAD_SIMULATION_API BOOL __stdcall OffLine();
 
 STLOAD_SIMULATION_API BOOL __stdcall Carry200(long control,  // NOLINT
-                                    long end,      // NOLINT
-                                    float speed,
-                                    float value,
-                                    float threshold,
-                                    BOOL priority,
-                                    long dir,        // NOLINT
-                                    float keepvalue, /* 0 */
-                                    long keepdatum,  // NOLINT /* 1 */
-                                    long TestModle   // NOLINT /* 0* */
-);                                                   // NOLINT
-STLOAD_SIMULATION_API BOOL __stdcall Carry210(long lOpen);     // NOLINT
+                                              long end,      // NOLINT
+                                              float speed,
+                                              float value,
+                                              float threshold,
+                                              BOOL priority,
+                                              long dir,        // NOLINT
+                                              float keepvalue, /* 0 */
+                                              long keepdatum,  // NOLINT /* 1 */
+                                              long TestModle  // NOLINT /* 0* */
+);                                                            // NOLINT
+STLOAD_SIMULATION_API BOOL __stdcall SetInTest(BOOL);
+STLOAD_SIMULATION_API BOOL __stdcall Carry210(long lOpen);  // NOLINT
 STLOAD_SIMULATION_API BOOL __stdcall StopRun();
 STLOAD_SIMULATION_API BOOL __stdcall BeforeGetSample();
 STLOAD_SIMULATION_API void __stdcall AfterGetSample();
 STLOAD_SIMULATION_API BOOL __stdcall StartRead();
 STLOAD_SIMULATION_API BOOL __stdcall EndRead();
 
-STLOAD_SIMULATION_API void __stdcall SetSectCorrA(long channel, double corr);  // NOLINT
-STLOAD_SIMULATION_API BOOL __stdcall SetResolve(long channel,                  // NOLINT
-                                      DWORD Resolve,
-                                      float Nominal);
+STLOAD_SIMULATION_API void __stdcall SetSectCorrA(long channel,
+                                                  double corr);  // NOLINT
+STLOAD_SIMULATION_API BOOL __stdcall SetResolve(long channel,    // NOLINT
+                                                DWORD Resolve,
+                                                float Nominal);
 
 STLOAD_SIMULATION_API double __stdcall GetTestTime();
 STLOAD_SIMULATION_API double __stdcall GetLoad();

@@ -258,6 +258,7 @@ typedef BOOL(CALL* Carry200)(long control,  // NOLINT
                              long keepdatum,  // NOLINT /* 1 */
                              long TestModle   // NOLINT /* 0* */
 );                                            // NOLINT
+typedef BOOL(CALL* SetInTest)(BOOL);
 ///////////////////////////////////////////////
 /// @brief Carry the 210
 /// @param lOpen the lOpen
@@ -306,6 +307,7 @@ struct stload_api {
   TareTime tare_time;
   CarryPID carry_pid;
   SetTestDir set_test_dir;
+  SetInTest set_intest;
   Carry200 carry_200;
   Carry210 carry_210;
   StopRun stop_run;
